@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strategy &amp; Consulting Job Board</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f7f6f3; --card: #ffffff; --panel: #fbfaf8; --text: #151515; --text-2: #555249; --muted: #8a867c;
+    --border: rgba(20,20,20,0.12); --brand: #b31b1b; --brand-dark: #7a1212; --brand-ink: #ffffff;
+    --good: #14724f; --good-bg: #e2f3ea; --warn: #8a5a00; --warn-bg: #fbefd2; --bad: #a3231f; --bad-bg: #fbe3e1;
+    --neutral: #55524a; --neutral-bg: #ebe9e3; --chip: #efede7; --shadow: 0 1px 2px rgba(20,20,20,.05), 0 6px 18px rgba(20,20,20,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0f0f0e; --card: #1a1a19; --panel: #151514; --text: #f3f2ee; --text-2: #c4c2b8; --muted: #8e8b80;
+      --border: rgba(255,255,255,0.12); --brand: #e34948; --brand-dark: #8f1414; --brand-ink: #ffffff;
+      --good: #5fd3a2; --good-bg: #12342a; --warn: #f0c35c; --warn-bg: #3a2e0e; --bad: #ff8f8a; --bad-bg: #3d1a19;
+      --neutral: #c4c2b8; --neutral-bg: #2a2a28; --chip: #242422; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0f0f0e; --card: #1a1a19; --panel: #151514; --text: #f3f2ee; --text-2: #c4c2b8; --muted: #8e8b80;
+    --border: rgba(255,255,255,0.12); --brand: #e34948; --brand-dark: #8f1414; --brand-ink: #ffffff;
+    --good: #5fd3a2; --good-bg: #12342a; --warn: #f0c35c; --warn-bg: #3a2e0e; --bad: #ff8f8a; --bad-bg: #3d1a19;
+    --neutral: #c4c2b8; --neutral-bg: #2a2a28; --chip: #242422; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  a { color: inherit; }
+  button, select, input { font: inherit; color: inherit; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+
+  header.hero { background: linear-gradient(135deg, #1b1b1a 0%, var(--brand-dark) 160%); color: #f4f3ef; padding: 28px 0 0; }
+  header.hero h1 { margin: 0; font-size: clamp(22px, 4vw, 32px); letter-spacing: .02em; }
+  header.hero p { margin: 6px 0 16px; color: #d8d6cc; }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .stat { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
+  .stat b { font-weight: 650; }
+  nav.tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+  nav.tabs button { background: transparent; border: 0; color: #d8d6cc; padding: 10px 16px; border-radius: 10px 10px 0 0; cursor: pointer; font-weight: 600; }
+  nav.tabs button[aria-selected="true"] { background: var(--bg); color: var(--text); }
+  nav.tabs .count { background: var(--brand); color: #fff; border-radius: 999px; padding: 0 7px; font-size: 12px; margin-left: 6px; }
+
+  main { padding: 18px 0 60px; }
+  .layout { display: grid; grid-template-columns: 270px 1fr; gap: 18px; align-items: start; }
+  aside.filters { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px;
+    position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  aside.filters h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 16px 0 6px; }
+  aside.filters h3:first-of-type { margin-top: 4px; }
+  .field { width: 100%; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--border); background: var(--panel); }
+  label.chk { display: flex; gap: 10px; align-items: center; padding: 5px 8px; margin: 0 -8px; border-radius: 8px; cursor: pointer; font-size: 14.5px; }
+  label.chk:hover { background: var(--chip); }
+  label.chk input { accent-color: var(--brand); width: 20px; height: 20px; margin: 0; flex-shrink: 0; cursor: pointer; }
+  label.chk .n { margin-left: auto; color: var(--muted); font-size: 12px; }
+  .intl { background: var(--good-bg); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin-bottom: 4px; }
+  .intl label.chk { font-weight: 600; }
+  .resetbtn { width: 100%; margin-bottom: 6px; }
+  .grplinks { display: flex; gap: 6px; justify-content: flex-end; font-size: 12.5px; color: var(--muted); margin: -4px 0 2px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+  .tag { border: 1px solid var(--border); background: var(--chip); color: var(--text); border-radius: 999px; padding: 4px 10px; font-size: 12.5px; cursor: pointer; }
+  .tag:hover { border-color: var(--brand); }
+  .btn.mobileonly { display: none; }
+  .intl small { color: var(--text-2); display: block; margin-left: 24px; }
+  .stickybar { position: sticky; top: 0; z-index: 30; background: var(--bg); padding: 8px 0 0; margin-top: -8px; }
+  .stickybar .intlbar { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; margin: 0 0 8px; }
+  .stickybar .intlbar small { display: none; }
+  .stickybar .intlbar { padding: 6px 10px; }
+  .stickybar .searchbar { margin-bottom: 8px; }
+  .stickybar .toolbar { margin-bottom: 0; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .linkbtn { background: none; border: 0; color: var(--brand); cursor: pointer; padding: 0; text-decoration: underline; font-size: 13px; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .toolbar .count { color: var(--text-2); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow); }
+  .job { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; }
+  .job .co { font-size: 13px; color: var(--text-2); font-weight: 600; }
+  .job h2 { margin: 1px 0 4px; font-size: 17px; line-height: 1.3; }
+  .job h2 a { text-decoration: none; }
+  .job h2 a:hover { text-decoration: underline; color: var(--brand); }
+  .meta { color: var(--text-2); font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .badge { border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 600; background: var(--chip); color: var(--text-2); white-space: nowrap; }
+  .badge.good { background: var(--good-bg); color: var(--good); }
+  .badge.warn { background: var(--warn-bg); color: var(--warn); }
+  .badge.bad { background: var(--bad-bg); color: var(--bad); }
+  .badge.neutral { background: var(--neutral-bg); color: var(--neutral); }
+  .actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+  .btn { border: 1px solid var(--border); background: var(--panel); border-radius: 9px; padding: 6px 12px; cursor: pointer; font-weight: 600; font-size: 13px; text-decoration: none; display: inline-block; }
+  .btn.primary { background: var(--brand); color: var(--brand-ink); border-color: transparent; }
+  .actions > .btn, .actions > .applywrap { width: 104px; }
+  .actions > .btn, .actions .applywrap > .btn { text-align: center; box-sizing: border-box; }
+  .actions .applywrap > .btn { width: 100%; }
+  .btn.on { background: var(--warn-bg); color: var(--warn); }
+  .heronote { font-size: 14.5px; font-weight: 600; line-height: 1.45; max-width: 780px; background: #fff3cd; color: #3a2a00; border-left: 6px solid #f2b705; border-radius: 10px; padding: 10px 14px; margin: 12px 0 0; }
+  .hero p.heronote { color: #3a2a00; opacity: 1; }
+  .heronote b { font-weight: 800; letter-spacing: .04em; }
+  .reasons { margin: 8px 0 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--text-2); }
+  .empty { text-align: center; color: var(--muted); padding: 50px 10px; }
+  .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+  /* one block per company: a header, then that company's role cards */
+  .group { margin-bottom: 16px; }
+  .ghead { width: 100%; text-align: left; display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 11px 14px; cursor: pointer; box-shadow: var(--shadow); }
+  .ghead:hover, .ghead:focus-visible { border-color: var(--brand); outline: none; }
+  .gname { font-size: 17px; font-weight: 700; }
+  .gcount { color: var(--text-2); font-size: 13.5px; }
+  .chev { color: var(--muted); transition: transform .12s; width: 14px; flex: none; }
+  .group[data-open="true"] .chev { transform: rotate(90deg); }
+  .gbody { margin: 10px 0 0 10px; padding-left: 12px; border-left: 3px solid var(--border); }
+  .gbody .card:last-child { margin-bottom: 0; }
+  .group[data-open="false"] .gbody { display: none; }
+  .searchbar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 10px 12px; }
+  .field.big { flex: 1 1 280px; width: auto; font-size: 16px; padding: 11px 14px; }
+  .scope { display: flex; gap: 4px; background: var(--chip); border-radius: 999px; padding: 3px; }
+  .scope label { cursor: pointer; }
+  .scope input { position: absolute; opacity: 0; pointer-events: none; }
+  .scope span { display: block; padding: 5px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 600; color: var(--text-2); }
+  .scope input:checked + span { background: var(--brand); color: var(--brand-ink); }
+  .scope input:focus-visible + span { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .applywrap { position: relative; }
+  .applymenu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; min-width: 210px; max-height: 320px; overflow-y: auto; margin: 0; padding: 6px; list-style: none;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
+  .applymenu .hdr { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 4px 8px 6px; }
+  .applymenu a { display: block; padding: 7px 10px; border-radius: 8px; text-decoration: none; font-size: 14px; }
+  .applymenu a:hover, .applymenu a:focus-visible { background: var(--chip); color: var(--brand); outline: none; }
+  .mylisttop { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin: 4px 0 12px; }
+  .mylisttop .notice { flex: 1; margin: 0; background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 9px 12px; font-size: 13.5px; font-weight: 600; }
+  .mylisttop .btn { flex-shrink: 0; }
+  .exportbtn { padding: 12px 22px; font-size: 15px; font-weight: 700; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+  .exportbtn:hover:not(:disabled) { filter: brightness(1.12); }
+  .exportbtn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+  @media (max-width: 860px) { .mylisttop { flex-direction: column; align-items: stretch; } }
+  details.gone-box { margin-top: 22px; }
+  details.gone-box summary { cursor: pointer; font-weight: 700; padding: 10px 0; }
+  .gonelist { list-style: none; margin: 0; padding: 0; columns: 2; column-gap: 28px; font-size: 14px; }
+  .gonelist li { padding: 4px 0; break-inside: avoid; }
+  .gone { text-decoration: line-through; color: var(--text-2); }
+  .gonewho { color: var(--muted); font-size: 12.5px; }
+  @media (max-width: 860px) { .gonelist { columns: 1; } }
+  .credit { font-size: 12.5px; color: var(--muted); text-align: center; padding: 18px 0 30px; }
+  .note { font-size: 12.5px; color: var(--muted); margin-top: 22px; line-height: 1.5; }
+
+  table.firms { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .firms th, .firms td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: top; }
+  .firms th { background: var(--panel); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); cursor: pointer; white-space: nowrap; }
+  .firms tr.row { cursor: pointer; }
+  .firms tr.row:hover td { background: var(--panel); }
+  .firms tr.detail td { background: var(--panel); color: var(--text-2); font-size: 13.5px; }
+  .tagline { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .fwrap { overflow-x: auto; }
+  .filterbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .filterbar .field { width: auto; min-width: 150px; }
+  .status { padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); font-size: 13px; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    aside.filters { display: none; }
+    aside.filters.open { display: block; position: static; max-height: none; overflow: visible; }
+    .btn.mobileonly { display: inline-block !important; }
+    .stickybar .intlbar small { display: none; }
+    .job { grid-template-columns: 1fr; }
+    .actions { flex-direction: row; align-items: center; }
+    /* here the Apply button sits at the left of the card, so open the menu to the right of it (not off the screen's left edge) */
+    .applymenu { left: 0; right: auto; max-width: calc(100vw - 48px); }
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <h1>Strategy &amp; Consulting Job Board</h1>
+    <p>Strategy, consulting and ops roles pulled from firms' public job pages, with visa signals.</p>
+    <p class="heronote"><b>DISCLAIMER:</b> Many of these openings are experienced-hire roles rather than structured campus recruiting cycles, so check each firm's page for how and when to apply. This is not an exhaustive list: it only includes roles pulled from firms' public job pages, so also look for other opportunities beyond what is listed here.</p>
+    <div class="stats" id="stats"></div>
+    <nav class="tabs" role="tablist" id="tabs">
+      <button role="tab" aria-selected="false" data-tab="new" id="tabNew">What's new<span id="newDate"></span> <span class="count" id="newCount">0</span></button>
+      <button role="tab" aria-selected="true" data-tab="mba" id="tabMba">MBA roles <span class="count" id="mbaCount">0</span></button>
+      <button role="tab" aria-selected="false" data-tab="other" id="tabOther">Other roles <span class="count" id="otherCount">0</span></button>
+      
+      <button role="tab" aria-selected="false" data-tab="mylist">My list <span class="count" id="mycount">0</span></button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- ROLES -->
+  <section id="tab-jobs">
+    <div class="layout">
+      <aside class="filters" id="filters">
+        <button class="btn resetbtn" id="reset" type="button">Reset all filters</button>
+        <h3>Visa signal</h3><div id="f-visa"></div>
+        <h3>Role type</h3><div id="f-category"></div>
+        <h3>Seniority</h3><div id="f-seniority"></div>
+        <h3>Employer</h3><div id="f-group"></div>
+        <h3>Posted</h3>
+        <select class="field" id="posted">
+          <option value="0">Any time</option><option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option><option value="90">Last 90 days</option>
+        </select>
+        <h3>Location</h3>
+        <select class="field" id="location" aria-label="Location"><option value="">Any location</option></select>
+        <h3>Deadline</h3><div id="f-deadline"></div>
+        <label class="chk"><input type="checkbox" id="hidePassed" checked> Hide roles whose deadline has passed</label>
+        <select class="field" id="closingWithin" aria-label="Closing within" style="margin-top:6px">
+          <option value="0">Any closing date</option><option value="7">Closing within 7 days</option>
+          <option value="14">Closing within 14 days</option><option value="30">Closing within 30 days</option>
+        </select>
+      </aside>
+      <div>
+        <div class="stickybar">
+        <div class="intl intlbar">
+          <label class="chk" title="Based on the sponsorship information available for each role."><input type="checkbox" id="hideUnlikely"> <b>International students:</b> hide roles that say no sponsorship</label>
+          <small id="intlNote">Based on the sponsorship information available for each role.</small>
+        </div>
+        <div class="searchbar card">
+          <input class="field big" id="q" type="search" list="suggest" autocomplete="off"
+                 placeholder="Search by company or job title" aria-label="Search roles">
+          <datalist id="suggest"></datalist>
+        </div>
+        <div class="toolbar">
+          <div class="count" id="count"></div>
+          <button class="btn mobileonly" id="filtersToggle" type="button">Filters</button>
+          <div class="tools">
+            <button class="linkbtn" id="expandAll" type="button">Expand all</button> &middot;
+            <button class="linkbtn" id="collapseAll" type="button">Collapse all</button>
+            <label style="margin-left:10px">Sort companies <select class="field" id="sort" style="width:auto">
+              <option value="name">A-Z</option><option value="roles">Most roles</option>
+              <option value="new">Newest</option><option value="deadline">Soonest deadline</option>
+            </select></label>
+          </div>
+        </div>
+        </div>
+        <div class="tags" id="activeTags"></div>
+        <div id="jobs"></div>
+        <div id="removedBox"></div>
+        <p class="note" id="jobsNote"></p>
+      </div>
+    </div>
+  </section>
+
+  
+
+  <!-- MY LIST -->
+  <section id="tab-mylist" class="hidden">
+    <div class="mylisttop">
+      <p class="notice" id="mylistNote">Your list is saved in this browser only. It is not shared and will not follow you to another device.
+        Use Export to keep a copy as a spreadsheet file.</p>
+      <button class="btn primary exportbtn" id="exportList" type="button">&#11015; Export list (CSV)</button>
+    </div>
+    <div id="mylist"></div>
+  </section>
+</main>
+<footer class="wrap credit">Roles are collected from firms' public job pages and can change at any time.</footer>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  "use strict";
+  var D = window.BOARD_DATA || { jobs: [], firms: [], stats: {}, generated: "" };
+  var jobs = D.jobs;
+  
+  var $ = function (id) { return document.getElementById(id); };
+  var VISA_ORDER = { "Likely": 0, "Case-by-case": 1, "Unknown": 2, "Unlikely": 3 };
+  var VISA_CLASS = { "Likely": "good", "Case-by-case": "warn", "Unknown": "neutral", "Unlikely": "bad" };
+  // Roles saved in someone's browser before the rename keep the old label; show them under the current name.
+  function visaName(v) { return v === "Possible" || v === "Case by case" ? "Case-by-case" : (v || "Unknown"); }
+  // "What's new": the build records, per update, which postings appeared and which disappeared. The tab combines every update since
+  // D.changes_since into one comparison with that update, so it walks them oldest first and nets out roles that came and went.
+  var SINCE = D.changes_since || "";
+  var addedOn = {}, removedList = [], removedByUrl = {};
+  (D.changes || []).slice().reverse().forEach(function (b) {
+    (b.added || []).forEach(function (u) {
+      if (removedByUrl[u]) { removedByUrl[u].back = true; return; }   // there at the start, dropped off, back again: no change
+      if (!addedOn[u]) addedOn[u] = b.date;
+    });
+    (b.removed || []).forEach(function (r) {
+      var urls = r.urls || [];
+      if (urls.some(function (u) { return addedOn[u]; })) return;      // appeared after the start and is gone again: no change
+      var item = { company: r.company, title: r.title, visa: r.visa, date: b.date };
+      urls.forEach(function (u) { removedByUrl[u] = item; });
+      removedList.push(item);
+    });
+  });
+  removedList = removedList.filter(function (r) { return !r.back; });
+  function dayLabel(iso) { var p = (iso || "").split("-"); return p.length === 3 ? MONTHS[+p[1] - 1] + " " + (+p[2]) : ""; }
+  function inTabNow(j) { return jobsTab === "new" ? !!addedOn[j.url] : jobsTab === "other" ? !j.mba : !!j.mba; }
+  var MBA_LABELS = { title: "MBA in title", required: "MBA required", preferred: "MBA preferred", firm: "Firm recruits MBAs" };
+  var SENIORITY_ORDER = ["Associate", "Sr. Associate", "Manager", "Sr. Manager"];
+  var CATEGORY_ORDER = ["Strategy Consulting", "Tech & Digital Consulting", "Corp Strategy", "BizOps / Strategy & Ops",
+    "Chief of Staff", "Product Ops", "GTM / Revenue Ops", "Transformation / PMO"];
+
+  // ---- safe storage (can throw in private windows) ----
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } }
+  };
+  var saved = store.get("jb_saved", {}); // url -> {status, job}
+
+  // ---- helpers ----
+  function el(tag, attrs, children) {
+    var n = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) {
+      if (k === "class") n.className = attrs[k];
+      else if (k === "text") n.textContent = attrs[k];
+      else if (k.slice(0, 2) === "on") n.addEventListener(k.slice(2), attrs[k]);
+      else n.setAttribute(k, attrs[k]);
+    });
+    (children || []).forEach(function (c) { if (c) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return n;
+  }
+  function safeUrl(u) { return /^https?:\/\//i.test(u || "") ? u : "#"; }
+  function daysAgo(s) {
+    if (!s) return null;
+    var d = new Date(s + "T00:00:00"); if (isNaN(d)) return null;
+    return Math.max(0, Math.round((Date.now() - d.getTime()) / 864e5));
+  }
+  function ageText(n) { return n === null ? "Date unknown" : n === 0 ? "Today" : n === 1 ? "1 day ago" : n < 60 ? n + " days ago" : Math.round(n / 30) + " months ago"; }
+  function fmtSalary(s) {
+    if (!s) return null;
+    if (typeof s === "string") return s.length > 60 ? s.slice(0, 57) + "..." : s;
+    function k(n) { return n >= 1000 ? "$" + Math.round(n / 1000) + "K" : "$" + n; }
+    if (s.min && s.max) return k(s.min) + " - " + k(s.max);
+    return null;
+  }
+  function locNames(j) {
+    return j.locations && j.locations.length ? unique(j.locations.map(function (l) { return l.name; })) : [j.location || ""];
+  }
+  // ---- deadlines (days are computed in the visitor's browser, so "days left" stays right as the page ages) ----
+  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var DEADLINE_LABELS = { date: "Specific date", rolling: "Rolling", asap: "ASAP", unknown: "Unknown but apply ASAP" };
+  function startOfToday() { var d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function deadlineOf(j) { return j.deadline && j.deadline.kind ? j.deadline : { kind: "unknown", date: null }; }
+  function deadlineDays(j) {
+    var d = deadlineOf(j); if (d.kind !== "date" || !d.date) return null;
+    var p = d.date.split("-");
+    return Math.round((new Date(+p[0], +p[1] - 1, +p[2]) - startOfToday()) / 864e5);
+  }
+  function deadlineInfo(j) {
+    var d = deadlineOf(j), days = deadlineDays(j);
+    if (d.kind === "date" && days !== null) {
+      var p = d.date.split("-"), when = MONTHS[+p[1] - 1] + " " + (+p[2]) + ", " + p[0];
+      if (days < 0) return { text: when + " (passed)", cls: "bad" };
+      if (days === 0) return { text: when + " (today)", cls: "bad" };
+      return { text: when + " (" + days + (days === 1 ? " day" : " days") + " left)", cls: days <= 7 ? "warn" : "good" };
+    }
+    if (d.kind === "rolling") return { text: "Rolling", cls: "neutral" };
+    if (d.kind === "asap") return { text: "ASAP", cls: "warn" };
+    return { text: DEADLINE_LABELS.unknown, cls: "neutral" };
+  }
+  // Soonest first: upcoming dates, then ASAP, rolling, unknown; passed deadlines last.
+  function deadlineRank(j) {
+    var d = deadlineDays(j);
+    if (d !== null) return d < 0 ? 5000 - d : d;
+    var k = deadlineOf(j).kind;
+    return k === "asap" ? 1000 : k === "rolling" ? 2000 : 3000;
+  }
+
+  function locText(j) {
+    var n = locNames(j), total = j.n_locations || n.length;
+    if (total > 15) return "Multiple locations (" + total + ")";   // a posting that lists every office
+    if (n.length <= 1) return n[0] || "Location not listed";
+    return n.length + " locations: " + n.slice(0, 3).join(" · ") + (n.length > 3 ? " +" + (n.length - 3) + " more" : "");
+  }
+  function closeMenus(except) {
+    Array.prototype.forEach.call(document.querySelectorAll(".applymenu"), function (m) {
+      if (m === except) return;
+      m.classList.add("hidden");
+      var b = m.previousSibling; if (b && b.setAttribute) b.setAttribute("aria-expanded", "false");
+    });
+  }
+  document.addEventListener("click", function (e) { if (!e.target.closest(".applywrap")) closeMenus(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeMenus(); });
+  // One Apply button per role. If the locations have different postings, it opens a menu so you pick where to apply.
+  function applyControl(j) {
+    var locs = j.locations && j.locations.length ? j.locations : [{ name: j.location, url: j.url }];
+    var urls = unique(locs.map(function (l) { return l.url; }));
+    if (urls.length <= 1) {
+      var a1 = el("a", { class: "btn primary", href: safeUrl(urls[0] || j.url), target: "_blank", rel: "noopener noreferrer", text: "Apply" });
+      a1.addEventListener("click", function () { markSaved(j); });
+      return a1;
+    }
+    var wrap = el("div", { class: "applywrap" });
+    var btn = el("button", { class: "btn primary", type: "button", "aria-haspopup": "true", "aria-expanded": "false", text: "Apply ▾" });
+    var items = [el("li", { class: "hdr", text: "Choose a location" })].concat(locs.map(function (l) {
+      // Each link is its own posting: say when a place has several openings, and when that posting is remote-eligible.
+      var label = l.name + (l.opening ? " (opening " + l.opening + ")" : "") + (l.remote && l.name !== "Remote" ? " · remote OK" : "");
+      var ml = el("a", { href: safeUrl(l.url), target: "_blank", rel: "noopener noreferrer", text: label });
+      ml.addEventListener("click", function () { markSaved(j); });
+      return el("li", {}, [ml]);
+    }));
+    var menu = el("ul", { class: "applymenu hidden" }, items);
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var willOpen = menu.classList.contains("hidden");
+      closeMenus(menu);
+      menu.classList.toggle("hidden", !willOpen);
+      btn.setAttribute("aria-expanded", String(willOpen));
+      if (willOpen) { var first = menu.querySelector("a"); if (first) first.focus(); }
+    });
+    wrap.appendChild(btn); wrap.appendChild(menu);
+    return wrap;
+  }
+  function count(arr, f) { var m = {}; arr.forEach(function (x) { var k = f(x); m[k] = (m[k] || 0) + 1; }); return m; }
+  function unique(arr) { return arr.filter(function (v, i) { return v && arr.indexOf(v) === i; }); }
+
+  // ---- header ----
+  var st = D.stats || {};
+  var statItems = [["Refreshed", D.generated], ["Roles", jobs.length],
+    ["Companies with a job feed", (st.companies_with_board || 0) + " of " + (st.companies_scanned || 0)]];
+  
+  statItems.forEach(function (p) {
+    $("stats").appendChild(el("span", { class: "stat" }, [p[0] + " ", el("b", { text: String(p[1]) })]));
+  });
+
+  // ---- tabs ----
+  // "MBA roles" and "Other roles" are two views of the same list; they share one section of the page.
+  var jobsTab = "mba";
+  function showTab(name) {
+    if (name === "jobs") name = "mba";                                       // an older remembered value
+    var section = (name === "mba" || name === "other" || name === "new") ? "jobs" : name;
+    if (!$("tab-" + section)) { name = "mba"; section = "jobs"; }            // e.g. a remembered tab this version doesn't have
+    if (section === "jobs") jobsTab = name;
+    ["jobs", "firms", "mylist"].forEach(function (t) { var s = $("tab-" + t); if (s) s.classList.toggle("hidden", t !== section); });
+    Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function (b) { b.setAttribute("aria-selected", String(b.dataset.tab === name)); });
+    if (name === "mylist") renderMyList();
+    if (section === "jobs") render();
+    store.set("jb_tab", name);
+  }
+  $("tabs").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) showTab(b.dataset.tab); });
+
+  // ---- roles: filters ----
+  var filterState = {};
+  function buildCheckGroup(containerId, key, values, counts, defaultsOff, labels) {
+    var c = $(containerId); c.textContent = "";
+    filterState[key] = {};
+    var links = el("div", { class: "grplinks" });
+    [["All", true], ["None", false]].forEach(function (x, i) {
+      if (i) links.appendChild(document.createTextNode("\u00b7"));
+      var b = el("button", { class: "linkbtn", type: "button", text: x[0], "aria-label": x[0] + " in this group" });
+      b.addEventListener("click", function () {
+        Array.prototype.forEach.call(c.querySelectorAll("label.chk"), function (l) {
+          l.querySelector("input").checked = x[1]; filterState[key][l.getAttribute("data-v")] = x[1];
+        });
+        render();
+      });
+      links.appendChild(b);
+    });
+    c.appendChild(links);
+    values.forEach(function (v) {
+      var on = !(defaultsOff && defaultsOff.indexOf(v) >= 0);
+      filterState[key][v] = on;
+      var cb = el("input", { type: "checkbox" }); cb.checked = on;
+      cb.addEventListener("change", function () { filterState[key][v] = cb.checked; render(); });
+      c.appendChild(el("label", { class: "chk", "data-v": v }, [cb, el("span", { text: (labels && labels[v]) || v }), el("span", { class: "n", text: String(counts[v] || 0) })]));
+    });
+  }
+  function initFilters() {
+    var cats = CATEGORY_ORDER.filter(function (c) { return jobs.some(function (j) { return j.category === c; }); });
+    buildCheckGroup("f-category", "category", cats, count(jobs, function (j) { return j.category; }));
+    var sen = SENIORITY_ORDER.filter(function (s) { return jobs.some(function (j) { return j.seniority === s; }); });
+    buildCheckGroup("f-seniority", "seniority", sen, count(jobs, function (j) { return j.seniority; }));
+    buildCheckGroup("f-visa", "visa", ["Likely", "Case-by-case", "Unknown"], count(jobs, function (j) { return j.visa; }));
+    buildLocationOptions();
+    buildCheckGroup("f-deadline", "deadline", ["date", "rolling", "asap", "unknown"],
+      count(jobs, function (j) { return deadlineOf(j).kind; }), null, DEADLINE_LABELS);
+    buildCheckGroup("f-group", "group", ["consulting", "tech"], count(jobs, function (j) { return j.group; }));
+    // friendlier labels for the employer group
+    var labels = $("f-group").querySelectorAll("label span:nth-child(2)");
+    if (labels[0]) labels[0].textContent = "Consulting firms";
+    if (labels[1]) labels[1].textContent = "Tech & other companies";
+  }
+  // The location menu lists every place that has roles, with how many. "Remote / US-wide" comes first, then A-Z.
+  function buildLocationOptions() {
+    var sel = $("location"), keep = sel.value, counts = {};
+    jobs.forEach(function (j) { (j.cities || []).forEach(function (c) { counts[c] = (counts[c] || 0) + 1; }); });
+    var REMOTE = "Remote / US-wide";
+    var places = Object.keys(counts).sort(function (a, b) {
+      return (a === REMOTE ? -1 : 0) - (b === REMOTE ? -1 : 0) || a.localeCompare(b);
+    });
+    allPlaces = places;                 // render() narrows the menu to places that have roles in the current view
+    sel.value = counts[keep] ? keep : "";
+  }
+  var allPlaces = [];
+  ["q", "hideUnlikely", "posted", "sort", "hidePassed", "closingWithin", "location"].forEach(function (id) {
+    $(id).addEventListener(id === "q" ? "input" : "change", render);
+  });
+  $("reset").addEventListener("click", function () {
+    $("q").value = ""; $("hideUnlikely").checked = false; $("posted").value = "0"; $("location").value = "";
+    $("hidePassed").checked = true; $("closingWithin").value = "0";
+    initFilters(); render();
+  });
+
+  // `skip` names one filter to ignore, so that filter's own numbers can show what ticking it would give.
+  function passes(j, skip) {
+    if (j.review) return false;                       // low-confidence matches stay out of the board
+    if (skip !== "category" && !filterState.category[j.category]) return false;
+    if (skip !== "seniority" && filterState.seniority[j.seniority] === false) return false;   // roles with no ladder level always show
+    if (skip !== "visa" && filterState.visa[j.visa] === false) return false;
+    if (skip !== "group" && !filterState.group[j.group]) return false;
+    if ($("hideUnlikely").checked && j.visa === "Unlikely") return false;
+    var p = parseInt($("posted").value, 10);
+    if (p) { var a = daysAgo(j.posted); if (a === null || a > p) return false; }
+    var place = $("location").value;
+    if (skip !== "location" && place && (j.cities || []).indexOf(place) < 0) return false;
+    if (skip !== "deadline" && !filterState.deadline[deadlineOf(j).kind]) return false;
+    var dd = deadlineDays(j);
+    if ($("hidePassed").checked && dd !== null && dd < 0) return false;
+    var within = parseInt($("closingWithin").value, 10);
+    if (within && (dd === null || dd < 0 || dd > within)) return false;   // "closing within" only applies to dated roles
+    var q = $("q").value.trim().toLowerCase();
+    if (q) {   // one box searches company, job title, location and role type together
+      var hay = (j.company + " " + j.title + " " + j.location + " " + j.category).toLowerCase();
+      if (!q.split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; })) return false;
+    }
+    return true;
+  }
+  function fillSuggestions() {
+    var dl = $("suggest"); dl.textContent = "";
+    var names = jobs.map(function (j) { return j.company; }).concat(jobs.map(function (j) { return j.title; }));
+    unique(names).sort().forEach(function (n) { dl.appendChild(el("option", { value: n })); });
+  }
+
+  function snapshot(j) {
+    return { company: j.company, title: j.title, url: j.url, location: j.location, locations: j.locations,
+      n_locations: j.n_locations, visa: j.visa, deadline: j.deadline, category: j.category };
+  }
+  // Clicking Apply also puts the role in My list as "Saved", in case the student does not finish applying. They can change
+  // the status to Applied there. A role that is already in My list keeps its status.
+  function markSaved(j) {
+    if (saved[j.url]) return;
+    saved[j.url] = { status: "Saved", job: snapshot(j) };
+    store.set("jb_saved", saved); updateMyCount();
+    // redraw after the browser has opened the application link
+    setTimeout(function () { if (!$("tab-mylist").classList.contains("hidden")) renderMyList(); else render(); }, 80);
+  }
+  function saveBtn(j) {
+    var e = saved[j.url], isSaved = !!e, applied = isSaved && e.status !== "Saved";
+    var b = el("button", { class: "btn" + (isSaved ? " on" : ""), type: "button", "aria-pressed": String(isSaved),
+      text: applied ? e.status : isSaved ? "Saved" : "Save", title: applied ? "In My list as " + e.status + ". Click to open My list." : "" });
+    b.addEventListener("click", function () {
+      if (applied) { showTab("mylist"); return; }
+      if (saved[j.url]) delete saved[j.url];
+      else saved[j.url] = { status: "Saved", job: snapshot(j) };
+      store.set("jb_saved", saved); updateMyCount(); render();
+    });
+    return b;
+  }
+
+  function jobCard(j) {
+    var age = daysAgo(j.posted), sal = j.salary_varies ? "Salary varies by location" : fmtSalary(j.salary);
+    var dl = deadlineInfo(j);
+    var badges = el("div", { class: "badges" }, [
+      el("span", { class: "badge " + dl.cls, text: "Deadline: " + dl.text }),
+      el("span", { class: "badge", text: j.category }),
+      el("span", { class: "badge", text: j.seniority }),
+      addedOn[j.url] ? el("span", { class: "badge good", text: "NEW \u00b7 " + dayLabel(addedOn[j.url]) }) : null,
+      j.n_locations > 1 ? el("span", { class: "badge neutral", text: j.n_locations + " locations" }) : null,
+      j.remote_ok && locNames(j).some(function (n) { return n !== "Remote"; }) ? el("span", { class: "badge neutral", text: "Remote OK" }) : null,
+      el("span", { class: "badge " + VISA_CLASS[j.visa], text: "Visa: " + j.visa }),
+      j.mba ? el("span", { class: "badge good", text: MBA_LABELS[j.mba] || "MBA preferred" }) : null,
+      sal ? el("span", { class: "badge", text: sal }) : null,
+      j.min_years ? el("span", { class: "badge", text: j.min_years + "+ yrs" }) : null,
+      j.review ? el("span", { class: "badge warn", text: "Low-confidence match" }) : null
+    ]);
+    var reasons = el("ul", { class: "reasons" }, (j.visa_reasons || []).map(function (r) { return el("li", { text: r }); }));
+    var left = el("div", {}, [
+      el("div", { class: "co", text: j.company }),
+      el("h2", {}, [el("a", { href: safeUrl(j.url), target: "_blank", rel: "noopener noreferrer", text: j.title })]),
+      el("div", { class: "meta" }, [el("span", { text: locText(j) }), el("span", { text: ageText(age) })]),
+      badges, reasons
+    ]);
+    var right = el("div", { class: "actions" }, [applyControl(j), saveBtn(j)]);
+    return el("article", { class: "card job" }, [left, right]);
+  }
+
+  // Every company starts collapsed so the page stays scannable; a click (or Expand all) opens it.
+  var openGroups = {};
+  function isGroupOpen(company, n) { return openGroups[company] !== undefined ? openGroups[company] : false; }   // every company starts collapsed
+
+  function groupBody(rolesList, direct) {
+    var body = el("div", { class: "gbody" });
+    rolesList.forEach(function (j) { body.appendChild(jobCard(j)); });
+    if (direct) body.appendChild(directCard(direct, rolesList.length > 0));
+    return body;
+  }
+  function groupBlock(company, rolesList, direct) {
+    var open = isGroupOpen(company, rolesList.length || 99);       // firms with no roles start closed
+    var g = el("section", { class: "group", "data-open": String(open) });
+    var head = el("button", { class: "ghead", type: "button", "aria-expanded": String(open) }, [
+      el("span", { class: "chev", text: "▸" }), el("span", { class: "gname", text: company }),
+      el("span", { class: "gcount", text: rolesList.length ? rolesList.length + (rolesList.length === 1 ? " role" : " roles") : "see careers page" })]);
+    head.addEventListener("click", function () {
+      var now = g.getAttribute("data-open") !== "true";
+      openGroups[company] = now; g.setAttribute("data-open", String(now)); head.setAttribute("aria-expanded", String(now));
+      if (now && !g.querySelector(".gbody")) g.appendChild(groupBody(rolesList, direct));   // cards are built the first time a group opens
+    });
+    g.appendChild(head);
+    if (open) g.appendChild(groupBody(rolesList, direct));
+    return g;
+  }
+
+  // The numbers beside each filter count roles (not locations) in the tab being shown, with every other filter applied.
+  var FACETS = { category: function (j) { return [j.category]; }, seniority: function (j) { return [j.seniority]; },
+                 visa: function (j) { return [j.visa]; }, group: function (j) { return [j.group]; },
+                 deadline: function (j) { return [deadlineOf(j).kind]; }, location: function (j) { return j.cities || []; } };
+  function updateCounts() {
+    var inTab = jobs.filter(inTabNow);
+    Object.keys(FACETS).forEach(function (key) {
+      var c = {};
+      inTab.forEach(function (j) { if (passes(j, key)) FACETS[key](j).forEach(function (v) { c[v] = (c[v] || 0) + 1; }); });
+      if (key === "location") {
+        // Only places that have roles right now are listed (the chosen one stays so it can be cleared).
+        var sel = $("location"), keep = sel.value;
+        var places = allPlaces.filter(function (p) { return c[p] || p === keep; });
+        sel.textContent = "";
+        sel.appendChild(el("option", { value: "", text: "Any location" }));
+        places.forEach(function (p) { sel.appendChild(el("option", { value: p, text: p + " (" + (c[p] || 0) + ")" })); });
+        sel.value = keep;
+        return;
+      }
+      Array.prototype.forEach.call($("f-" + key).querySelectorAll("label"), function (l) {
+        l.querySelector(".n").textContent = String(c[l.getAttribute("data-v")] || 0);
+      });
+    });
+  }
+
+  // Firms whose job lists can't be read automatically. They sit in the company list like any other firm; opening one shows a
+  // card that points to the firm's own careers page. A firm that also has roles above gets the card after its roles.
+  var NOTE_NONE = "This firm's job list can't be pulled in automatically, so its roles are missing from this board or only partly shown. Open its own page for current openings.";
+  var NOTE_SOME = "Some of this firm's roles can't be pulled in automatically, so the roles above may be only part of what is open. Open its own page for current openings.";
+  var DIRECT = [
+    { co: "McKinsey & Company", url: "https://www.mckinsey.com/careers/search-jobs" },
+    { co: "Bain & Company", url: "https://www.bain.com/careers/find-a-role/" },
+    { co: "Alvarez & Marsal", url: "https://careers.alvarezandmarsal.com/" },
+    { co: "TCS", url: "https://www.tcs.com/careers/united-states", tab: "mba" },
+    { co: "DHL Consulting", url: "https://careers.dhl.com/global/en", extra: "Known opening: Management Consultant.", tab: "mba" },
+    { co: "Fidelity Consulting", url: "https://jobs.fidelity.com/", extra: "Known opening: 2027 MBA Graduate, Senior Consultant (Boston, MA).", tab: "mba" },
+    { co: "U.S. Secret Service", url: "https://www.secretservice.gov/careers", extra: "Known opening: Special Advisor Program (Internal Consulting), Washington, DC. Apply by Feb 26, 2027. Federal jobs usually require U.S. citizenship, so check the posting.", tab: "mba" },
+    { co: "Kroll", url: "https://careers.kroll.com/" },
+    { co: "Wipfli", url: "https://www.wipfli.com/careers", extra: "Known area: Transaction Advisory Services." },
+    { co: "StoneTurn", url: "https://www.stoneturn.com/careers/" },
+    { co: "PwC", url: "https://jobs-us.pwc.com/us/en" },
+    { co: "Strategy&", url: "https://www.strategyand.pwc.com/us/en/careers.html" }
+  ];
+  function directCard(f, hasRoles) {
+    var left = el("div", {}, [el("div", { class: "co", text: f.co }),
+      el("h2", {}, [el("a", { href: f.url, target: "_blank", rel: "noopener noreferrer", text: hasRoles ? "More openings on the firm's careers page" : "Current openings on the firm's careers page" })])]);
+    if (f.extra) left.appendChild(el("p", { class: "meta", text: f.extra }));
+    left.appendChild(el("p", { class: "meta", text: hasRoles ? NOTE_SOME : NOTE_NONE }));
+    var e = saved[f.url];
+    var save = el("button", { class: "btn" + (e ? " on" : ""), type: "button", "aria-pressed": String(!!e), text: e ? "Saved" : "Save" });
+    save.addEventListener("click", function () {
+      if (saved[f.url]) delete saved[f.url];
+      else saved[f.url] = { status: "Saved", job: { company: f.co, title: "Careers page: current openings", url: f.url, location: "See the firm's careers page",
+        locations: [{ name: "Careers page", url: f.url }], n_locations: 1, visa: "Unknown", deadline: { kind: "unknown", date: null } } };
+      store.set("jb_saved", saved); updateMyCount(); render();
+    });
+    return el("article", { class: "card job" }, [left,
+      el("div", { class: "actions" }, [el("a", { class: "btn primary", href: f.url, target: "_blank", rel: "noopener noreferrer", text: "Careers page" }), save])]);
+  }
+
+  // Small removable tags above the results that say what is narrowing the list.
+  var GROUP_TITLES = { category: "Role type", seniority: "Seniority", visa: "Visa signal", deadline: "Deadline", group: "Employer" };
+  function drawTags() {
+    var box = $("activeTags"); box.textContent = "";
+    function tag(text, undo) {
+      var b = el("button", { class: "tag", type: "button", title: "Click to remove", text: text + "  ✕" });
+      b.addEventListener("click", function () { undo(); render(); });
+      box.appendChild(b);
+    }
+    Object.keys(GROUP_TITLES).forEach(function (key) {
+      var all = Object.keys(filterState[key] || {}), on = all.filter(function (v) { return filterState[key][v]; });
+      if (all.length && on.length < all.length) {
+        tag(GROUP_TITLES[key] + ": " + on.length + " of " + all.length + " shown", function () {
+          all.forEach(function (v) { filterState[key][v] = true; });
+          Array.prototype.forEach.call($("f-" + key).querySelectorAll("input"), function (i) { i.checked = true; });
+        });
+      }
+    });
+    if ($("location").value) tag("Location: " + $("location").value, function () { $("location").value = ""; });
+    if ($("posted").value !== "0") tag("Posted: " + $("posted").options[$("posted").selectedIndex].text, function () { $("posted").value = "0"; });
+    if ($("closingWithin").value !== "0") tag($("closingWithin").options[$("closingWithin").selectedIndex].text, function () { $("closingWithin").value = "0"; });
+    if (!$("hidePassed").checked) tag("Showing roles whose deadline has passed", function () { $("hidePassed").checked = true; });
+  }
+  $("filtersToggle").addEventListener("click", function () { $("filters").classList.toggle("open"); });
+
+  // Postings that disappeared in recent updates, kept small and collapsed under the New list.
+  function drawRemoved() {
+    var box = $("removedBox"); box.textContent = "";
+    if (jobsTab !== "new" || !removedList.length) return;
+    var q = $("q").value.trim().toLowerCase(), hide = $("hideUnlikely").checked, hidden = 0;
+    var rows = removedList.filter(function (r) {
+      if (q && !q.split(/\s+/).every(function (w) { return (r.company + " " + r.title).toLowerCase().indexOf(w) >= 0; })) return false;
+      if (hide && r.visa === "Unlikely") { hidden++; return false; }
+      return true;
+    });
+    var d = el("details", { class: "gone-box" }, [el("summary", { text: "No longer listed (" + rows.length + ")" })]);
+    d.appendChild(el("p", { class: "note", style: "margin:0 0 8px", text: "These were removed from the firms' job pages (they may have been filled or paused). Check the firm's site if you were interested." }));
+    var ul = el("ul", { class: "gonelist" });
+    rows.sort(function (a, b) { return a.company.localeCompare(b.company) || a.title.localeCompare(b.title); }).forEach(function (r) {
+      ul.appendChild(el("li", {}, [el("span", { class: "gone", text: r.title }), " ", el("span", { class: "gonewho", text: r.company + " · " + dayLabel(r.date) })]));
+    });
+    d.appendChild(ul);
+    if (hidden) d.appendChild(el("p", { class: "note", text: hidden + " more are hidden because they say they don't sponsor visas." }));
+    box.appendChild(d);
+  }
+
+  var visibleCompanies = [];
+  function render() {
+    var matches = jobs.filter(passes);
+    var mbaList = matches.filter(function (j) { return !!j.mba; });
+    var otherList = matches.filter(function (j) { return !j.mba; });
+    var newList = matches.filter(function (j) { return !!addedOn[j.url]; });
+    $("mbaCount").textContent = String(mbaList.length);
+    $("otherCount").textContent = String(otherList.length);
+    $("newCount").textContent = String(newList.length);
+    $("newDate").textContent = D.generated ? " · " + dayLabel(D.generated) : "";   // date of the last refresh
+    var list = jobsTab === "new" ? newList : jobsTab === "other" ? otherList : mbaList;
+    updateCounts();
+    drawTags();
+
+    var byCo = {};
+    list.forEach(function (j) { (byCo[j.company] = byCo[j.company] || []).push(j); });
+    var companies = Object.keys(byCo);
+    $("count").textContent = list.length + (list.length === 1 ? " role" : " roles") + " at " + companies.length + (companies.length === 1 ? " company" : " companies");
+    // Firms to check directly: shown with the search and the employer filter, next to the firms that have roles.
+    var q0 = $("q").value.trim().toLowerCase(), directOf = {};
+    DIRECT.forEach(function (f) {
+      if (jobsTab === "new" || (f.tab && f.tab !== jobsTab)) return;                 // e.g. TCS and DHL Consulting belong with the MBA roles
+      var hasRolesAnywhere = jobs.some(function (j) { return j.company === f.co; });
+      if (!filterState.group.consulting) return;
+      if (q0 && !q0.split(/\s+/).every(function (w) { return f.co.toLowerCase().indexOf(w) >= 0; })) return;
+      if (hasRolesAnywhere) { if (byCo[f.co]) directOf[f.co] = f; return; }     // after its roles, in the tabs that show them
+      if ($("location").value) return;                                        // a place filter can't match a careers page
+      directOf[f.co] = f; if (!byCo[f.co]) { byCo[f.co] = []; companies.push(f.co); }
+    });
+    visibleCompanies = companies;
+
+    var box = $("jobs"); box.textContent = "";
+    if (jobsTab === "new" && SINCE) {
+      box.appendChild(el("p", { class: "note", style: "margin:0 0 10px", text: "Changes since the " + dayLabel(SINCE) + " update: roles added since then, " +
+        "marked with the update that first found them. Roles that are no longer listed are at the bottom." }));
+    }
+    if (!list.length && jobsTab === "new") {
+      box.appendChild(el("div", { class: "empty", text: "No new roles match these filters." + (newList.length ? "" : " Nothing new has been added since the " + (SINCE ? dayLabel(SINCE) + " update." : "last update.")) }));
+    } else if (!list.length) {
+      var otherTab = jobsTab === "other" ? "MBA" : "Other", elsewhere = jobsTab === "other" ? mbaList.length : otherList.length;
+      box.appendChild(el("div", { class: "empty", text: "No " + (jobsTab === "other" ? "other" : "MBA") + " roles match these filters." +
+        (elsewhere ? " " + elsewhere + " match in the " + otherTab + " roles tab." : " Try resetting the filters.") }));
+    }
+
+    var s = $("sort").value;
+    var withinCompany = function (a, b) {      // order of roles inside one company
+      if (s === "deadline") return deadlineRank(a) - deadlineRank(b) || (b.posted || "").localeCompare(a.posted || "");
+      return VISA_ORDER[a.visa] - VISA_ORDER[b.visa] || (b.posted || "").localeCompare(a.posted || "");
+    };
+    var newest = function (c) { return byCo[c].reduce(function (m, j) { return (j.posted || "") > m ? j.posted : m; }, ""); };
+    var soonest = function (c) { return byCo[c].length ? Math.min.apply(null, byCo[c].map(deadlineRank)) : 1e9; };
+    companies.sort(function (a, b) {
+      if (s === "roles") return byCo[b].length - byCo[a].length || a.localeCompare(b);
+      if (s === "new") return newest(b).localeCompare(newest(a)) || a.localeCompare(b);
+      if (s === "deadline") return soonest(a) - soonest(b) || a.localeCompare(b);
+      return a.localeCompare(b);
+    });
+    companies.forEach(function (c) { box.appendChild(groupBlock(c, byCo[c].sort(withinCompany), directOf[c] || null)); });
+    drawRemoved();
+
+    $("jobsNote").textContent =
+      "Visa labels are a guide, not a guarantee: they come from what each posting says and other employer information. " +
+      "Confirm with the employer before relying on them. Listings come from each company's public job feed; check the company page for the latest status. " +
+      "At consulting firms, manager and senior manager roles are listed only when the posting mentions an MBA or asks for fewer than 5 years of experience." +
+      (jobsTab === "new" ? " New roles are postings that were not on the firms' pages at the " + (SINCE ? dayLabel(SINCE) + " update" : "previous update") + "; the date is the update that first showed them." : "") +
+      (jobsTab === "mba" ? " MBA roles are postings with \"MBA\" in the title or that say an MBA is preferred or required, plus consulting roles at firms that recruit MBAs." : "");
+  }
+  $("expandAll").addEventListener("click", function () { visibleCompanies.forEach(function (c) { openGroups[c] = true; }); render(); });
+  $("collapseAll").addEventListener("click", function () { visibleCompanies.forEach(function (c) { openGroups[c] = false; }); render(); });
+
+  
+
+  // ---- my list ----
+  var STATUSES = ["Saved", "Applied", "Interviewing", "Offer", "Passed"];
+  // ---- export My list as a CSV file (opens in Excel or Google Sheets) ----
+  function csvCell(v) {
+    v = v == null ? "" : String(v);
+    if (/^[=+\-@\t\r]/.test(v)) v = "'" + v;            // a cell that starts like a formula is kept as plain text
+    return '"' + v.replace(/"/g, '""') + '"';
+  }
+  function exportMyList() {
+    var rows = [["Company", "Status", "Role", "Role type", "Location(s)", "Visa signal", "Deadline", "Apply link",
+                 "Links by location", "Your notes"]];
+    var urls = Object.keys(saved);
+    STATUSES.forEach(function (st) {
+      urls.filter(function (u) { return saved[u].status === st; }).forEach(function (u) {
+        var j = saved[u].job, d = deadlineOf(j);
+        var names = locNames(j).filter(Boolean), locUrls = unique((j.locations || []).map(function (l) { return l.url; }));
+        rows.push([j.company, st, j.title, j.category || "", names.join("; "), visaName(j.visa),
+          d.kind === "date" ? d.date : d.kind === "rolling" ? "Rolling" : d.kind === "asap" ? "ASAP" : "Unknown (apply ASAP)",
+          j.url, locUrls.length > 1 ? (j.locations || []).map(function (l) { return l.name + ": " + l.url; }).join(" | ") : "", ""]);
+      });
+    });
+    var csv = "﻿" + rows.map(function (r) { return r.map(csvCell).join(","); }).join("\r\n");
+    var a = el("a", { href: URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })),
+      download: "my-job-list-" + new Date().toISOString().slice(0, 10) + ".csv" });
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
+  $("exportList").addEventListener("click", exportMyList);
+  function updateMyCount() {
+    $("exportList").disabled = !Object.keys(saved).length; $("mycount").textContent = String(Object.keys(saved).length); }
+  function renderMyList() {
+    var box = $("mylist"); box.textContent = "";
+    var urls = Object.keys(saved);
+    if (!urls.length) { box.appendChild(el("div", { class: "empty", text: "Nothing saved yet. Use Save on any role to track it here." })); return; }
+    STATUSES.forEach(function (s) {
+      var items = urls.filter(function (u) { return saved[u].status === s; });
+      if (!items.length) return;
+      box.appendChild(el("h3", { text: s + " (" + items.length + ")", style: "margin:16px 0 8px" }));
+      items.forEach(function (u) {
+        var e = saved[u], j = e.job;
+        var sel = el("select", { class: "status", "aria-label": "Status for " + j.title }, STATUSES.map(function (x) {
+          var o = el("option", { value: x, text: x }); if (x === e.status) o.selected = true; return o; }));
+        sel.addEventListener("change", function () { saved[u].status = sel.value; store.set("jb_saved", saved); renderMyList(); });
+        var rm = el("button", { class: "btn", type: "button", text: "Remove", onclick: function () { delete saved[u]; store.set("jb_saved", saved); updateMyCount(); renderMyList(); render(); } });
+        box.appendChild(el("div", { class: "card job" }, [
+          el("div", {}, [el("div", { class: "co", text: j.company }),
+            el("h2", {}, [el("a", { href: safeUrl(j.url), target: "_blank", rel: "noopener noreferrer", text: j.title })]),
+            el("div", { class: "meta" }, [el("span", { text: locText(j) }),
+              el("span", { class: "badge " + deadlineInfo(j).cls, text: "Deadline: " + deadlineInfo(j).text }),
+              el("span", { class: "badge " + (VISA_CLASS[visaName(j.visa)] || "neutral"), text: "Visa: " + visaName(j.visa) })])]),
+          el("div", { class: "actions" }, [applyControl(j), sel, rm])
+        ]));
+      });
+    });
+  }
+
+  initFilters(); fillSuggestions(); updateMyCount(); render();
+  
+  showTab(store.get("jb_tab", "mba"));   // opens on MBA roles unless the visitor last used another tab
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+data/raw_fetch.json
+data/history.backup-*.json
+logs/
+.wrangler/
+node_modules/
+__pycache__/
+*Firm Database*.csv
+data/firm_database.csv

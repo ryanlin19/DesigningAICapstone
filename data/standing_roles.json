@@ -1,0 +1,23 @@
+{
+  "_help": "Roles that a firm keeps posted all year on a careers page this project cannot read automatically (McKinsey, Bain). Each entry is typed in by hand from the firm's own public page, so it is not refreshed: update `checked` whenever you look again and delete an entry that is gone. Fields: company (exactly as in the firm database), title, url, location, description, mba (title | required | preferred, or null for a role outside the MBA tab), checked. Optional deadline (YYYY-MM-DD); a passed date hides the role by default.",
+  "roles": [
+    {
+      "company": "McKinsey & Company",
+      "title": "Associate (experienced hire)",
+      "url": "https://www.mckinsey.com/careers/search-jobs/jobs/associate-15178",
+      "location": "Multiple US offices, United States",
+      "description": "McKinsey's consulting Associate role: joins a client service team and owns a workstream. The posting asks for an advanced graduate degree (for example an MBA or PhD) or equivalent work experience. Standing posting listed for many offices; open the posting for the current office list. This is an experienced-hire opening, not the full-time MBA recruiting pipeline.",
+      "mba": "preferred",
+      "checked": "2026-10-23"
+    },
+    {
+      "company": "Bain & Company",
+      "title": "Consultant (experienced hire)",
+      "url": "https://www.bain.com/careers/find-a-role/position/?jobid=10409",
+      "location": "Multiple US offices, United States",
+      "description": "Bain's Management Consulting Consultant role (permanent, full-time), listed for offices across the Americas, Europe and Asia-Pacific. Experienced hires are considered year-round; check the posting for current offices. This is an experienced-hire opening, not the full-time MBA recruiting pipeline.",
+      "mba": "preferred",
+      "checked": "2026-10-23"
+    }
+  ]
+}

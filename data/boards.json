@@ -1,0 +1,1367 @@
+{
+ "180 Degrees": null,
+ "9 Dots Consulting Limited": null,
+ "AArete": null,
+ "Abbott Risk Consulting Ltd": null,
+ "ABeam Consulting Ltd.": null,
+ "Abt Global": {
+  "platform": "lever",
+  "slug": "abt"
+ },
+ "Accenture": {
+  "platform": "workday",
+  "slug": "accenture"
+ },
+ "Acquis Consulting": null,
+ "Actionist": null,
+ "Actus Consulting Group": null,
+ "Adaptive Financial Consulting Ltd": null,
+ "Advancy": null,
+ "Advisory Board (Optum/Vista Equity)": null,
+ "AEA Consulting": null,
+ "Aequitas Global": null,
+ "Aetha Consulting Limited": null,
+ "AiQ Consulting": null,
+ "AIS Consulting": null,
+ "Alacrita": null,
+ "Alexander Group": {
+  "platform": "alexander",
+  "slug": "https://www.alexandergroup.com"
+ },
+ "Alix Partners": {
+  "platform": "greenhouse",
+  "slug": "alixpartners"
+ },
+ "Altman Solon": {
+  "platform": "greenhouse",
+  "slug": "altmansolonuslp"
+ },
+ "Alvarez & Marsal": null,
+ "Aminad Consulting": null,
+ "Analysis Group": null,
+ "Aon": null,
+ "Applied Value Group": null,
+ "Arrayo": null,
+ "Arthur D. Little": null,
+ "Audactus": null,
+ "Avanade": null,
+ "Avencore": null,
+ "Back Bay Life Science Advisors": null,
+ "Bain & Company": {
+  "platform": "standing",
+  "slug": "careers page"
+ },
+ "Baringa Partners": {
+  "platform": "greenhouse",
+  "slug": "baringa"
+ },
+ "Bates White Economic Consulting": null,
+ "BearingPoint": {
+  "platform": "greenhouse",
+  "slug": "bearingpoint"
+ },
+ "Bennett Midland": null,
+ "Berkeley Research Group": null,
+ "Booz Allen Hamilton": {
+  "platform": "workday",
+  "slug": "bah"
+ },
+ "Boston Consulting Group (BCG)": {
+  "platform": "phenom",
+  "slug": "https://careers.bcg.com"
+ },
+ "BPM Advisory": null,
+ "CAA Portas": null,
+ "Cambridge Associates": null,
+ "Capco": {
+  "platform": "greenhouse",
+  "slug": "capco"
+ },
+ "Capgemini": {
+  "platform": "capgemini",
+  "slug": "Capgemini"
+ },
+ "Capstone": null,
+ "Cargill": null,
+ "Censeo Consulting Group": null,
+ "Centre for Public Impact": null,
+ "Centric Consulting": null,
+ "Charles River Associates": {
+  "platform": "greenhouse",
+  "slug": "charlesriverassociates"
+ },
+ "Chartis": {
+  "platform": "ashby",
+  "slug": "chartis"
+ },
+ "Cicero": null,
+ "Clarkston Consulting": null,
+ "ClearView Healthcare Partners": {
+  "platform": "greenhouse",
+  "slug": "clearviewhealthcarepartners"
+ },
+ "Cognizant": null,
+ "Cornerstone OnDemand": null,
+ "Cornerstone Research": null,
+ "Dalberg": null,
+ "DayBlink Consulting": {
+  "platform": "lever",
+  "slug": "dayblinkconsulting"
+ },
+ "DeciBio Consulting, LLC": {
+  "platform": "greenhouse",
+  "slug": "decibio"
+ },
+ "Delivery Associates": {
+  "platform": "greenhouse",
+  "slug": "deliveryassociates"
+ },
+ "Deloitte": {
+  "platform": "avature",
+  "slug": "https://apply.deloitte.com/en_US/careers"
+ },
+ "DHL Consulting": null,
+ "DW Simpson": null,
+ "Eagle Hill Consulting": null,
+ "Elixirr": {
+  "platform": "greenhouse",
+  "slug": "elixirr"
+ },
+ "EPAM Systems": null,
+ "Epsilon Economics and Epsilon Life Sciences": null,
+ "EVERSANA Consulting": null,
+ "EY": {
+  "platform": "sfhtml",
+  "slug": "https://careers.ey.com"
+ },
+ "EY-Parthenon": null,
+ "Fidelity Consulting": null,
+ "Forrester": null,
+ "FSG": {
+  "platform": "greenhouse",
+  "slug": "fsg"
+ },
+ "FTI Consulting": null,
+ "FulcrumQ": null,
+ "Gallup Consulting": {
+  "platform": "greenhouse",
+  "slug": "gallup"
+ },
+ "Gartner": null,
+ "GEP Worldwide": null,
+ "ghSmart": null,
+ "Grant Thornton": null,
+ "Guidehouse": {
+  "platform": "workday",
+  "slug": "guidehouse"
+ },
+ "Hackett Group": null,
+ "HCLTech": null,
+ "Health Advances": null,
+ "Hexaware Technologies": null,
+ "Hitachi Vantara": null,
+ "Humana": null,
+ "Huron Consulting Group": {
+  "platform": "workday",
+  "slug": "huron"
+ },
+ "Ignyte Group": null,
+ "Infosys": null,
+ "Innosight": null,
+ "Insero Advisors LLC": {
+  "platform": "zoho",
+  "slug": "inserocpa.zohorecruit.com"
+ },
+ "Inverto": null,
+ "Investor Group Services": {
+  "platform": "pinpoint",
+  "slug": "careers.igsinsights.com"
+ },
+ "IQVIA": null,
+ "Jabian Consulting": null,
+ "Kaiser Associates": null,
+ "Kearney": {
+  "platform": "recsolu",
+  "slug": "EPd41qlA4_03IncZMnWyRQ"
+ },
+ "Kenway Consulting": null,
+ "Keystone Strategy": {
+  "platform": "greenhouse",
+  "slug": "keystonestrategy"
+ },
+ "Korn Ferry": null,
+ "KPMG": {
+  "platform": "kpmg",
+  "slug": "https://www.kpmguscareers.com"
+ },
+ "Kx Advisors": null,
+ "L.E.K. Consulting": {
+  "platform": "talnet",
+  "slug": "L.E.K. Consulting"
+ },
+ "Liberty Mutual": null,
+ "LifeSciences Consultants": {
+  "platform": "teamtailor",
+  "slug": "https://careers.consultingls.com"
+ },
+ "Maine Pointe": null,
+ "Manifold Group": null,
+ "McChrystal Group": {
+  "platform": "lever",
+  "slug": "mcchrystalgroup"
+ },
+ "McKinsey & Company": {
+  "platform": "standing",
+  "slug": "careers page"
+ },
+ "Mercer": null,
+ "Metis Strategy": null,
+ "NERA Economic Consulting": null,
+ "North Highland": null,
+ "OC&C Strategy Consultants": null,
+ "Octagon Consulting, LLC": null,
+ "Oliver Wyman": {
+  "platform": "workday",
+  "slug": "mmc"
+ },
+ "Omnicom / OPMG": null,
+ "PA Consulting": null,
+ "Palm Tree LLC": null,
+ "Point B": {
+  "platform": "lever",
+  "slug": "pointb"
+ },
+ "Porsche Consulting": null,
+ "Prescient Healthcare Group": null,
+ "Protiviti": {
+  "platform": "workday",
+  "slug": "roberthalf"
+ },
+ "Publicis Sapient": null,
+ "Putnam": null,
+ "PwC": {
+  "platform": "phenom",
+  "slug": "https://jobs-us.pwc.com"
+ },
+ "Rely Services": null,
+ "Rios Partners": null,
+ "Roland Berger": null,
+ "RSM": null,
+ "SAIC": null,
+ "SciVida": null,
+ "ScottMadden, Inc.": null,
+ "Sendero": null,
+ "Sia Partners": null,
+ "Simon-Kucher": {
+  "platform": "csod",
+  "slug": "simon-kucher.csod.com"
+ },
+ "Slalom": null,
+ "Sogeti": null,
+ "Stax": {
+  "platform": "lever",
+  "slug": "stax"
+ },
+ "Stern Value Management": null,
+ "StoneTurn": null,
+ "Strategy&": null,
+ "Syneos Health": null,
+ "Tata Consultancy Services Limited (TCS)": null,
+ "TCC Group": null,
+ "The Brattle Group": {
+  "platform": "greenhouse",
+  "slug": "thebrattlegroup"
+ },
+ "The Bridgespan Group": null,
+ "The Keystone Group": null,
+ "The Poirier Group": null,
+ "ThoughtWorks": {
+  "platform": "greenhouse",
+  "slug": "thoughtworks"
+ },
+ "Triangle Insights Group by Valeris": null,
+ "Trinity Life Sciences": null,
+ "TriVista": null,
+ "Tyton Partners": null,
+ "Vertisystem": null,
+ "Vital Impact": null,
+ "Vivaldi_": null,
+ "VMG Health": null,
+ "Wavestone": {
+  "platform": "smartrecruiters",
+  "slug": "Wavestone1"
+ },
+ "Wellspring Consulting": null,
+ "West Monroe Partners": {
+  "platform": "greenhouse",
+  "slug": "westmonroe4"
+ },
+ "WorkBuzz": null,
+ "ZS Associates": {
+  "platform": "jibe",
+  "slug": "jobs.zs.com"
+ },
+ "OpenAI": {
+  "platform": "ashby",
+  "slug": "openai"
+ },
+ "Anthropic": {
+  "platform": "greenhouse",
+  "slug": "anthropic"
+ },
+ "Scale AI": {
+  "platform": "greenhouse",
+  "slug": "scaleai"
+ },
+ "Glean": null,
+ "Harvey": {
+  "platform": "ashby",
+  "slug": "harvey"
+ },
+ "Cohere": {
+  "platform": "ashby",
+  "slug": "cohere"
+ },
+ "Perplexity": {
+  "platform": "ashby",
+  "slug": "perplexity"
+ },
+ "Mistral": null,
+ "Anyscale": null,
+ "Databricks": {
+  "platform": "greenhouse",
+  "slug": "databricks"
+ },
+ "Hugging Face": null,
+ "Runway": {
+  "platform": "ashby",
+  "slug": "runway"
+ },
+ "ElevenLabs": {
+  "platform": "ashby",
+  "slug": "elevenlabs"
+ },
+ "Sierra": {
+  "platform": "ashby",
+  "slug": "sierra"
+ },
+ "Decagon": {
+  "platform": "ashby",
+  "slug": "decagon"
+ },
+ "Writer": {
+  "platform": "ashby",
+  "slug": "writer"
+ },
+ "Jasper": null,
+ "Cursor": {
+  "platform": "ashby",
+  "slug": "cursor"
+ },
+ "Replit": {
+  "platform": "ashby",
+  "slug": "replit"
+ },
+ "Hebbia": null,
+ "Abridge": {
+  "platform": "ashby",
+  "slug": "abridge"
+ },
+ "Weights & Biases": null,
+ "Together AI": {
+  "platform": "greenhouse",
+  "slug": "togetherai"
+ },
+ "Modal": {
+  "platform": "ashby",
+  "slug": "modal"
+ },
+ "Pinecone": {
+  "platform": "ashby",
+  "slug": "pinecone"
+ },
+ "Character AI": null,
+ "Midjourney": {
+  "platform": "ashby",
+  "slug": "midjourney"
+ },
+ "Synthesia": {
+  "platform": "ashby",
+  "slug": "synthesia"
+ },
+ "Typeface": {
+  "platform": "greenhouse",
+  "slug": "typeface"
+ },
+ "Clay": null,
+ "Rippling": null,
+ "Stripe": {
+  "platform": "greenhouse",
+  "slug": "stripe"
+ },
+ "Datadog": {
+  "platform": "greenhouse",
+  "slug": "datadog"
+ },
+ "Snowflake": {
+  "platform": "ashby",
+  "slug": "snowflake"
+ },
+ "Cloudflare": {
+  "platform": "greenhouse",
+  "slug": "cloudflare"
+ },
+ "Twilio": {
+  "platform": "greenhouse",
+  "slug": "twilio"
+ },
+ "Okta": {
+  "platform": "greenhouse",
+  "slug": "okta"
+ },
+ "Asana": {
+  "platform": "greenhouse",
+  "slug": "asana"
+ },
+ "Airtable": {
+  "platform": "greenhouse",
+  "slug": "airtable"
+ },
+ "Notion": {
+  "platform": "ashby",
+  "slug": "notion"
+ },
+ "Figma": {
+  "platform": "greenhouse",
+  "slug": "figma"
+ },
+ "Canva": null,
+ "Miro": {
+  "platform": "ashby",
+  "slug": "miro"
+ },
+ "Slack": null,
+ "Atlassian": null,
+ "HubSpot": null,
+ "Zendesk": null,
+ "Intercom": {
+  "platform": "greenhouse",
+  "slug": "intercom"
+ },
+ "MongoDB": {
+  "platform": "greenhouse",
+  "slug": "mongodb"
+ },
+ "Elastic": {
+  "platform": "greenhouse",
+  "slug": "elastic"
+ },
+ "HashiCorp": null,
+ "GitLab": {
+  "platform": "greenhouse",
+  "slug": "gitlab"
+ },
+ "GitHub": null,
+ "Vercel": {
+  "platform": "greenhouse",
+  "slug": "vercel"
+ },
+ "Netlify": {
+  "platform": "greenhouse",
+  "slug": "netlify"
+ },
+ "Webflow": {
+  "platform": "greenhouse",
+  "slug": "webflow"
+ },
+ "Retool": null,
+ "Amplitude": {
+  "platform": "ashby",
+  "slug": "amplitude"
+ },
+ "Mixpanel": {
+  "platform": "greenhouse",
+  "slug": "mixpanel"
+ },
+ "Segment": null,
+ "Snyk": {
+  "platform": "ashby",
+  "slug": "snyk"
+ },
+ "Wiz": {
+  "platform": "ashby",
+  "slug": "wiz"
+ },
+ "CrowdStrike": null,
+ "Zscaler": {
+  "platform": "greenhouse",
+  "slug": "zscaler"
+ },
+ "Lattice": {
+  "platform": "greenhouse",
+  "slug": "lattice"
+ },
+ "Gong": null,
+ "Outreach": {
+  "platform": "lever",
+  "slug": "outreach"
+ },
+ "Calendly": {
+  "platform": "greenhouse",
+  "slug": "calendly"
+ },
+ "Grammarly": null,
+ "Navan": null,
+ "Gusto": {
+  "platform": "greenhouse",
+  "slug": "gusto"
+ },
+ "Deel": {
+  "platform": "ashby",
+  "slug": "deel"
+ },
+ "Carta": {
+  "platform": "greenhouse",
+  "slug": "carta"
+ },
+ "Docusign": {
+  "platform": "lever",
+  "slug": "docusign"
+ },
+ "Dropbox": {
+  "platform": "greenhouse",
+  "slug": "dropbox"
+ },
+ "Box": null,
+ "Zoom": null,
+ "Workday": null,
+ "ServiceNow": null,
+ "Salesforce": null,
+ "Samsara": {
+  "platform": "greenhouse",
+  "slug": "samsara"
+ },
+ "Toast": {
+  "platform": "greenhouse",
+  "slug": "toast"
+ },
+ "Procore": null,
+ "Veeva": {
+  "platform": "lever",
+  "slug": "veeva"
+ },
+ "Squarespace": {
+  "platform": "greenhouse",
+  "slug": "squarespace"
+ },
+ "Wix": null,
+ "Contentful": {
+  "platform": "greenhouse",
+  "slug": "contentful"
+ },
+ "Sprinklr": null,
+ "Qualtrics": {
+  "platform": "greenhouse",
+  "slug": "qualtrics"
+ },
+ "Medallia": null,
+ "Braze": {
+  "platform": "greenhouse",
+  "slug": "braze"
+ },
+ "Iterable": {
+  "platform": "greenhouse",
+  "slug": "iterable"
+ },
+ "Klaviyo": {
+  "platform": "greenhouse",
+  "slug": "klaviyo"
+ },
+ "Attentive": {
+  "platform": "greenhouse",
+  "slug": "attentive"
+ },
+ "Postman": null,
+ "LaunchDarkly": {
+  "platform": "greenhouse",
+  "slug": "launchdarkly"
+ },
+ "PagerDuty": {
+  "platform": "greenhouse",
+  "slug": "pagerduty"
+ },
+ "New Relic": {
+  "platform": "greenhouse",
+  "slug": "newrelic"
+ },
+ "Sumo Logic": {
+  "platform": "greenhouse",
+  "slug": "sumologic"
+ },
+ "Confluent": {
+  "platform": "ashby",
+  "slug": "confluent"
+ },
+ "Fivetran": {
+  "platform": "greenhouse",
+  "slug": "fivetran"
+ },
+ "dbt Labs": null,
+ "Hex": {
+  "platform": "ashby",
+  "slug": "hex"
+ },
+ "Sigma Computing": {
+  "platform": "greenhouse",
+  "slug": "sigmacomputing"
+ },
+ "Mode": null,
+ "Looker": null,
+ "ThoughtSpot": null,
+ "Alteryx": null,
+ "UiPath": {
+  "platform": "ashby",
+  "slug": "uipath"
+ },
+ "Automation Anywhere": null,
+ "Celonis": {
+  "platform": "greenhouse",
+  "slug": "celonis"
+ },
+ "Coupa": {
+  "platform": "lever",
+  "slug": "coupa"
+ },
+ "Bill.com": {
+  "platform": "greenhouse",
+  "slug": "billcom"
+ },
+ "Expensify": {
+  "platform": "ashby",
+  "slug": "expensify"
+ },
+ "Brex": {
+  "platform": "greenhouse",
+  "slug": "brex"
+ },
+ "Ramp": {
+  "platform": "greenhouse",
+  "slug": "ramp"
+ },
+ "Mercury": {
+  "platform": "greenhouse",
+  "slug": "mercury"
+ },
+ "Rho": {
+  "platform": "ashby",
+  "slug": "rho"
+ },
+ "Airwallex": {
+  "platform": "ashby",
+  "slug": "airwallex"
+ },
+ "Wise": {
+  "platform": "greenhouse",
+  "slug": "wise"
+ },
+ "Remitly": null,
+ "Payoneer": {
+  "platform": "greenhouse",
+  "slug": "payoneer"
+ },
+ "Marqeta": null,
+ "Checkout.com": null,
+ "Adyen": {
+  "platform": "greenhouse",
+  "slug": "adyen"
+ },
+ "Plaid": {
+  "platform": "ashby",
+  "slug": "plaid"
+ },
+ "Chime": {
+  "platform": "greenhouse",
+  "slug": "chime"
+ },
+ "Affirm": {
+  "platform": "greenhouse",
+  "slug": "affirm"
+ },
+ "SoFi": {
+  "platform": "greenhouse",
+  "slug": "sofi"
+ },
+ "Block": {
+  "platform": "greenhouse",
+  "slug": "block"
+ },
+ "Robinhood": {
+  "platform": "greenhouse",
+  "slug": "robinhood"
+ },
+ "Coinbase": {
+  "platform": "greenhouse",
+  "slug": "coinbase"
+ },
+ "Kraken": {
+  "platform": "lever",
+  "slug": "kraken"
+ },
+ "Gemini": {
+  "platform": "greenhouse",
+  "slug": "gemini"
+ },
+ "Circle": {
+  "platform": "ashby",
+  "slug": "circle"
+ },
+ "Ripple": {
+  "platform": "greenhouse",
+  "slug": "ripple"
+ },
+ "Betterment": {
+  "platform": "greenhouse",
+  "slug": "betterment"
+ },
+ "Wealthfront": {
+  "platform": "lever",
+  "slug": "wealthfront"
+ },
+ "Acorns": {
+  "platform": "ashby",
+  "slug": "acorns"
+ },
+ "Stash": {
+  "platform": "ashby",
+  "slug": "stash"
+ },
+ "Dave": {
+  "platform": "ashby",
+  "slug": "dave"
+ },
+ "MoneyLion": null,
+ "Upstart": {
+  "platform": "greenhouse",
+  "slug": "upstart"
+ },
+ "LendingClub": null,
+ "Oportun": {
+  "platform": "greenhouse",
+  "slug": "oportun"
+ },
+ "Lemonade": {
+  "platform": "ashby",
+  "slug": "lemonade"
+ },
+ "Root Insurance": null,
+ "Hippo": null,
+ "Clover Health": {
+  "platform": "greenhouse",
+  "slug": "cloverhealth"
+ },
+ "Oscar Health": null,
+ "Bright Health": null,
+ "Policygenius": null,
+ "Vouch": null,
+ "Coalition": {
+  "platform": "greenhouse",
+  "slug": "coalition"
+ },
+ "At-Bay": {
+  "platform": "greenhouse",
+  "slug": "atbay"
+ },
+ "Next Insurance": null,
+ "Pie Insurance": {
+  "platform": "greenhouse",
+  "slug": "pieinsurance"
+ },
+ "Ethos": {
+  "platform": "greenhouse",
+  "slug": "ethos"
+ },
+ "Bestow": {
+  "platform": "ashby",
+  "slug": "bestow"
+ },
+ "Tala": {
+  "platform": "lever",
+  "slug": "tala"
+ },
+ "Nubank": {
+  "platform": "greenhouse",
+  "slug": "nubank"
+ },
+ "Klarna": null,
+ "Monzo": {
+  "platform": "greenhouse",
+  "slug": "monzo"
+ },
+ "Revolut": null,
+ "N26": {
+  "platform": "greenhouse",
+  "slug": "n26"
+ },
+ "Pipe": null,
+ "Capchase": {
+  "platform": "ashby",
+  "slug": "capchase"
+ },
+ "Brightside": null,
+ "Mox": null,
+ "Hims & Hers": null,
+ "Ro": {
+  "platform": "lever",
+  "slug": "ro"
+ },
+ "Zocdoc": {
+  "platform": "greenhouse",
+  "slug": "zocdoc"
+ },
+ "Flatiron Health": {
+  "platform": "greenhouse",
+  "slug": "flatironhealth"
+ },
+ "Tempus": null,
+ "Benchling": {
+  "platform": "ashby",
+  "slug": "benchling"
+ },
+ "Cityblock Health": null,
+ "Included Health": {
+  "platform": "lever",
+  "slug": "includedhealth"
+ },
+ "Oak Street Health": null,
+ "One Medical": {
+  "platform": "greenhouse",
+  "slug": "onemedical"
+ },
+ "Carbon Health": {
+  "platform": "lever",
+  "slug": "carbonhealth"
+ },
+ "Devoted Health": null,
+ "Alignment Healthcare": null,
+ "Ginger": null,
+ "Headspace": null,
+ "Calm": {
+  "platform": "greenhouse",
+  "slug": "calm"
+ },
+ "Talkspace": {
+  "platform": "greenhouse",
+  "slug": "talkspace"
+ },
+ "Lyra Health": {
+  "platform": "lever",
+  "slug": "lyrahealth"
+ },
+ "Spring Health": null,
+ "Cerebral": null,
+ "Omada Health": {
+  "platform": "greenhouse",
+  "slug": "omadahealth"
+ },
+ "Livongo": null,
+ "Teladoc": null,
+ "Doximity": {
+  "platform": "greenhouse",
+  "slug": "doximity"
+ },
+ "Komodo Health": {
+  "platform": "greenhouse",
+  "slug": "komodohealth"
+ },
+ "Verily": null,
+ "Color Health": {
+  "platform": "ashby",
+  "slug": "color-health"
+ },
+ "Sword Health": {
+  "platform": "greenhouse",
+  "slug": "swordhealth"
+ },
+ "Noom": null,
+ "Everlywell": {
+  "platform": "lever",
+  "slug": "everlywell"
+ },
+ "Grail": null,
+ "Natera": {
+  "platform": "greenhouse",
+  "slug": "natera"
+ },
+ "Illumina": null,
+ "Recursion": null,
+ "Insitro": {
+  "platform": "ashby",
+  "slug": "insitro"
+ },
+ "Ginkgo Bioworks": {
+  "platform": "greenhouse",
+  "slug": "ginkgobioworks"
+ },
+ "23andMe": null,
+ "Maven Clinic": {
+  "platform": "greenhouse",
+  "slug": "mavenclinic"
+ },
+ "Wheel": {
+  "platform": "ashby",
+  "slug": "wheel"
+ },
+ "Aledade": {
+  "platform": "lever",
+  "slug": "aledade"
+ },
+ "Zus Health": {
+  "platform": "lever",
+  "slug": "zushealth"
+ },
+ "Commure": {
+  "platform": "ashby",
+  "slug": "commure"
+ },
+ "Ro Health": null,
+ "Thirty Madison": null,
+ "Curative": null,
+ "Cue Health": null,
+ "Airbnb": {
+  "platform": "greenhouse",
+  "slug": "airbnb"
+ },
+ "DoorDash": null,
+ "Instacart": {
+  "platform": "greenhouse",
+  "slug": "instacart"
+ },
+ "Lyft": {
+  "platform": "greenhouse",
+  "slug": "lyft"
+ },
+ "Uber": null,
+ "Pinterest": {
+  "platform": "greenhouse",
+  "slug": "pinterest"
+ },
+ "Reddit": {
+  "platform": "greenhouse",
+  "slug": "reddit"
+ },
+ "Discord": {
+  "platform": "greenhouse",
+  "slug": "discord"
+ },
+ "Snap": null,
+ "Spotify": {
+  "platform": "lever",
+  "slug": "spotify"
+ },
+ "Peloton": {
+  "platform": "greenhouse",
+  "slug": "peloton"
+ },
+ "Warby Parker": null,
+ "Allbirds": null,
+ "Faire": {
+  "platform": "greenhouse",
+  "slug": "faire"
+ },
+ "Etsy": null,
+ "Poshmark": {
+  "platform": "greenhouse",
+  "slug": "poshmark"
+ },
+ "ThredUp": null,
+ "RealReal": null,
+ "Rent the Runway": {
+  "platform": "greenhouse",
+  "slug": "renttherunway"
+ },
+ "Stitch Fix": {
+  "platform": "greenhouse",
+  "slug": "stitchfix"
+ },
+ "Wayfair": null,
+ "Chewy": null,
+ "Carvana": {
+  "platform": "greenhouse",
+  "slug": "carvana"
+ },
+ "Opendoor": null,
+ "Compass": null,
+ "Zillow": null,
+ "Redfin": null,
+ "Offerpad": null,
+ "Turo": null,
+ "Vacasa": {
+  "platform": "greenhouse",
+  "slug": "vacasa"
+ },
+ "Sonder": {
+  "platform": "ashby",
+  "slug": "sonder"
+ },
+ "Duolingo": {
+  "platform": "greenhouse",
+  "slug": "duolingo"
+ },
+ "Coursera": {
+  "platform": "greenhouse",
+  "slug": "coursera"
+ },
+ "Chegg": null,
+ "Udemy": {
+  "platform": "greenhouse",
+  "slug": "udemy"
+ },
+ "Masterclass": {
+  "platform": "greenhouse",
+  "slug": "masterclass"
+ },
+ "Guild": {
+  "platform": "greenhouse",
+  "slug": "guild"
+ },
+ "2U": {
+  "platform": "greenhouse",
+  "slug": "2u"
+ },
+ "Handshake": {
+  "platform": "greenhouse",
+  "slug": "handshake"
+ },
+ "Quizlet": null,
+ "Roblox": {
+  "platform": "greenhouse",
+  "slug": "roblox"
+ },
+ "Epic Games": {
+  "platform": "greenhouse",
+  "slug": "epicgames"
+ },
+ "Unity": null,
+ "Niantic": {
+  "platform": "ashby",
+  "slug": "niantic"
+ },
+ "Twitch": {
+  "platform": "greenhouse",
+  "slug": "twitch"
+ },
+ "Substack": {
+  "platform": "ashby",
+  "slug": "substack"
+ },
+ "Patreon": {
+  "platform": "ashby",
+  "slug": "patreon"
+ },
+ "Medium": {
+  "platform": "greenhouse",
+  "slug": "medium"
+ },
+ "Strava": {
+  "platform": "ashby",
+  "slug": "strava"
+ },
+ "Whoop": {
+  "platform": "lever",
+  "slug": "whoop"
+ },
+ "Oura": {
+  "platform": "greenhouse",
+  "slug": "oura"
+ },
+ "Eight Sleep": {
+  "platform": "ashby",
+  "slug": "eightsleep"
+ },
+ "Away": {
+  "platform": "ashby",
+  "slug": "away"
+ },
+ "Glossier": {
+  "platform": "greenhouse",
+  "slug": "glossier"
+ },
+ "Harry's": {
+  "platform": "greenhouse",
+  "slug": "harrys"
+ },
+ "Dollar Shave Club": {
+  "platform": "greenhouse",
+  "slug": "dollarshaveclub"
+ },
+ "Hello Fresh": {
+  "platform": "greenhouse",
+  "slug": "hellofresh"
+ },
+ "Blue Apron": null,
+ "Imperfect Foods": null,
+ "Gopuff": {
+  "platform": "lever",
+  "slug": "gopuff"
+ },
+ "Flink": {
+  "platform": "ashby",
+  "slug": "flink"
+ },
+ "Rappi": null,
+ "Mercado Libre": null,
+ "Shein": {
+  "platform": "greenhouse",
+  "slug": "shein"
+ },
+ "Temu": null,
+ "Vroom": null,
+ "Cazoo": null,
+ "Anduril": null,
+ "Palantir": {
+  "platform": "lever",
+  "slug": "palantir"
+ },
+ "Shield AI": {
+  "platform": "lever",
+  "slug": "shieldai"
+ },
+ "Saronic": {
+  "platform": "ashby",
+  "slug": "saronic"
+ },
+ "Hadrian": null,
+ "Relativity Space": null,
+ "Rocket Lab": {
+  "platform": "greenhouse",
+  "slug": "rocketlab"
+ },
+ "Planet Labs": {
+  "platform": "greenhouse",
+  "slug": "planetlabs"
+ },
+ "Spire": {
+  "platform": "greenhouse",
+  "slug": "spire"
+ },
+ "Astra": {
+  "platform": "ashby",
+  "slug": "astra"
+ },
+ "Zipline": null,
+ "Wing": {
+  "platform": "greenhouse",
+  "slug": "wing"
+ },
+ "Waymo": {
+  "platform": "greenhouse",
+  "slug": "waymo"
+ },
+ "Nuro": {
+  "platform": "greenhouse",
+  "slug": "nuro"
+ },
+ "Aurora": null,
+ "Cruise": null,
+ "Rivian": null,
+ "Lucid": null,
+ "Tesla": null,
+ "Canoo": null,
+ "Fisker": null,
+ "Lime": null,
+ "Bird": {
+  "platform": "greenhouse",
+  "slug": "bird"
+ },
+ "Flexport": {
+  "platform": "greenhouse",
+  "slug": "flexport"
+ },
+ "Convoy": null,
+ "Project44": {
+  "platform": "greenhouse",
+  "slug": "project44"
+ },
+ "FourKites": {
+  "platform": "greenhouse",
+  "slug": "fourkites"
+ },
+ "Motive": {
+  "platform": "greenhouse",
+  "slug": "motive"
+ },
+ "Gatik": null,
+ "Embark": null,
+ "TuSimple": null,
+ "Joby": null,
+ "Archer": {
+  "platform": "greenhouse",
+  "slug": "archer"
+ },
+ "Beta Technologies": null,
+ "Skydio": {
+  "platform": "ashby",
+  "slug": "skydio"
+ },
+ "Sunrun": null,
+ "Sunnova": {
+  "platform": "greenhouse",
+  "slug": "sunnova"
+ },
+ "Enphase": null,
+ "ChargePoint": {
+  "platform": "greenhouse",
+  "slug": "chargepoint"
+ },
+ "EVgo": null,
+ "Tesla Energy": null,
+ "Form Energy": {
+  "platform": "ashby",
+  "slug": "formenergy"
+ },
+ "Commonwealth Fusion": null,
+ "Heliogen": null,
+ "Fervo": null,
+ "Redwood Materials": {
+  "platform": "greenhouse",
+  "slug": "redwoodmaterials"
+ },
+ "Lyten": null,
+ "Stem": null,
+ "Fluence": null,
+ "Aurora Solar": {
+  "platform": "ashby",
+  "slug": "aurorasolar"
+ },
+ "Palmetto": {
+  "platform": "greenhouse",
+  "slug": "palmetto"
+ },
+ "Arcadia": {
+  "platform": "lever",
+  "slug": "arcadia"
+ },
+ "Watershed": {
+  "platform": "greenhouse",
+  "slug": "watershed"
+ },
+ "Pachama": {
+  "platform": "lever",
+  "slug": "pachama"
+ },
+ "Sweep": {
+  "platform": "ashby",
+  "slug": "sweep"
+ },
+ "Persefoni": null,
+ "Crusoe": {
+  "platform": "ashby",
+  "slug": "crusoe"
+ },
+ "Lunar Energy": {
+  "platform": "greenhouse",
+  "slug": "lunarenergy"
+ },
+ "Span": {
+  "platform": "ashby",
+  "slug": "span"
+ },
+ "Rewiring America": null,
+ "Netflix": null,
+ "Hulu": null,
+ "Warner Bros Discovery": null,
+ "Roku": {
+  "platform": "greenhouse",
+  "slug": "roku"
+ },
+ "Fubo": null,
+ "DraftKings": null,
+ "FanDuel": {
+  "platform": "greenhouse",
+  "slug": "fanduel"
+ },
+ "Fanatics": null,
+ "Genius Sports": {
+  "platform": "greenhouse",
+  "slug": "geniussports"
+ },
+ "Sportradar": null,
+ "Skillz": null,
+ "Bleacher Report": null,
+ "The Athletic": {
+  "platform": "lever",
+  "slug": "theathletic"
+ },
+ "Vox Media": {
+  "platform": "greenhouse",
+  "slug": "voxmedia"
+ },
+ "Buzzfeed": null,
+ "Axios": {
+  "platform": "greenhouse",
+  "slug": "axios"
+ },
+ "Politico": null,
+ "Barstool": null,
+ "Thoughtworks": {
+  "platform": "greenhouse",
+  "slug": "thoughtworks"
+ },
+ "West Monroe": null,
+ "Huron": null,
+ "Navigant": null,
+ "BDO": null,
+ "Crowe": null,
+ "Genpact": null,
+ "Wipro": null,
+ "EPAM": null,
+ "Globant": null,
+ "Endava": null,
+ "Fractal": null,
+ "Mu Sigma": null,
+ "Tiger Analytics": null,
+ "Slalom Consulting": null,
+ "Rightpoint": null,
+ "Perficient": null,
+ "Blend360": null,
+ "Pariveda": {
+  "platform": "ashby",
+  "slug": "pariveda"
+ },
+ "Insight Partners": {
+  "platform": "ashby",
+  "slug": "insightpartners"
+ },
+ "Bridgespan": null,
+ "Boston Consulting Group": null,
+ "McKinsey": null,
+ "Bain": null,
+ "LEK": null,
+ "Monitor Deloitte": null,
+ "Parthenon": null,
+ "AlixPartners": {
+  "platform": "greenhouse",
+  "slug": "alixpartners"
+ },
+ "Huron Consulting": null,
+ "Cartesian": {
+  "platform": "pinpoint",
+  "slug": "cartesian"
+ },
+ "Lincoln International": {
+  "platform": "greenhouse",
+  "slug": "lincolninternational"
+ },
+ "The Gunter Group": {
+  "platform": "greenhouse",
+  "slug": "guntergroup"
+ },
+ "HP Inc.": {
+  "platform": "workday",
+  "slug": "hp"
+ },
+ "ECG Management Consultants": {
+  "platform": "jibe",
+  "slug": "careers.ecgmc.com"
+ }
+}

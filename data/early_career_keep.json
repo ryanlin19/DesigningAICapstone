@@ -1,0 +1,68 @@
+{
+  "_help": "Roles you want on the board even though a rule would drop them: the early-career rule (build.py EARLY_CAREER_MAX_YEARS), the entry-level, manager-needs-MBA and low-pay rules, and the title filter in classify.py (e.g. 'Analyst'). Each entry: company (feed name) and title_contains (case-insensitive text found in the title). Location rules still apply, and so does the 10+ years cap. Entry-level titles are shown as Associate / Sr. Associate. Added from the JTS list of 2026-10-31: Insero, LSC and Gallup. An entry with \"mba\": \"firm\" is also shown in the MBA roles tab (use it for roles on the school's MBA job list).",
+  "keep": [
+    {
+      "company": "Capgemini",
+      "title_contains": "CIO Advisory Consultant"
+    },
+    {
+      "company": "Capgemini",
+      "title_contains": "Organizational Purpose & Strategy Consultant"
+    },
+    {
+      "company": "EY",
+      "title_contains": "Business Transformation FSO Consumer Banking-Senior"
+    },
+    {
+      "company": "EY",
+      "title_contains": "CCSB Banking - Senior Consultant"
+    },
+    {
+      "company": "Capgemini",
+      "title_contains": "Capgemini Invent - Process Transformation Consultant"
+    },
+    {
+      "company": "Capgemini",
+      "title_contains": "Capgemini Invent - Project Management Excellence-Consultant"
+    },
+    {
+      "company": "West Monroe Partners",
+      "title_contains": "Experienced Consultant, Energy & Utilities"
+    },
+    {
+      "company": "Insero Advisors LLC",
+      "title_contains": "Consultant/Senior Consultant - Strategic Advisory Services",
+      "mba": "firm"
+    },
+    {
+      "company": "LifeSciences Consultants",
+      "title_contains": "Senior Associate Consultant (NYC)",
+      "mba": "firm"
+    },
+    {
+      "company": "LifeSciences Consultants",
+      "title_contains": "Associate Consultant (NYC)",
+      "mba": "firm"
+    },
+    {
+      "company": "LifeSciences Consultants",
+      "title_contains": "Business Analyst - Life Sciences Strategy, NYC",
+      "mba": "firm"
+    },
+    {
+      "company": "LifeSciences Consultants",
+      "title_contains": "Case Manager - Drive Breakthrough",
+      "mba": "firm"
+    },
+    {
+      "company": "Gallup Consulting",
+      "title_contains": "Customer Experience",
+      "mba": "firm"
+    },
+    {
+      "company": "Wavestone",
+      "title_contains": "AI & Data Strategy and Transformation Consulting Manager",
+      "mba": "firm"
+    }
+  ]
+}

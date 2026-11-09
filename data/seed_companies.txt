@@ -1,0 +1,425 @@
+# One company per line. Board names are guessed from these automatically (Greenhouse / Lever / Ashby).
+# Add or remove freely; lines starting with # are ignored. Re-run build.py after editing.
+
+# --- AI / ML ---
+OpenAI
+Anthropic
+Scale AI
+Glean
+Harvey
+Cohere
+Perplexity
+Mistral
+Anyscale
+Databricks
+Hugging Face
+Runway
+ElevenLabs
+Sierra
+Decagon
+Writer
+Jasper
+Cursor
+Replit
+Hebbia
+Abridge
+Weights & Biases
+Together AI
+Modal
+Pinecone
+Character AI
+Midjourney
+Synthesia
+Typeface
+Clay
+Rippling
+
+# --- Enterprise software / infra ---
+Stripe
+Datadog
+Snowflake
+Cloudflare
+Twilio
+Okta
+Asana
+Airtable
+Notion
+Figma
+Canva
+Miro
+Slack
+Atlassian
+HubSpot
+Zendesk
+Intercom
+MongoDB
+Elastic
+HashiCorp
+GitLab
+GitHub
+Vercel
+Netlify
+Webflow
+Retool
+Amplitude
+Mixpanel
+Segment
+Snyk
+Wiz
+CrowdStrike
+Zscaler
+Lattice
+Gong
+Outreach
+Calendly
+Grammarly
+Navan
+Gusto
+Deel
+Carta
+Docusign
+Dropbox
+Box
+Zoom
+Workday
+ServiceNow
+Salesforce
+Samsara
+Toast
+Procore
+Veeva
+Squarespace
+Wix
+Contentful
+Sprinklr
+Qualtrics
+Medallia
+Braze
+Iterable
+Klaviyo
+Attentive
+Postman
+LaunchDarkly
+PagerDuty
+New Relic
+Sumo Logic
+Confluent
+Fivetran
+dbt Labs
+Hex
+Sigma Computing
+Mode
+Looker
+ThoughtSpot
+Alteryx
+UiPath
+Automation Anywhere
+Celonis
+Coupa
+Bill.com
+Expensify
+Brex
+Ramp
+Mercury
+Rho
+Airwallex
+Wise
+Remitly
+Payoneer
+Marqeta
+Checkout.com
+Adyen
+
+# --- Fintech / crypto / insurance ---
+Plaid
+Chime
+Affirm
+SoFi
+Block
+Robinhood
+Coinbase
+Kraken
+Gemini
+Circle
+Ripple
+Betterment
+Wealthfront
+Acorns
+Stash
+Dave
+MoneyLion
+Upstart
+LendingClub
+Oportun
+Lemonade
+Root Insurance
+Hippo
+Clover Health
+Oscar Health
+Bright Health
+Policygenius
+Vouch
+Coalition
+At-Bay
+Next Insurance
+Pie Insurance
+Ethos
+Bestow
+Tala
+Nubank
+Klarna
+Monzo
+Revolut
+N26
+Pipe
+Capchase
+Brightside
+Mox
+
+# --- Health / bio ---
+Hims & Hers
+Ro
+Zocdoc
+Flatiron Health
+Tempus
+Benchling
+Cityblock Health
+Included Health
+Oak Street Health
+One Medical
+Carbon Health
+Devoted Health
+Alignment Healthcare
+Ginger
+Headspace
+Calm
+Talkspace
+Lyra Health
+Spring Health
+Cerebral
+Omada Health
+Livongo
+Teladoc
+Doximity
+Komodo Health
+Verily
+Color Health
+Sword Health
+Noom
+Everlywell
+Grail
+Natera
+Illumina
+Recursion
+Insitro
+Ginkgo Bioworks
+23andMe
+Maven Clinic
+Wheel
+Aledade
+Zus Health
+Commure
+Ro Health
+Thirty Madison
+Curative
+Cue Health
+
+# --- Consumer / marketplaces / retail ---
+Airbnb
+DoorDash
+Instacart
+Lyft
+Uber
+Pinterest
+Reddit
+Discord
+Snap
+Spotify
+Peloton
+Warby Parker
+Allbirds
+Faire
+Etsy
+Poshmark
+ThredUp
+RealReal
+Rent the Runway
+Stitch Fix
+Wayfair
+Chewy
+Carvana
+Opendoor
+Compass
+Zillow
+Redfin
+Offerpad
+Turo
+Vacasa
+Sonder
+Duolingo
+Coursera
+Chegg
+Udemy
+Masterclass
+Guild
+2U
+Handshake
+Quizlet
+Roblox
+Epic Games
+Unity
+Niantic
+Twitch
+Substack
+Patreon
+Medium
+Strava
+Whoop
+Oura
+Eight Sleep
+Away
+Glossier
+Harry's
+Dollar Shave Club
+Hello Fresh
+Blue Apron
+Imperfect Foods
+Gopuff
+Flink
+Rappi
+Mercado Libre
+Shein
+Temu
+Vroom
+Cazoo
+
+# --- Mobility / hardware / defense / space ---
+Anduril
+Palantir
+Shield AI
+Saronic
+Hadrian
+Relativity Space
+Rocket Lab
+Planet Labs
+Spire
+Astra
+Zipline
+Wing
+Waymo
+Nuro
+Aurora
+Cruise
+Rivian
+Lucid
+Tesla
+Canoo
+Fisker
+Lime
+Bird
+Flexport
+Convoy
+Project44
+FourKites
+Samsara
+Motive
+Gatik
+Embark
+TuSimple
+Joby
+Archer
+Beta Technologies
+Skydio
+
+# --- Climate / energy ---
+Sunrun
+Sunnova
+Enphase
+ChargePoint
+EVgo
+Tesla Energy
+Form Energy
+Commonwealth Fusion
+Heliogen
+Fervo
+Redwood Materials
+Lyten
+Stem
+Fluence
+Aurora Solar
+Palmetto
+Arcadia
+Watershed
+Pachama
+Sweep
+Persefoni
+Crusoe
+Lunar Energy
+Span
+Rewiring America
+
+# --- Media / sports / entertainment ---
+Netflix
+Hulu
+Warner Bros Discovery
+Roku
+Fubo
+DraftKings
+FanDuel
+Fanatics
+Genius Sports
+Sportradar
+Skillz
+Bleacher Report
+The Athletic
+Vox Media
+Buzzfeed
+Axios
+Politico
+Barstool
+
+# --- Consulting-adjacent / services ---
+Slalom
+Thoughtworks
+West Monroe
+Huron
+Guidehouse
+Navigant
+Protiviti
+Grant Thornton
+BDO
+Crowe
+Genpact
+Cognizant
+Infosys
+Wipro
+EPAM
+Globant
+Endava
+Publicis Sapient
+Fractal
+Mu Sigma
+Tiger Analytics
+Slalom Consulting
+Rightpoint
+Perficient
+Blend360
+Pariveda
+Insight Partners
+Bridgespan
+Boston Consulting Group
+McKinsey
+Bain
+Oliver Wyman
+Kearney
+LEK
+Strategy&
+ZS Associates
+Simon-Kucher
+Monitor Deloitte
+Parthenon
+FTI Consulting
+AlixPartners
+Alvarez & Marsal
+Huron Consulting
+Accenture

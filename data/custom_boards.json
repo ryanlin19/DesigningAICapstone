@@ -1,0 +1,198 @@
+{
+ "_help": "Firms that post on their own job system rather than Greenhouse/Lever/Ashby. Key = firm name exactly as in the firm database (or a new name for a firm that is not in it). platform: workday {tenant, host, site}, recsolu {base, board}, pinpoint {sub or host}, phenom {base, locale, countries}, sfhtml {base, path, location}, avature {base}, csod {host, site, corp}, kpmg {base}, talnet {boards}, jibe {host}, alexander {base}, capgemini {country_code}, zoho {host}, teamtailor {base}, smartrecruiters {slug, country}, greenhouse/lever/ashby {slug}. Optional: us_only (Workday), exclude / include (title regexes), location_strip / location_sub / title_strip (regexes removed from locations / titles), units (Avature business-unit regex), max_per_term, country_suffix, group, split {Other firm name: title regex} to credit part of a feed to a sub-brand.",
+ "Kearney": {
+  "platform": "recsolu",
+  "base": "https://kearney.recsolu.com",
+  "board": "EPd41qlA4_03IncZMnWyRQ"
+ },
+ "Accenture": {
+  "platform": "workday",
+  "tenant": "accenture",
+  "host": "wd103",
+  "site": "AccentureCareers",
+  "max_per_term": 600
+ },
+ "Booz Allen Hamilton": {
+  "platform": "workday",
+  "tenant": "bah",
+  "host": "wd1",
+  "site": "BAH_Jobs"
+ },
+ "Huron Consulting Group": {
+  "platform": "workday",
+  "tenant": "huron",
+  "host": "wd1",
+  "site": "huroncareers"
+ },
+ "Guidehouse": {
+  "platform": "workday",
+  "tenant": "guidehouse",
+  "host": "wd1",
+  "site": "External"
+ },
+ "Protiviti": {
+  "platform": "workday",
+  "tenant": "roberthalf",
+  "host": "wd1",
+  "site": "ProtivitiNA"
+ },
+ "Boston Consulting Group (BCG)": {
+  "platform": "phenom",
+  "base": "https://careers.bcg.com",
+  "locale": "global/en",
+  "countries": [
+   "United States of America"
+  ]
+ },
+ "EY": {
+  "platform": "sfhtml",
+  "base": "https://careers.ey.com",
+  "path": "/ey",
+  "location": "United States",
+  "country_suffix": "United States",
+  "terms": [""],
+  "max_per_term": 2000,
+  "split": {
+   "EY-Parthenon": "^(EY-Parthenon|EYP)\\b"
+  },
+  "exclude": "\\b(Assurance|Tax|Taxes|Mobility|Financial Accounting Advisory|Transfer Pricing|Valuations?|Private Client|Cyber|Cybersecurity|Financial Crime|Quantitative|Data Modeler|Computer System Validation|Rule Coding)\\b"
+ },
+ "Deloitte": {
+  "platform": "avature",
+  "base": "https://apply.deloitte.com/en_US/careers",
+  "country_suffix": "United States",
+  "units": "Consulting|Transactions and Business Analytics",
+  "exclude": "\\b(Audit|Assurance|Tax|Taxes|Actuarial|Intern|Internship)\\b"
+ },
+ "Simon-Kucher": {
+  "platform": "csod",
+  "host": "simon-kucher.csod.com",
+  "site": 6,
+  "corp": "simon-kucher"
+ },
+ "Cartesian": {
+  "platform": "pinpoint",
+  "sub": "cartesian",
+  "group": "consulting"
+ },
+ "KPMG": {
+  "platform": "kpmg",
+  "base": "https://www.kpmguscareers.com",
+  "country_suffix": "United States",
+  "exclude": "\\b(Audit|Assurance|Tax|Taxes|Actuarial|Intern|Internship|Cyber|Cybersecurity|Valuation|Accounting Advisory|Structured Finance|Legal|Ethics|Deskside|Middleware|DevSecOps|Application Security|Customs)\\b"
+ },
+ "L.E.K. Consulting": {
+  "platform": "talnet",
+  "country_suffix": "United States",
+  "boards": [
+   "https://lek.tal.net/vx/lang-en-GB/mobile-0/appcentre-2/brand-2/xf-f9ee24524658/candidate/jobboard/vacancy/3/adv/"
+  ],
+  "exclude": "\\b(Summer|Intern|Internship|Alumni)\\b"
+ },
+ "PwC": {
+  "platform": "phenom",
+  "base": "https://jobs-us.pwc.com",
+  "locale": "us/en",
+  "lang": "en_us",
+  "country": "us",
+  "country_suffix": "United States",
+  "split": {
+   "Strategy&": "Strategy&"
+  },
+  "exclude": "\\b(Audit|Assurance|Tax|Taxes|Actuarial|Intern|Internship|Cyber|Cybersecurity|Accounting Advisory|Managed Services|Grant Administration)\\b"
+ },
+ "ZS Associates": {
+  "platform": "jibe",
+  "host": "jobs.zs.com",
+  "country": "United States",
+  "country_suffix": "United States"
+ },
+ "Lincoln International": {
+  "platform": "greenhouse",
+  "slug": "lincolninternational",
+  "group": "consulting",
+  "include": "\\b(FDD|TAS|Transaction Advisory|Due Diligence|Consult|Strategy|Valuation)\\b"
+ },
+ "The Gunter Group": {
+  "platform": "greenhouse",
+  "slug": "guntergroup",
+  "group": "consulting",
+  "location_strip": "^TGG - "
+ },
+ "LifeSciences Consultants": {
+  "platform": "teamtailor",
+  "base": "https://careers.consultingls.com",
+  "group": "consulting",
+  "country_suffix": "United States"
+ },
+ "HP Inc.": {
+  "platform": "workday",
+  "tenant": "hp",
+  "host": "wd5",
+  "site": "ExternalCareerSite",
+  "group": "consulting",
+  "terms": [
+   "consultant",
+   "strategy",
+   "chief of staff",
+   "business operations",
+   "transformation"
+  ],
+  "max_per_term": 100,
+  "include": "\\b(consultant|strategy|strategic|chief of staff|business (operations|transformation))\\b",
+  "exclude": "\\b(technical|support|engineer|sales|customer success|service|supply chain)\\b"
+ },
+ "Oliver Wyman": {
+  "platform": "workday",
+  "tenant": "mmc",
+  "host": "wd1",
+  "site": "MMC",
+  "terms": [
+   "Oliver Wyman"
+  ],
+  "max_per_term": 600,
+  "us_only": true,
+  "include": "^Oliver Wyman\\b",
+  "exclude": "\\b(Talent|Editorial|Intern|Internship|Temporary|Recruit)\\b",
+  "title_strip": "^Oliver Wyman( Forum)?\\s*-?\\s*|\\s+-\\s+(New York|Chicago|Boston|San Francisco|Dallas|Houston|Atlanta|Washington|Los Angeles|Seattle|Denver|Miami|Minneapolis|Stamford|Waltham|Princeton)\\s*$",
+  "location_strip": "\\s+-\\s+[^\\u00b7]*?(?=\\s*(?:\\u00b7|$))",
+  "location_sub": [
+   "\\bWashington\\b(?!,)",
+   "Washington, DC"
+  ]
+ },
+ "Investor Group Services": {
+  "platform": "pinpoint",
+  "host": "careers.igsinsights.com",
+  "exclude": "\\b(Summer|Intern|Internship)\\b",
+  "title_strip": "^Experienced\\s+|\\s+20\\d\\d(?=,)"
+ },
+ "ECG Management Consultants": {
+  "platform": "jibe",
+  "host": "careers.ecgmc.com",
+  "group": "consulting"
+ },
+ "Alexander Group": {
+  "platform": "alexander",
+  "base": "https://www.alexandergroup.com",
+  "exclude": "\\b(Summer|Intern|Internship)\\b"
+ },
+ "Capgemini": {
+  "platform": "capgemini",
+  "country_code": "us-en",
+  "exclude": "\\b(Campus|Oracle|SAP|Workday|ServiceNow|Salesforce|Guidewire|Pega|Developer|Engineer|Architect|Cyber|Cybersecurity|Test|QA|Intern|Internship)\\b"
+ },
+ "Wavestone": {
+  "platform": "smartrecruiters",
+  "slug": "Wavestone1",
+  "country": "us",
+  "group": "consulting",
+  "exclude": "\\b(Intern|Internship|Legal)\\b"
+ },
+ "Insero Advisors LLC": {
+  "platform": "zoho",
+  "host": "inserocpa.zohorecruit.com",
+  "group": "consulting",
+  "exclude": "\\\\b(Tax|Audit|Accountant|Accounting|Controller|Administrative|Intern|Internship|Future Consideration)\\\\b"
+ }
+}

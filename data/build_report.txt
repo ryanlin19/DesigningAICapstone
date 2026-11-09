@@ -1,0 +1,214 @@
+Built 2026-11-09: 924 jobs from 268 of 562 companies.
+By category: {'Strategy Consulting': 400, 'Transformation / PMO': 162, 'Tech & Digital Consulting': 135, 'Corp Strategy': 87, 'GTM / Revenue Ops': 60, 'BizOps / Strategy & Ops': 56, 'Chief of Staff': 14, 'Product Ops': 10}
+By visa label: {'Unlikely': 568, 'Likely': 72, 'Case-by-case': 78, 'Unknown': 206}
+Review-flagged: 38
+Low-pay roles left off (stated top of range <= $110K, no MBA mention): 9
+  Capgemini | Domain: Associate Application Consultant | $48K-$92K
+  Capgemini | C&CA: Associate Application Consultant | $48K-$92K
+  Capgemini | DCX: Associate Application Consultant | $48K-$92K
+  Capgemini | Associate - Data Privacy Analys | $54K-$99K
+  Capgemini | C&CA: Associate Application Consultant | $48K-$92K
+  Charles River Associates | Associate (Financial Economics practice) | $92K-$105K
+  Elixirr | Consumer Insights Senior Consultant | $90K-$110K
+  Kearney | Consultant, Kearney Activate - Prokura | $85K-$95K
+  Hello Fresh | Associate Strategy Manager, Produce Execution | $76K-$96K
+Early-career roles left off (<= 2 years, no MBA or advanced degree): 119
+  Accenture | Crowdstrike Technical Consultant | 2 yrs
+  Accenture | Investment Banking Consultant | 2 yrs
+  Accenture | Workday Certified Extend Consultant | 2 yrs
+  Booz Allen Hamilton | Enterprise Cybersecurity Penetration Tester | 1 yrs
+  Booz Allen Hamilton | Enterprise Cybersecurity Penetration Tester | 2 yrs
+  Booz Allen Hamilton | Digital Transformation Architect | 2 yrs
+  Booz Allen Hamilton | Moveworks & ServiceNow AI Technologist | 2 yrs
+  Booz Allen Hamilton | PMO Project Supporter | 2 yrs
+  Capco | Change Management Consultant | 2 yrs
+  Capgemini | Capgemini Invent- Contact Center AI Consultant | 2 yrs
+  Capgemini | Capgemini Invent - Process Excellence Consultant | 2 yrs
+  Capgemini | Process Transformation Consultant | 2 yrs
+  Capgemini | FCC Consultant | 2 yrs
+  Deloitte | Digital Strategy Consultant | 2 yrs
+  Deloitte | Customer Strategy Senior Consultant | 2 yrs
+  Deloitte | GPS HST - Strategy, Growth and Transformation - Workflow Process Automation Optimization (WPAO) – Functional Team Lead | 2 yrs
+  Deloitte | Cargo Strategy & Analytics Consultant | 2 yrs
+  Deloitte | Healthcare Supply Chain & Data Analytics, Strategy, Growth and Transformation, Consultant | 2 yrs
+  Deloitte | Supply Chain Strategy, Growth, and Transformation Consultant | 2 yrs
+  Deloitte | SCRM Research, Strategy, and Transformation Consultant | 2 yrs
+  Deloitte | Business Strategy Consultant | 2 yrs
+  Deloitte | Consultant, Infrastructure and Resilience Strategy, Growth, and Transformation | 2 yrs
+  Deloitte | Workforce Strategy & Talent Management Consultant TS/SCI Poly | 2 yrs
+  Deloitte | Momentum Financials Functional Strategy & Transformation Manager (TS/SCI w/ Polygraph) | 2 yrs
+  Deloitte | SCRM Risk Assessment & Case Management Strategy, Growth, and Transformation, Consultant | 2 yrs
+  Deloitte | Finance & Procurement Strategy, Growth, and Transformation Senior Consultant (TS Clearance Required) | 2 yrs
+  Deloitte | Supply Chain Planning, Strategy, Growth, and Transformation, Consultant | 2 yrs
+  Deloitte | Supply Chain Risk Management, Strategy and Transformation Senior Consultant | 2 yrs
+  Deloitte | PMO Consultant, Strategy Growth & Transformation | 2 yrs
+  Deloitte | Higher Ed Advise Consultant | 2 yrs
+  Deloitte | Communications Insights Consultant, Technical Transformation | 2 yrs
+  Deloitte | Momentum Functional Transformation Consultant | 2 yrs
+  Deloitte | Rural Healthcare Consultant | 2 yrs
+  Deloitte | Organization Workforce & Change Consultant | 2 yrs
+  Deloitte | Life Sciences Market Access Consultant | 2 yrs
+  Deloitte | Healthcare Program & Policy Delivery Consultant | 2 yrs
+  Deloitte | Consultant, Program and Project Management | 2 yrs
+  Deloitte | Sales Ops Consultant | 2 yrs
+  Deloitte | Anaplan Consultant | 2 yrs
+  Deloitte | Customer Experience Consultant | 2 yrs
+  Deloitte | Consultant, Regulatory Change Management | 2 yrs
+  Deloitte | Infrastructure & Resilience Consultant | 2 yrs
+  Deloitte | Senior Consultant | 2 yrs
+  Deloitte | Workday HCM Functional Consultant | 1 yrs
+  Deloitte | EPM/ERP Functional or Technical Consultant | 2 yrs
+  Deloitte | Financial Management Controllership Consultant | 1 yrs
+  Deloitte | Docebo Consultant | 2 yrs
+  Deloitte | Senior Consultant | 2 yrs
+  Deloitte | Specialized Finance Solutions Delivery Consultant | 1 yrs
+  Deloitte | Hiring our Heroes Fellowship (12-week Remote Program) - Finance Transformation | 1 yrs
+  Deloitte | Associate Data Cloud Business Transformation Architect | 2 yrs
+  Deloitte | Senior Consultant, Functional Transformation | 2 yrs
+  Deloitte | Salesforce Life Sciences Senior Manager | 1 yrs
+  Deloitte | Financial Management Lead Specialized Finance Solutions Delivery Senior Consultant | 2 yrs
+  Deloitte | Consultant, Industry Solutions, Investment Management - Aladdin | 2 yrs
+  Deloitte | Workday OCM Communications Consultant (Project) - TS/SCI (Polygraph eligible) | 2 yrs
+  Deloitte | Anaplan Senior Consultant | 2 yrs
+  EY | FSO - Business Transformation - Consumer Banking - Senior Consultant | 2 yrs
+  EY | Risk Consulting - Enterprise Risk Transformation - TMT Sector - Senior Consultant - Bay Area | 2 yrs
+  EY | Service Delivery Center - Guidewire Consulting - Senior | 1 yrs
+  EY | Risk Consulting - Enterprise Risk Transformation - TMT Sector - Senior Consultant - Northeast Region | 2 yrs
+  EY | Risk Consulting - Risk Technology - Oracle GRC - Senior Consultant | 2 yrs
+  EY | People Consulting - HR Technology - Workforce Management UKG - Senior | 2 yrs
+  EY | Risk Consulting - Digital Risk - Senior Consultant - Industrials & Energy | 2 yrs
+  EY | ServiceNow -ServiceNow Enterprise Service Management (ESM) - Senior - Tech Cons -Open Location | 2 yrs
+  EY | SAP - Procurement - Inventory Management - Senior - Consulting - Location OPEN | 2 yrs
+  EY | ServiceNow - ServiceNow IT Operations Management (ITOM) - Senior - Tech Cons - Open Location | 2 yrs
+  EY | ServiceNow - ServiceNow HR Service Delivery (HRSD) - Senior - Tech Consulting - Open Location | 2 yrs
+  EY | SAP - Tech Arch - Integrations Senior - Consulting - Location OPEN | 2 yrs
+  EY | Consulting - Tech Consulting - FinTech - Enterprise Performance Management (EPM) - Senior | 2 yrs
+  EY | SAP - Production Planning - PP - Senior - Consulting - Location OPEN | 2 yrs
+  EY | SAP - Supply Chain Planning - IBP - PPDS - Senior - Consulting - Location OPEN | 2 yrs
+  EY | SAP - Procurement - Invoice Management and AP Integration - Senior - Consulting - Location OPEN | 2 yrs
+  EY | Senior Consultant - Transformation Strategy, Architecture and Delivery (TAD) | 2 yrs
+  Guidehouse | Energy Efficiency Consultant | 1 yrs
+  Guidehouse | Federal Financial Management Transformation Senior Consultant | 2 yrs
+  Huron Consulting Group | Workday Expenses - Sr Associate - US or Canada | 2 yrs
+  Huron Consulting Group | Digital Consulting Sr. Associate, Workday Integrations | 2 yrs
+  Huron Consulting Group | Digital Consultant, Oracle EPM Financial Close | 2 yrs
+  Huron Consulting Group | Workday Integration Manager | 2 yrs
+  Huron Consulting Group | Digital Consulting Senior Associate, Oracle Cloud SCM Healthcare | 2 yrs
+  Huron Consulting Group | Associate/Senior Associate, Oracle EPM (ePBCS) - MANAGED SERVICES - U.S. or Canada | 2 yrs
+  Investor Group Services | Associate, Portfolio Services Team | 1 yrs
+  Protiviti | HR Transformation Senior Consultant | 2 yrs
+  Protiviti | HR Transformation Senior Consultant | 2 yrs
+  Protiviti | Digital Identity Senior Consultant | 2 yrs
+  Protiviti | Digital Identity Senior Consultant | 2 yrs
+  Protiviti | Microsoft Security, Compliance & Identity Architect Senior Consultant | 2 yrs
+  Protiviti | Oracle EPM FCC/FP&A Senior Consultant | 2 yrs
+  Protiviti | Oracle EPM FCC/FP&A Senior Consultant | 2 yrs
+  Protiviti | Microsoft 365 Senior Consultant | 2 yrs
+  Protiviti | Technology Audit & Advisory Experienced Consultant | 1 yrs
+  Protiviti | Internal Audit & Financial Advisory Senior Consultant | 2 yrs
+  Protiviti | Denver Technology Audit & Advisory Senior Consultant | 2 yrs
+  Protiviti | Seattle Technology Audit & Advisory Senior Consultant | 2 yrs
+  Protiviti | Houston Technology Audit & Advisory Experienced Consultant | 1 yrs
+  Protiviti | Boston Technology Audit & Advisory Senior Consultant | 2 yrs
+  Protiviti | Houston Technology Audit & Advisory Senior Consultant | 2 yrs
+  Protiviti | Dallas Technology Audit & Advisory Senior Consultant | 2 yrs
+  Protiviti | Philadelphia Technology Audit & Advisory Senior Consultant | 2 yrs
+  Protiviti | St Louis Technology Audit & Advisory Senior Consultant | 2 yrs
+  Protiviti | AI People Enablement & Workforce Transformation Senior Consultant | 2 yrs
+  Protiviti | AI People Enablement & Workforce Transformation Senior Consultant | 2 yrs
+  Protiviti | AI People Enablement & Workforce Transformation Senior Consultant | 2 yrs
+  Protiviti | Chicago Internal Audit & Financial Advisory Senior Consultant | 2 yrs
+  Protiviti | New York Technology Audit & Advisory Senior Consultant | 2 yrs
+  Protiviti | Metro DC Technology Audit & Advisory Senior Consultant | 2 yrs
+  Protiviti | Legal Risk & Compliance - Lender Due Diligence - Senior Consultant | 2 yrs
+  PwC | Life, Annuity & Group Benefits Operations Consultant - Experienced Associate | 1 yrs
+  PwC | Bank Platform Transformation - Test Execution Leader - Sr Associate | 2 yrs
+  PwC | AWM Operations - Management Consultant - Experienced Associate | 1 yrs
+  PwC | Payer Operations & Transformation Consultant, Experienced Associate | 2 yrs
+  West Monroe Partners | Consultant, NetSuite | 1 yrs
+  West Monroe Partners | Experienced Consultant, M&A (Healthcare & Life Sciences) | 2 yrs
+  West Monroe Partners | Experienced Consultant, M&A (Healthcare & Life Sciences) | 2 yrs
+  West Monroe Partners | Experienced Consultant, M&A (Healthcare & Life Sciences) | 2 yrs
+  West Monroe Partners | Experienced Consultant, M&A (Healthcare & Life Sciences) | 2 yrs
+  West Monroe Partners | Experienced Consultant, Organization, People & Change | 1 yrs
+  West Monroe Partners | Manager, Insurance | 1 yrs
+Manager / Senior Manager roles left off (no MBA mention): 579 {'PwC': 95, 'KPMG': 87, 'EY': 85, 'Deloitte': 63, 'Accenture': 58, 'Huron Consulting Group': 33, 'Protiviti': 22, 'West Monroe Partners': 21}
+
+Consulting firms with a board (verify these are the right companies):
+  Abt Global                                 lever       abt                          jobs=3 matched=0
+  Accenture                                  workday     accenture                    jobs=1456 matched=53
+  Alexander Group                            alexander   https://www.alexandergroup.com jobs=4 matched=2
+  Alix Partners                              greenhouse  alixpartners                 jobs=128 matched=1
+  Altman Solon                               greenhouse  altmansolonuslp              jobs=21 matched=2
+  Bain & Company                             standing    careers page                 jobs=1 matched=1
+  Baringa Partners                           greenhouse  baringa                      jobs=101 matched=7
+  BearingPoint                               greenhouse  bearingpoint                 jobs=12 matched=0
+  Booz Allen Hamilton                        workday     bah                          jobs=33 matched=2
+  Boston Consulting Group (BCG)              phenom      https://careers.bcg.com      jobs=25 matched=15
+  Capco                                      greenhouse  capco                        jobs=722 matched=4
+  Capgemini                                  capgemini   Capgemini                    jobs=77 matched=46
+  Charles River Associates                   greenhouse  charlesriverassociates       jobs=92 matched=4
+  Chartis                                    ashby       chartis                      jobs=32 matched=4
+  ClearView Healthcare Partners              greenhouse  clearviewhealthcarepartners  jobs=22 matched=2
+  DayBlink Consulting                        lever       dayblinkconsulting           jobs=0 matched=0
+  DeciBio Consulting, LLC                    greenhouse  decibio                      jobs=7 matched=0
+  Delivery Associates                        greenhouse  deliveryassociates           jobs=2 matched=0
+  Deloitte                                   avature     https://apply.deloitte.com/en_US/careers jobs=249 matched=126
+  Elixirr                                    greenhouse  elixirr                      jobs=16 matched=1
+  EY                                         sfhtml      https://careers.ey.com       jobs=196 matched=71
+  FSG                                        greenhouse  fsg                          jobs=0 matched=0
+  Gallup Consulting                          greenhouse  gallup                       jobs=26 matched=1
+  Guidehouse                                 workday     guidehouse                   jobs=171 matched=117
+  Huron Consulting Group                     workday     huron                        jobs=128 matched=22
+  Insero Advisors LLC                        zoho        inserocpa.zohorecruit.com    jobs=1 matched=1
+  Investor Group Services                    pinpoint    careers.igsinsights.com      jobs=1 matched=0
+  Kearney                                    recsolu     EPd41qlA4_03IncZMnWyRQ       jobs=30 matched=10
+  Keystone Strategy                          greenhouse  keystonestrategy             jobs=0 matched=0
+  KPMG                                       kpmg        https://www.kpmguscareers.com jobs=169 matched=72
+  L.E.K. Consulting                          talnet      L.E.K. Consulting            jobs=2 matched=1
+  LifeSciences Consultants                   teamtailor  https://careers.consultingls.com jobs=8 matched=5
+  McChrystal Group                           lever       mcchrystalgroup              jobs=4 matched=0
+  McKinsey & Company                         standing    careers page                 jobs=1 matched=1
+  Oliver Wyman                               workday     mmc                          jobs=32 matched=12
+  Point B                                    lever       pointb                       jobs=1 matched=1
+  Protiviti                                  workday     roberthalf                   jobs=68 matched=7
+  PwC                                        phenom      https://jobs-us.pwc.com      jobs=168 matched=58
+  Simon-Kucher                               csod        simon-kucher.csod.com        jobs=9 matched=5
+  Stax                                       lever       stax                         jobs=0 matched=0
+  The Brattle Group                          greenhouse  thebrattlegroup              jobs=44 matched=2
+  ThoughtWorks                               greenhouse  thoughtworks                 jobs=43 matched=0
+  Wavestone                                  smartrecruiters Wavestone1                   jobs=0 matched=0
+  West Monroe Partners                       greenhouse  westmonroe4                  jobs=119 matched=15
+  ZS Associates                              jibe        jobs.zs.com                  jobs=78 matched=27
+  Cartesian                                  pinpoint    cartesian                    jobs=2 matched=1
+  Lincoln International                      greenhouse  lincolninternational         jobs=1 matched=1
+  The Gunter Group                           greenhouse  guntergroup                  jobs=4 matched=0
+  HP Inc.                                    workday     hp                           jobs=13 matched=3
+  ECG Management Consultants                 jibe        careers.ecgmc.com            jobs=4 matched=1
+
+Top companies by matches:
+  Deloitte                       126
+  Guidehouse                     117
+  KPMG                           72
+  EY                             71
+  PwC                            58
+  Accenture                      53
+  Capgemini                      46
+  ZS Associates                  27
+  Huron Consulting Group         22
+  Boston Consulting Group (BCG)  15
+  EY-Parthenon                   15
+  West Monroe Partners           15
+  Oliver Wyman                   12
+  OpenAI                         11
+  Kearney                        10
+  Decagon                        9
+  Shield AI                      8
+  Baringa Partners               7
+  Protiviti                      7
+  Notion                         7
+  Crusoe                         6
+  LifeSciences Consultants       5
+  Strategy&                      5
+  Simon-Kucher                   5
+  Anthropic                      5
