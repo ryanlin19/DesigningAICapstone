@@ -54,7 +54,7 @@ def run(cmd, **kw):
 
 
 def restore(backup, raw_too=True):
-    for name in ("data.js", "index.html"):
+    for name in ("data.js", "index.html", "match_index.js"):
         if (backup / name).exists():
             shutil.copy2(backup / name, ROOT / "public" / name)
     raw = backup / "raw_fetch.json"
@@ -70,7 +70,7 @@ def main():
     deploy = "--no-deploy" not in sys.argv
     log(f"Refresh started {datetime.datetime.now():%Y-%m-%d %H:%M} (deploy={'yes' if deploy else 'no'})")
     backup = Path(tempfile.mkdtemp(prefix="jcc_refresh_"))      # outside OneDrive, which can lock files
-    for name in ("data.js", "index.html"):
+    for name in ("data.js", "index.html", "match_index.js"):
         if (ROOT / "public" / name).exists():
             shutil.copy2(ROOT / "public" / name, backup / name)
     if (ROOT / "data" / "raw_fetch.json").exists():

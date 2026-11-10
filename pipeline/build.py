@@ -18,6 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import ats
 import deadline
+import match_index
 import places
 import salary as salary_text
 from classify import NON_US, advanced_degree_mentioned, classify, location_ok, stronger_mba
@@ -317,6 +318,8 @@ def main():
 
     # One entry per role: postings with the same company + title are merged, each keeping its own location and apply link.
     roles = {}
+    matcher = match_index.Matcher()
+    match_counts = {}
     dropped_managers = Counter()
     dropped_early = []
     dropped_lowpay = []
@@ -404,6 +407,7 @@ def main():
                 "deadline": dl,
                 "source": platform,
                 "snippet": (j.get("description") or "")[:280],
+                "_m": matcher.counts(j["title"], j.get("description") or ""),     # skill and industry terms for resume matching (not sent in data.js)
             }
 
     jobs_out = []
@@ -445,6 +449,7 @@ def main():
             "salary": next((e["salary"] for e in locs if e["salary"]), None),
             "salary_varies": len(salaries) > 1 or any(e.get("salary_several") for e in locs),
         })
+        match_counts[role["url"]] = role.pop("_m")
         jobs_out.append(role)
         per_company[role["company"]] += 1
         if role["group"] == "consulting":
@@ -516,6 +521,7 @@ def main():
                       "jobs": public_jobs, "firms": []}
     (PUBLIC / "data.js").write_text("window.BOARD_DATA = " + json.dumps(public_payload, ensure_ascii=False) + ";", encoding="utf-8")
     (PUBLIC / "index.html").write_text(make_public_html((SITE / "index.html").read_text(encoding="utf-8")), encoding="utf-8")
+    index_bytes = match_index.write_index(match_counts, matcher, SITE, PUBLIC)         # loaded by the page only when a resume is added
 
     lines = [f"Built {TODAY}: {len(jobs_out)} jobs from {payload['stats']['companies_with_board']} of "
              f"{len(targets)} companies.",

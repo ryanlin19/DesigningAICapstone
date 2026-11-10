@@ -1,0 +1,141 @@
+# Skills vocabulary for resume matching (pipeline/match_index.py).
+# One line each:  group | Label | synonym; synonym; ...      (synonyms are matched as whole words, lowercase, in job text and resume text)
+# Lines under "# INDUSTRIES" use the same format. Add or remove freely, then run: python pipeline/build.py --cached
+# Very common words (communication, leadership) are kept but count for little, because each term is weighted by how rare it is across roles.
+
+# SKILLS
+analytics | SQL | sql; mysql; postgresql; postgres; bigquery; redshift
+analytics | Python | python; pandas; numpy; jupyter
+analytics | R programming | r studio; rstudio; tidyverse
+analytics | Excel | excel; vlookup; pivot tables; pivot table; spreadsheets
+analytics | Tableau | tableau
+analytics | Power BI | power bi; powerbi
+analytics | Looker | looker; lookml
+analytics | Data analysis | data analysis; data analytics; analyze data; analyzing data; quantitative analysis; analytical
+analytics | Data visualization | data visualization; dashboards; dashboarding; dashboard
+analytics | Statistics | statistics; statistical; regression; hypothesis testing
+analytics | A/B testing | a/b testing; ab testing; experimentation; experiments; split testing
+analytics | Forecasting | forecasting; forecast
+analytics | Business intelligence | business intelligence; bi tools; reporting and analytics
+analytics | Machine learning | machine learning; ml models; predictive modeling; predictive models
+analytics | Generative AI | generative ai; genai; llm; llms; large language models; prompt engineering
+analytics | Data modeling | data modeling; data models; data warehouse; etl
+analytics | Metrics and KPIs | kpis; kpi; key performance indicators; metrics; okrs; okr
+analytics | Product analytics | product analytics; amplitude; mixpanel; funnel analysis; cohort analysis
+analytics | Market research | market research; customer research; survey design; surveys; voice of customer
+finance | Financial modeling | financial modeling; financial models; financial model; three-statement; 3-statement; lbo; operating model
+finance | Valuation | valuation; valuations; dcf; discounted cash flow; comparable companies; comps analysis
+finance | M&A | m&a; mergers and acquisitions; mergers & acquisitions; acquisitions; acquisition integration; deal execution
+finance | Due diligence | due diligence; diligence; commercial due diligence
+finance | FP&A | fp&a; financial planning and analysis; financial planning & analysis; variance analysis; budgeting; annual operating plan
+finance | P&L management | p&l; profit and loss; profit & loss; income statement; gross margin; margin analysis; unit economics
+finance | Corporate finance | corporate finance; capital allocation; capital structure; treasury; capital planning
+finance | Strategic finance | strategic finance; business finance; finance partnering; investor reporting; board reporting
+finance | Fundraising | fundraising; capital raising; series a; series b; venture financing; investor relations
+finance | Private equity | private equity; buyout; portfolio companies; value creation plan
+finance | Venture capital | venture capital; vc fund; startup investing; term sheets; cap table
+finance | Investment banking | investment banking; capital markets; equity research; debt financing; leveraged finance
+finance | Accounting | accounting; gaap; general ledger; month-end close; financial reporting; revenue recognition; ifrs
+finance | Credit and risk | credit risk; risk management; underwriting; credit analysis; enterprise risk
+finance | Pricing | pricing; pricing strategy; price optimization; revenue management; monetization
+finance | Cost reduction | cost reduction; cost savings; cost optimization; cost takeout; procurement savings
+strategy | Strategic planning | strategic planning; strategy development; long-range planning; corporate strategy; business strategy
+strategy | Market sizing | market sizing; market size; tam; total addressable market; market assessment; market entry
+strategy | Competitive analysis | competitive analysis; competitive intelligence; competitive landscape; benchmarking; competitor analysis
+strategy | Go-to-market | go-to-market; go to market; gtm; launch strategy; market launch
+strategy | Business case | business case; business cases; investment case; roi analysis; return on investment
+strategy | Operating model | operating model design; target operating model; org design; organization design; organizational design
+strategy | Transformation | transformation; business transformation; digital transformation; transformation program
+strategy | Change management | change management; organizational change; change adoption; stakeholder adoption
+strategy | Process improvement | process improvement; process optimization; process redesign; continuous improvement; operational excellence; kaizen
+strategy | Lean Six Sigma | six sigma; lean six sigma; lean methodology; dmaic; green belt; black belt
+strategy | Program management | program management; program manager; pmo; portfolio management; program governance
+strategy | Project management | project management; project manager; pmp; project plans; project planning; timelines and milestones
+strategy | Roadmapping | roadmap; roadmaps; roadmapping; strategic roadmap; prioritization framework; prioritization
+strategy | Problem solving | problem solving; problem-solving; structured problem solving; hypothesis-driven; issue trees
+strategy | Management consulting | management consulting; consulting engagements; client engagements; engagement management; client-facing; client facing
+strategy | Corporate development | corporate development; corp dev; strategic partnerships; strategic investments; inorganic growth
+strategy | Strategic initiatives | strategic initiatives; special projects; strategic projects; cross-functional initiatives
+strategy | Executive communication | executive communication; c-suite; c-level; executive presentations; board presentations; senior leadership; executive stakeholders
+strategy | Operations strategy | operations strategy; operational strategy; operational planning; operating cadence; business operations
+strategy | Org effectiveness | organizational effectiveness; operating rhythm; business reviews; qbr; qbrs
+product | Product management | product management; product manager; product strategy; product vision; product lifecycle
+product | Product roadmap | product roadmap; roadmap prioritization; feature prioritization; backlog; product backlog
+product | User research | user research; customer discovery; customer interviews; usability testing; user interviews; ux research
+product | Agile | agile; scrum; sprint planning; sprints; kanban; jira
+product | PRDs and specs | prd; prds; product requirements; requirements gathering; user stories; functional requirements; product specs
+product | Product launches | product launch; product launches; launching products; new product introduction; npi
+product | Platform products | platform product; api products; developer platform; apis; api; sdk
+product | SaaS | saas; software as a service; subscription software; arr; recurring revenue; mrr; churn
+product | B2B | b2b; business-to-business; enterprise customers; enterprise software
+product | B2C | b2c; consumer products; direct-to-consumer; dtc; consumer apps; consumer internet
+product | Marketplace | marketplace; two-sided marketplace; marketplaces; supply and demand
+product | Growth | growth strategy; growth loops; user growth; product-led growth; plg; activation; retention; conversion rate optimization; cro
+product | Customer experience | customer experience; cx; customer journey; customer lifecycle; net promoter; nps
+product | AI products | ai products; ai product; ai-powered; machine learning products; ai features
+sales | Sales strategy | sales strategy; sales operations; sales ops; sales enablement; territory planning; quota setting; sales planning
+sales | Revenue operations | revenue operations; revops; rev ops; revenue strategy; revenue planning; pipeline management; sales forecasting
+sales | CRM | crm; salesforce; hubspot; salesforce.com; sfdc
+sales | Enterprise sales | enterprise sales; strategic accounts; named accounts; complex sales; solution selling; consultative selling; full sales cycle
+sales | Account management | account management; account manager; client success; renewals; upsell; cross-sell; expansion revenue
+sales | Business development | business development; biz dev; bizdev; new business development; lead generation; outbound
+sales | Partnerships | partnerships; partner management; channel partners; channel sales; alliances; ecosystem partners; reseller; partner programs
+sales | Negotiation | negotiation; negotiating; contract negotiation; commercial negotiations; deal structuring; contracts
+sales | Quota attainment | quota; quota attainment; exceeded quota; presidents club; president's club; closed deals; won deals
+sales | Sales leadership | sales leadership; sales team; sales management; sales manager; sales director
+sales | Customer success | customer success; customer onboarding; implementation management; adoption programs; customer retention
+sales | Procurement | procurement; sourcing; vendor management; vendor selection; strategic sourcing; supplier management; rfp; rfps
+marketing | Growth marketing | growth marketing; performance marketing; paid acquisition; customer acquisition; user acquisition; paid media; demand generation; demand gen
+marketing | Lifecycle marketing | lifecycle marketing; email marketing; crm marketing; marketing automation; retention marketing; braze; iterable; marketo
+marketing | SEO and content | seo; sem; content marketing; content strategy; organic growth; search marketing
+marketing | Brand strategy | brand strategy; brand marketing; brand management; positioning; messaging; brand positioning
+marketing | Product marketing | product marketing; pmm; launch messaging; competitive positioning; sales enablement content
+marketing | Marketing analytics | marketing analytics; attribution; marketing mix; customer segmentation; segmentation; cac; ltv; roas
+marketing | Social and community | social media; community management; community building; influencer
+operations | Supply chain | supply chain; supply chain management; demand planning; inventory management; s&op; logistics; fulfillment; distribution
+operations | Operations management | operations management; operations manager; day-to-day operations; operational efficiency; throughput
+operations | Manufacturing | manufacturing; production; plant operations; factory; quality control; quality assurance; lean manufacturing
+operations | Vendor and partner management | third-party management; supplier relationships; contract management
+operations | Compliance | compliance; regulatory affairs; regulatory compliance; governance and compliance
+operations | Risk and controls | internal controls; sox; risk assessment; controls; fraud; trust and safety
+operations | Workforce planning | workforce planning; headcount planning; capacity planning; staffing models; resource planning
+operations | Customer operations | customer operations; support operations; support strategy; service delivery; service operations; contact center
+operations | Data center and infrastructure | data center; data centers; infrastructure; capex; capacity; site selection; construction management
+people | People management | people management; managed a team; managing a team; direct reports; team leadership; led a team; leading teams; mentoring; coaching
+people | Cross-functional leadership | cross-functional; cross functional; matrix organization; influence without authority; cross-functional teams
+people | Stakeholder management | stakeholder management; stakeholder engagement; stakeholder alignment; stakeholders
+people | Hiring and recruiting | hiring; recruiting; talent acquisition; interviewing; building teams; team building
+people | Talent and HR | talent management; people operations; performance management; employee engagement; hr strategy
+people | Leadership | leadership; leader; leading
+people | Communication | communication; communications; presentations; presentation skills; written communication; storytelling
+people | Entrepreneurship | founder; co-founder; cofounder; entrepreneur; 0 to 1; zero to one
+tech | Cloud | cloud; aws; azure; gcp; google cloud; cloud computing; cloud migration
+tech | Cybersecurity | cybersecurity; cyber security; information security; infosec; security operations; zero trust
+tech | Software development | software engineering; software development; coding; programming; java; javascript; typescript; c++
+tech | Data engineering | data engineering; data pipelines; spark; databricks; snowflake; dbt; airflow
+tech | Digital and e-commerce | e-commerce; ecommerce; digital channels; digital marketing; online retail; omnichannel
+tech | Automation | automation; process automation; rpa; workflow automation; zapier; low-code; no-code
+tech | ERP and enterprise systems | erp; sap; oracle; netsuite; workday; enterprise systems; systems implementation; implementation
+tech | Fintech and payments | payments; payment processing; card issuing; banking as a service; stablecoin; crypto; blockchain; digital assets
+tech | Public sector and policy | public sector; government; federal; state and local; policy analysis; public policy; defense; national security
+tech | Sustainability | sustainability; esg; climate; decarbonization; carbon; renewable; clean energy; net zero
+
+# INDUSTRIES
+industry | Healthcare | healthcare; health care; hospital; hospitals; health systems; clinical; patients; payer; provider
+industry | Life sciences | life sciences; pharma; pharmaceutical; pharmaceuticals; biotech; biotechnology; medical devices; medtech; drug development; clinical trials
+industry | Health tech | digital health; health tech; healthtech; telehealth; ehr; electronic health records; value-based care
+industry | Financial services | financial services; banking; bank; retail banking; wealth management; asset management; insurance; insurtech; lending; mortgage
+industry | Fintech | fintech; financial technology; neobank; payments company; embedded finance
+industry | Software and SaaS | software; saas; enterprise software; b2b software; developer tools; cloud software
+industry | AI and data | artificial intelligence; ai company; machine learning company; data platform; ai infrastructure
+industry | Consumer and retail | consumer goods; cpg; consumer packaged goods; retail; e-commerce; apparel; food and beverage; restaurants; grocery
+industry | Media and entertainment | media; entertainment; streaming; gaming; video games; music; publishing; sports
+industry | Energy and utilities | energy; oil and gas; utilities; power; renewables; solar; battery; grid; electric vehicles; ev
+industry | Industrials | industrials; aerospace; defense; automotive; manufacturing; machinery; space; satellites
+industry | Transportation and logistics | transportation; logistics; freight; shipping; mobility; ride-hailing; trucking
+industry | Real estate and construction | real estate; proptech; construction; homebuilding; property management; commercial real estate
+industry | Education | education; edtech; higher education; k-12; learning platform; university
+industry | Telecom and infrastructure | telecom; telecommunications; wireless; networking; semiconductors; data centers
+industry | Public sector | public sector; government; nonprofit; non-profit; philanthropy; social impact
+industry | Travel and hospitality | travel; hospitality; hotels; tourism; airlines; vacation rentals
+industry | Professional services | consulting; professional services; advisory; accounting firm; law firm

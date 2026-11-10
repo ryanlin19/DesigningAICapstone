@@ -151,6 +151,23 @@
     .applymenu { left: 0; right: auto; max-width: calc(100vw - 48px); }
   }
   .hidden { display: none !important; }
+
+  .resumebox { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 0; margin: 0 0 10px; }
+  .resumebox[open] summary::before { content: "\25BE"; }
+  #resumeStatus { color: var(--text-2); font-size: 13px; }
+  .resumebody { padding: 16px; }
+  .topmatch { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .topmatch a { font-weight: 600; text-decoration: none; }
+  .topmatch a:hover { text-decoration: underline; color: var(--brand); }
+  .resumebody .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 4px 0 8px; }
+  .resumebody textarea { width: 100%; font-size: 13.5px; resize: vertical; }
+  .resumebody h4 { margin: 12px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .chipx { display: inline-flex; align-items: center; gap: 2px; background: var(--brand-bg); color: var(--brand-dark); border-radius: 999px; padding: 2px 4px 2px 10px; margin: 0 4px 4px 0; font-size: 12.5px; }
+  .chipx button { background: none; border: 0; cursor: pointer; color: var(--brand-dark); padding: 0 6px; font-size: 12px; }
+  #pFns { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+  #pFns label.chk { padding: 2px 0; margin: 0; font-size: 13px; }
+  .fitline { margin-top: 6px; font-size: 13px; color: var(--text-2); }
+  .badge.fit { font-size: 12.5px; }
 </style>
 </head>
 <body>
@@ -164,7 +181,7 @@
       <button role="tab" aria-selected="false" data-tab="new" id="tabNew">What's new<span id="newDate"></span> <span class="count" id="newCount">0</span></button>
       <button role="tab" aria-selected="true" data-tab="mba" id="tabMba">Roles for MBAs <span class="count" id="mbaCount">0</span></button>
       <button role="tab" aria-selected="false" data-tab="other" id="tabOther">Other roles <span class="count" id="otherCount">0</span></button>
-      <button role="tab" aria-selected="false" data-tab="mylist">My list <span class="count" id="mycount">0</span></button>
+      <button role="tab" aria-selected="false" data-tab="profile" id="tabProfile">Profile &amp; My list <span class="count" id="mycount" title="Roles saved to My list">0</span></button>
     </nav>
   </div>
 </header>
@@ -212,11 +229,12 @@
             <button class="linkbtn" id="collapseAll" type="button">Collapse all</button>
             <label style="margin-left:10px">Sort companies <select class="field" id="sort" style="width:auto">
               <option value="name">A-Z</option><option value="roles">Most roles</option>
-              <option value="new">Newest</option><option value="deadline">Soonest deadline</option>
+              <option value="new">Newest</option><option value="deadline">Soonest deadline</option><option value="fit">Best fit for me</option>
             </select></label>
           </div>
         </div>
         </div>
+        <div class="note" id="fitHint" style="margin:0 0 8px"></div>
         <div class="tags" id="activeTags"></div>
         <div id="jobs"></div>
         <div id="removedBox"></div>
@@ -226,15 +244,51 @@
   </section>
 
 
-  <!-- MY LIST -->
-  <section id="tab-mylist" class="hidden">
-    <div class="mylisttop">
-      <p class="notice" id="mylistNote">Your list is saved in this browser only. It is not shared and will not follow you to another device.
-        Use Export to keep a copy as a spreadsheet file.</p>
-      <button class="btn primary exportbtn" id="exportList" type="button">&#11015; Export list (CSV)</button>
+  <!-- YOUR PROFILE -->
+  <section id="tab-profile" class="hidden">
+    <div class="resumebox" id="resumeBox">
+      <div class="resumebody">
+        <h2 style="margin:0 0 6px;font-size:21px">Your resume fit</h2>
+        <p style="margin:0 0 12px;font-size:15px">Insert your resume here to see how you fit the roles on this board. Each role gets a fit score and a one-line reason, and you can sort the role lists by best fit. Your resume is read in this browser. It is not uploaded or stored.</p>
+        <div class="row">
+          <label class="btn" for="resumeFile">Upload PDF or Word</label>
+          <input type="file" id="resumeFile" accept=".pdf,.docx,.txt" hidden>
+          <span class="note" style="margin:0">or paste your resume text below.</span>
+        </div>
+        <textarea class="field" id="resumeText" rows="7" placeholder="Paste your resume text here" aria-label="Resume text"></textarea>
+        <div class="row"><button class="btn primary" id="resumeGo" type="button">Find my fit</button>
+          <button class="linkbtn" id="resumeClear" type="button">Clear my resume</button><span id="resumeMsg" class="note" style="margin:0"></span></div>
+        <div class="note" id="resumeStatus" style="margin:6px 0 0">Nothing added yet.</div>
+        <div id="profile" class="hidden">
+          <h4>Skills we found (remove or add any)</h4>
+          <div id="pSkills"></div>
+          <h4>Industries</h4>
+          <div id="pInds"></div>
+          <div class="row"><input class="field" id="addTerm" list="skillList" placeholder="Add a skill or industry" aria-label="Add a skill or industry" style="max-width:260px">
+            <datalist id="skillList"></datalist></div>
+          <h4>Years of experience</h4>
+          <div class="row"><input class="field" id="pYears" type="number" min="0" max="40" style="width:90px" aria-label="Years of experience"></div>
+          <h4>Role types I want</h4>
+          <div id="pFns"></div>
+          <div class="row" style="margin-top:10px"><label class="chk" style="margin:0"><input type="checkbox" id="pHideWeak"> <span>Hide weak fits (under 50%)</span></label></div>
+          <div class="row"><button class="btn primary" id="seeMatches" type="button">See my best matches</button></div>
+          <div id="topMatches"></div>
+        </div>
+      </div>
     </div>
-    <div id="mylist"></div>
+    <div class="resumebox" id="mylistBox" style="margin-top:14px">
+      <div class="resumebody">
+        <h2 id="mylistHead" style="margin:0 0 8px;font-size:21px">My list</h2>
+        <div class="mylisttop">
+          <p class="notice" id="mylistNote">Your list is saved in this browser only. It is not shared and will not follow you to another device.
+            Use Export to keep a copy as a spreadsheet file.</p>
+          <button class="btn primary exportbtn" id="exportList" type="button">&#11015; Export list (CSV)</button>
+        </div>
+        <div id="mylist"></div>
+      </div>
+    </div>
   </section>
+
 </main>
 <footer class="wrap credit">Roles are collected from firms' public job pages and can change at any time.</footer>
 
@@ -402,12 +456,13 @@
   var jobsTab = "mba";
   function showTab(name) {
     if (name === "jobs") name = "mba";                                       // an older remembered value
+    if (name === "mylist") name = "profile";                                 // My list is part of the profile tab now
     var section = (name === "mba" || name === "other" || name === "new") ? "jobs" : name;
     if (!$("tab-" + section)) { name = "mba"; section = "jobs"; }            // e.g. a remembered tab this version doesn't have
     if (section === "jobs") jobsTab = name;
-    ["jobs", "mylist"].forEach(function (t) { var s = $("tab-" + t); if (s) s.classList.toggle("hidden", t !== section); });
+    ["jobs", "profile"].forEach(function (t) { var s = $("tab-" + t); if (s) s.classList.toggle("hidden", t !== section); });
     Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function (b) { b.setAttribute("aria-selected", String(b.dataset.tab === name)); });
-    if (name === "mylist") renderMyList();
+    if (name === "profile") renderMyList();
     if (section === "jobs") render();
     store.set("jb_tab", name);
   }
@@ -478,6 +533,7 @@
   // `skip` names one filter to ignore, so that filter's own numbers can show what ticking it would give.
   function passes(j, skip) {
     if (j.review) return false;                       // low-confidence matches stay out of the board
+    if (profile && profile.hideWeak) { var ft = fitOf(j); if (ft && ft.pct < 50) return false; }   // "Hide weak fits"
     if (skip !== "category" && !filterState.category[j.category]) return false;
     if (skip !== "seniority" && filterState.seniority[j.seniority] === false) return false;   // roles with no ladder level always show
     if (skip !== "visa" && filterState.visa[j.visa] === false) return false;
@@ -516,14 +572,14 @@
     saved[j.url] = { status: "Saved", job: snapshot(j) };
     store.set("jb_saved", saved); updateMyCount();
     // redraw after the browser has opened the application link
-    setTimeout(function () { if (!$("tab-mylist").classList.contains("hidden")) renderMyList(); else render(); }, 80);
+    setTimeout(function () { if (!$("tab-profile").classList.contains("hidden")) renderMyList(); else render(); }, 80);
   }
   function saveBtn(j) {
     var e = saved[j.url], isSaved = !!e, applied = isSaved && e.status !== "Saved";
     var b = el("button", { class: "btn" + (isSaved ? " on" : ""), type: "button", "aria-pressed": String(isSaved),
       text: applied ? e.status : isSaved ? "Saved" : "Save", title: applied ? "In My list as " + e.status + ". Click to open My list." : "" });
     b.addEventListener("click", function () {
-      if (applied) { showTab("mylist"); return; }
+      if (applied) { showTab("profile"); $("mylistHead").scrollIntoView(); return; }
       if (saved[j.url]) delete saved[j.url];
       else saved[j.url] = { status: "Saved", job: snapshot(j) };
       store.set("jb_saved", saved); updateMyCount(); render();
@@ -534,7 +590,9 @@
   function jobCard(j) {
     var age = daysAgo(j.posted), sal = j.salary_varies ? "Salary varies by location" : fmtSalary(j.salary);
     var dl = deadlineInfo(j);
+    var fit = fitOf(j);
     var badges = el("div", { class: "badges" }, [
+      fit ? el("span", { class: "badge fit " + fitClass(fit.pct), text: "Fit " + fit.pct + "%" }) : null,
       el("span", { class: "badge " + dl.cls, text: "Deadline: " + dl.text }),
       el("span", { class: "badge", text: j.category }),
       el("span", { class: "badge", text: j.seniority }),
@@ -552,7 +610,7 @@
       el("div", { class: "co", text: j.company }),
       el("h2", {}, [el("a", { href: safeUrl(j.url), target: "_blank", rel: "noopener noreferrer", text: j.title })]),
       el("div", { class: "meta" }, [el("span", { text: locText(j) }), el("span", { text: ageText(age) })]),
-      badges, reasons
+      badges, fit ? el("div", { class: "fitline", text: fit.why.join(" \u00b7 ") }) : null, reasons
     ]);
     var right = el("div", { class: "actions" }, [applyControl(j), saveBtn(j)]);
     return el("article", { class: "card job" }, [left, right]);
@@ -709,6 +767,7 @@
     var list = jobsTab === "new" ? newList : jobsTab === "other" ? otherList : mbaList;
     updateCounts();
     drawTags();
+    drawFitHint();
 
     var byCo = {};
     list.forEach(function (j) { (byCo[j.company] = byCo[j.company] || []).push(j); });
@@ -741,13 +800,20 @@
     }
 
     var s = $("sort").value;
+    if (s === "fit" && !profile) {              // no resume yet: open the panel instead
+      s = "name"; $("sort").value = "name"; $("resumeMsg").textContent = "Add your resume here to sort roles by best fit.";
+      setTimeout(function () { showTab("profile"); }, 0);
+    }
     var withinCompany = function (a, b) {      // order of roles inside one company
+      if (s === "fit") return fitPct(b) - fitPct(a) || (b.posted || "").localeCompare(a.posted || "");
       if (s === "deadline") return deadlineRank(a) - deadlineRank(b) || (b.posted || "").localeCompare(a.posted || "");
       return VISA_ORDER[a.visa] - VISA_ORDER[b.visa] || (b.posted || "").localeCompare(a.posted || "");
     };
     var newest = function (c) { return byCo[c].reduce(function (m, j) { return (j.posted || "") > m ? j.posted : m; }, ""); };
     var soonest = function (c) { return byCo[c].length ? Math.min.apply(null, byCo[c].map(deadlineRank)) : 1e9; };
+    var bestFit = function (c) { return byCo[c].reduce(function (m, j) { return Math.max(m, fitPct(j)); }, -1); };
     companies.sort(function (a, b) {
+      if (s === "fit") return bestFit(b) - bestFit(a) || a.localeCompare(b);
       if (s === "roles") return byCo[b].length - byCo[a].length || a.localeCompare(b);
       if (s === "new") return newest(b).localeCompare(newest(a)) || a.localeCompare(b);
       if (s === "deadline") return soonest(a) - soonest(b) || a.localeCompare(b);
@@ -766,6 +832,249 @@
   $("expandAll").addEventListener("click", function () { visibleCompanies.forEach(function (c) { openGroups[c] = true; }); render(); });
   $("collapseAll").addEventListener("click", function () { visibleCompanies.forEach(function (c) { openGroups[c] = false; }); render(); });
 
+
+  // ---- match jobs to my resume ----
+  // Everything happens in this browser: the resume is read here, compared with the roles here, and its text is never sent or stored.
+  // Only the skills, years and role types it finds are remembered on this computer (and can be cleared).
+  var MI = null, profile = null, fitCache = {};
+  var PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+  var PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  var MAMMOTH = "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js";
+  var FN_RULES = [
+    ["Strategy Consulting", /\bconsult(ant|ing)\b|\bengagement manager\b|\badvisory\b/g],
+    ["Corp Strategy", /\bcorporate strategy\b|\bstrategic (planning|finance)\b|\bcorporate development\b|\bm&a\b|\bfp&a\b|\bstrategy\b/g],
+    ["BizOps / Strategy & Ops", /\bbusiness operations\b|\bbizops\b|\boperations\b/g],
+    ["Chief of Staff", /\bchief of staff\b/g],
+    ["GTM / Revenue Ops", /\brevenue operations\b|\bsales operations\b|\bgo-to-market\b|\bgtm\b/g],
+    ["Product Ops", /\bproduct operations\b/g],
+    ["Transformation / PMO", /\btransformation\b|\bprogram manage(r|ment)\b|\bpmo\b|\bproject manage(r|ment)\b/g],
+    ["Product Management", /\bproduct manage(r|ment)\b|\bproduct roadmap\b/g],
+    ["Business Development", /\bbusiness development\b|\bbiz ?dev\b/g],
+    ["Partnerships", /\bpartnerships?\b|\balliances?\b/g],
+    ["Growth", /\bgrowth\b|\buser acquisition\b|\blifecycle marketing\b/g],
+    ["General Management", /\bgeneral manager\b|\bp&l\b/g],
+    ["Account Executive", /\baccount executive\b|\bquota\b|\benterprise sales\b/g]
+  ];
+  function normText(t) { return String(t || "").toLowerCase().replace(/[–—‑]/g, "-").replace(/[‘’]/g, "'").replace(/&amp;/g, "&").replace(/ /g, " "); }
+  function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+  function vocabRegex(items) {          // the same whole-word, longest-first matching the build uses on job descriptions
+    var map = Object.create(null), syns = [];
+    items.forEach(function (it, i) { it.s.forEach(function (s) { if (!(s in map)) { map[s] = i; syns.push(s); } }); });
+    syns.sort(function (a, b) { return b.length - a.length; });
+    return { re: new RegExp("(^|[^a-z0-9])(" + syns.map(escRe).join("|") + ")(?![a-z0-9])", "g"), map: map };
+  }
+  function termsIn(text, vr) {
+    var found = {}, m; vr.re.lastIndex = 0;
+    while ((m = vr.re.exec(text))) { var i = vr.map[m[2]]; found[i] = (found[i] || 0) + 1; }
+    return found;
+  }
+  function loadScript(src) {
+    return new Promise(function (ok, bad) {
+      var s = document.createElement("script"); s.src = src; s.onload = ok;
+      s.onerror = function () { bad(new Error("Could not load " + src)); }; document.head.appendChild(s);
+    });
+  }
+  function loadIndex(cb, fail) {
+    if (MI) return cb();
+    loadScript("match_index.js").then(function () {
+      MI = window.MATCH_INDEX; MI._sk = vocabRegex(MI.skills); MI._in = vocabRegex(MI.inds); cb();
+    }, function () { if (fail) fail(); });
+  }
+  function estimateYears(text) {
+    var MON = "jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec";
+    var re = new RegExp("(?:(" + MON + ")[a-z]*\\.?\\s+)?((?:19|20)\\d\\d)\\s*(?:-|to)\\s*(?:(present|current|now)|(?:(" + MON + ")[a-z]*\\.?\\s+)?((?:19|20)\\d\\d))", "gi");
+    var now = new Date(), nowY = now.getFullYear() + now.getMonth() / 12, spans = [];
+    function mi(m) { return m ? MON.split("|").indexOf(m.toLowerCase().slice(0, 3)) / 12 : 0; }
+    normText(text).split(/\r?\n/).forEach(function (line) {
+      if (/universit|college|school|bachelor|\bb\.?[sa]\.?\b|\bmba\b|master|\bm\.?s\.?\b|ph\.?d|\bgpa\b|degree|diploma|expected|coursework/.test(line)) return;
+      var m; re.lastIndex = 0;
+      while ((m = re.exec(line))) {
+        var a = +m[2] + mi(m[1]), b = m[3] ? nowY : +m[5] + mi(m[4]);
+        if (b >= a && a > 1980 && b - a < 40) spans.push([a, b]);
+      }
+    });
+    spans.sort(function (x, y) { return x[0] - y[0]; });
+    var total = 0, cur = null;
+    spans.forEach(function (s) { if (!cur || s[0] > cur[1]) { if (cur) total += cur[1] - cur[0]; cur = [s[0], s[1]]; } else if (s[1] > cur[1]) cur[1] = s[1]; });
+    if (cur) total += cur[1] - cur[0];
+    var said = 0, k, kre = /(\d{1,2})\+?\s*years?\s+(?:of\s+)?(?:[a-z\- ]{0,30}\s)?experience/gi;
+    while ((k = kre.exec(text))) said = Math.max(said, +k[1]);
+    return Math.min(40, Math.round(total > 0 ? total : said));
+  }
+  function analyzeResume(text) {
+    var t = normText(text), vs = termsIn(t, MI._sk), vi = termsIn(t, MI._in), skills = {}, inds = {}, fns = {};
+    Object.keys(vs).forEach(function (k) { skills[k] = true; });
+    Object.keys(vi).forEach(function (k) { inds[k] = true; });
+    FN_RULES.map(function (r) { var m = t.match(r[1]); return [r[0], m ? m.length : 0]; })
+      .filter(function (x) { return x[1] >= 2; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 4)
+      .forEach(function (x) { fns[x[0]] = true; });
+    return { skills: skills, inds: inds, years: estimateYears(text), fns: fns, hideWeak: false };
+  }
+  // Score 0-100 for one role: skills (42%), role type (26%), years of experience (20%), industry (12%).
+  function fitOf(j) {
+    if (!profile || !MI) return null;
+    if (fitCache[j.url] !== undefined) return fitCache[j.url];
+    var e = MI.roles[j.url], out = null;
+    if (e) {
+      var ks = e[0], W = 0, M = 0, hit = [], i;
+      for (i = 0; i < ks.length; i += 2) {
+        var w = ks[i + 1] * MI.skills[ks[i]].w; W += w;
+        if (profile.skills[ks[i]]) { M += w; hit.push([MI.skills[ks[i]].l, w]); }
+      }
+      var skill = W > 0 ? Math.min(1, Math.sqrt(M / W) * 1.1) : 0;
+      var indHit = e[1].filter(function (n) { return profile.inds[n]; });
+      var ind = !e[1].length ? 0.5 : indHit.length ? 1 : 0.15;
+      var wanted = Object.keys(profile.fns).filter(function (k) { return profile.fns[k]; });
+      var fn = !wanted.length ? 0.6 : profile.fns[j.category] ? 1 : 0.15;
+      var yrs = 0.7, d = null;
+      if (j.min_years != null) {
+        d = profile.years - j.min_years;
+        yrs = d >= -1 && d <= 5 ? 1 : d < -1 ? Math.max(0, 1 + (d + 1) * 0.3) : Math.max(0.1, 1 - (d - 5) * 0.1);
+      } else if ((j.seniority === "Entry-level" && profile.years > 4) || (j.seniority === "Associate" && profile.years > 9) ||
+                 (j.seniority === "Sr. Manager" && profile.years < 4)) {
+        yrs = 0.2;                      // no years stated: use the level in the title
+      }
+      var pct = Math.max(1, Math.min(99, Math.round(100 * (0.42 * skill + 0.12 * ind + 0.26 * fn + 0.2 * yrs))));
+      var why = [];
+      hit.sort(function (a, b) { return b[1] - a[1]; });
+      if (hit.length) why.push("Matches " + hit.slice(0, 4).map(function (h) { return h[0]; }).join(", "));
+      else why.push("Few of your listed skills appear in this posting");
+      if (indHit.length) why.push("industry: " + indHit.map(function (n) { return MI.inds[n].l; }).join(", "));
+      if (wanted.length && profile.fns[j.category]) why.push("a role type you picked");
+      if (d != null) why.push("asks " + j.min_years + "+ yrs, you have about " + profile.years + (d < -1 ? " (a stretch)" : ""));
+      out = { pct: pct, why: why };
+    }
+    fitCache[j.url] = out; return out;
+  }
+  function fitClass(p) { return p >= 75 ? "good" : p >= 55 ? "accent" : "neutral"; }
+  function fitPct(j) { var f = fitOf(j); return f ? f.pct : -1; }
+
+  function drawFitHint() {
+    var h = $("fitHint"); if (!h) return; h.textContent = "";
+    var go = el("button", { class: "linkbtn", type: "button", text: profile ? "Edit your profile" : "Add your resume in Your profile" });
+    go.addEventListener("click", function () { showTab("profile"); });
+    h.appendChild(document.createTextNode(profile
+      ? "Fit scores use your profile (" + Object.keys(profile.skills).length + " skills, about " + profile.years + " years). "
+      : "See how you fit these roles: "));
+    h.appendChild(go);
+  }
+  function drawTop() {
+    var box = $("topMatches"); box.textContent = "";
+    if (!profile || !MI) return;
+    var top = jobs.filter(function (j) { return passes(j); }).map(function (j) { return [fitPct(j), j]; })
+      .filter(function (x) { return x[0] > 0; }).sort(function (a, b) { return b[0] - a[0]; }).slice(0, 5);
+    if (!top.length) return;
+    box.appendChild(el("h4", { text: "Your top matches right now" }));
+    top.forEach(function (x) {
+      var j = x[1], f = fitOf(j);
+      box.appendChild(el("div", { class: "topmatch" }, [
+        el("span", { class: "badge fit " + fitClass(f.pct), text: "Fit " + f.pct + "%" }), " ",
+        el("a", { href: safeUrl(j.url), target: "_blank", rel: "noopener noreferrer", text: j.company + " \u00b7 " + j.title }),
+        el("div", { class: "fitline", text: f.why.join(" \u00b7 ") })]));
+    });
+  }
+  function saveProfile() { store.set("jb_profile", profile); }
+  function profileChanged(goFit) {
+    fitCache = {}; saveProfile(); drawProfile();
+    if (goFit) $("sort").value = "fit";
+    render();
+  }
+  function chip(label, onRemove) {
+    return el("span", { class: "chipx" }, [label + " ", el("button", { type: "button", "aria-label": "Remove " + label, text: "✕", onclick: onRemove })]);
+  }
+  function drawProfile() {
+    var box = $("profile");
+    if (!profile || !MI) { box.classList.add("hidden"); $("resumeStatus").textContent = "Nothing added yet."; drawFitHint(); return; }
+    box.classList.remove("hidden");
+    var sk = Object.keys(profile.skills).sort(function (a, b) { return MI.skills[a].l.localeCompare(MI.skills[b].l); });
+    var pS = $("pSkills"); pS.textContent = "";
+    sk.forEach(function (k) { pS.appendChild(chip(MI.skills[k].l, function () { delete profile.skills[k]; profileChanged(); })); });
+    var pI = $("pInds"); pI.textContent = "";
+    Object.keys(profile.inds).forEach(function (k) { pI.appendChild(chip(MI.inds[k].l, function () { delete profile.inds[k]; profileChanged(); })); });
+    var pF = $("pFns"); pF.textContent = "";
+    CATEGORY_ORDER.forEach(function (c) {
+      var cb = el("input", { type: "checkbox" }); cb.checked = !!profile.fns[c];
+      cb.addEventListener("change", function () { profile.fns[c] = cb.checked; profileChanged(); });
+      pF.appendChild(el("label", { class: "chk" }, [cb, el("span", { text: c })]));
+    });
+    $("pYears").value = profile.years; $("pHideWeak").checked = !!profile.hideWeak;
+    $("resumeStatus").textContent = "Resume loaded: " + sk.length + " skills, about " + profile.years + " years. The role lists are now sorted by best fit.";
+    drawTop();
+  }
+  function fillSkillList() {
+    var dl = $("skillList"); dl.textContent = "";
+    MI.skills.forEach(function (s) { dl.appendChild(el("option", { value: s.l })); });
+    MI.inds.forEach(function (s) { dl.appendChild(el("option", { value: s.l + " (industry)" })); });
+  }
+  function readResumeFile(file) {
+    var name = (file.name || "").toLowerCase();
+    if (/\.txt$/.test(name)) return file.text();
+    if (/\.docx$/.test(name)) {
+      return loadScript(MAMMOTH).then(function () { return file.arrayBuffer(); })
+        .then(function (buf) { return window.mammoth.extractRawText({ arrayBuffer: buf }); }).then(function (r) { return r.value; });
+    }
+    if (/\.pdf$/.test(name)) {
+      return loadScript(PDFJS).then(function () { return fetch(PDFJS_WORKER).then(function (r) { return r.text(); }); })
+        .then(function (code) {
+          window.pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([code], { type: "text/javascript" }));
+          return file.arrayBuffer();
+        })
+        .then(function (buf) { return window.pdfjsLib.getDocument({ data: buf }).promise; })
+        .then(function (pdf) {
+          var pages = [], n;
+          for (n = 1; n <= pdf.numPages; n++) {
+            pages.push(pdf.getPage(n).then(function (p) { return p.getTextContent(); })
+              .then(function (tc) { return tc.items.map(function (it) { return it.str + (it.hasEOL ? "\n" : " "); }).join(""); }));
+          }
+          return Promise.all(pages).then(function (a) { return a.join("\n"); });
+        });
+    }
+    return Promise.reject(new Error("Upload a PDF, a Word .docx, or a .txt file, or paste the text. Older .doc files are not supported."));
+  }
+  function showWantedTypes() {            // e.g. Account Executive starts unticked: show it if the resume points there
+    Object.keys(profile.fns).forEach(function (c) {
+      var lab = profile.fns[c] && $("f-category").querySelector('label[data-v="' + c + '"] input');
+      if (lab && !lab.checked) { lab.checked = true; filterState.category[c] = true; }
+    });
+  }
+  function useResumeText(text) {
+    var msg = $("resumeMsg");
+    if (String(text || "").replace(/\s+/g, " ").trim().length < 80) { msg.textContent = "That looks too short or empty. If it is a scanned PDF, paste the text instead."; return; }
+    msg.textContent = "Reading your resume…";
+    loadIndex(function () {
+      fillSkillList(); profile = analyzeResume(text);
+      showWantedTypes();
+      msg.textContent = Object.keys(profile.skills).length ? "" : "No skills from our list were found. Add some below.";
+      profileChanged(true);
+    }, function () { msg.textContent = "Could not load the matching data. Check your connection and try again."; });
+  }
+  $("seeMatches").addEventListener("click", function () { $("sort").value = "fit"; showTab("mba"); window.scrollTo(0, 0); });
+  $("resumeGo").addEventListener("click", function () { useResumeText($("resumeText").value); });
+  $("resumeFile").addEventListener("change", function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    $("resumeMsg").textContent = "Reading " + f.name + "…";
+    readResumeFile(f).then(function (text) { $("resumeText").value = text; useResumeText(text); },
+      function (err) { $("resumeMsg").textContent = err.message || "Could not read that file. Paste the text instead."; });
+    this.value = "";
+  });
+  $("resumeClear").addEventListener("click", function () {
+    profile = null; fitCache = {}; $("resumeText").value = ""; $("resumeMsg").textContent = "";
+    store.set("jb_profile", null); if ($("sort").value === "fit") $("sort").value = "name"; drawProfile(); render();
+  });
+  $("pYears").addEventListener("change", function () { if (profile) { profile.years = Math.max(0, Math.min(40, +this.value || 0)); profileChanged(); } });
+  $("pHideWeak").addEventListener("change", function () { if (profile) { profile.hideWeak = this.checked; profileChanged(); } });
+  $("addTerm").addEventListener("change", function () {
+    var v = this.value.trim().toLowerCase(), done = false; this.value = "";
+    if (!profile || !MI || !v) return;
+    MI.skills.forEach(function (s, i) { if (s.l.toLowerCase() === v) { profile.skills[i] = true; done = true; } });
+    MI.inds.forEach(function (s, i) { if ((s.l + " (industry)").toLowerCase() === v || s.l.toLowerCase() === v) { profile.inds[i] = true; done = true; } });
+    if (done) profileChanged();
+  });
+  function restoreProfile() {
+    var saved = store.get("jb_profile", null);
+    if (!saved || !saved.skills) return;
+    loadIndex(function () { fillSkillList(); profile = saved; fitCache = {}; showWantedTypes(); if ($("sort").value === "name") $("sort").value = "fit"; drawProfile(); render(); });
+  }
 
   // ---- my list ----
   var STATUSES = ["Saved", "Applied", "Interviewing", "Offer", "Passed"];
@@ -823,6 +1132,7 @@
   }
 
   initFilters(); fillSuggestions(); updateMyCount(); render();
+  restoreProfile();
   showTab(store.get("jb_tab", "mba"));   // opens on Roles for MBAs unless the visitor last used another tab
 })();
 </script>

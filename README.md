@@ -228,3 +228,6 @@ reading, and Qualcomm, Intuit and IBM use systems the board has no reader for.
 Not done yet: Amazon, Google, Microsoft, Apple, Uber and Netflix. Each needs its own reader and a check of the site's terms.
 Workday searches stop at `max_per_term` (300 here), so a big firm's list can be partial; Intel returned very few roles for that reason or because
 few of its postings match.
+
+The resume panel and My list share one **Profile & My list** tab: "Your resume fit" on top, "My list" below it (the tab's number counts saved roles).
+The role tabs show a one-line pointer to it, and "See my best matches" jumps to the role list sorted by fit. An old remembered "My list" tab opens this one.
