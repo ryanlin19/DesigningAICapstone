@@ -536,7 +536,10 @@
  "Zoom": null,
  "Workday": null,
  "ServiceNow": null,
- "Salesforce": null,
+ "Salesforce": {
+  "platform": "workday",
+  "slug": "salesforce"
+ },
  "Samsara": {
   "platform": "greenhouse",
   "slug": "samsara"
@@ -1344,6 +1347,4390 @@
   "slug": "alixpartners"
  },
  "Huron Consulting": null,
+ "Accompany Health": {
+  "platform": "greenhouse",
+  "slug": "accompanyhealth"
+ },
+ "Addi": {
+  "platform": "ashby",
+  "slug": "addi"
+ },
+ "Agentmail": {
+  "platform": "ashby",
+  "slug": "agentmail"
+ },
+ "Airslate": {
+  "platform": "lever",
+  "slug": "airslate"
+ },
+ "Akido Labs": {
+  "platform": "greenhouse",
+  "slug": "akidolabs"
+ },
+ "Allego": {
+  "platform": "greenhouse",
+  "slug": "allego"
+ },
+ "Alpha 9 Oncology": {
+  "platform": "greenhouse",
+  "slug": "alpha9oncology"
+ },
+ "Altos Labs": {
+  "platform": "greenhouse",
+  "slug": "altoslabs"
+ },
+ "Ambience Healthcare": {
+  "platform": "ashby",
+  "slug": "ambiencehealthcare"
+ },
+ "Amperity": {
+  "platform": "greenhouse",
+  "slug": "amperity"
+ },
+ "Anagram": {
+  "platform": "ashby",
+  "slug": "anagram"
+ },
+ "Andesite": {
+  "platform": "greenhouse",
+  "slug": "andesite"
+ },
+ "Anomali": {
+  "platform": "lever",
+  "slug": "anomali"
+ },
+ "Apiiro": {
+  "platform": "greenhouse",
+  "slug": "apiiro"
+ },
+ "Aplazo": {
+  "platform": "ashby",
+  "slug": "aplazo"
+ },
+ "Arch": {
+  "platform": "ashby",
+  "slug": "arch"
+ },
+ "Arlo": {
+  "platform": "ashby",
+  "slug": "arlo"
+ },
+ "Array": {
+  "platform": "greenhouse",
+  "slug": "array"
+ },
+ "Artie": {
+  "platform": "ashby",
+  "slug": "artie"
+ },
+ "Atob": {
+  "platform": "ashby",
+  "slug": "atob"
+ },
+ "August Health": {
+  "platform": "ashby",
+  "slug": "august-health"
+ },
+ "Aura": {
+  "platform": "greenhouse",
+  "slug": "aura"
+ },
+ "Aurelius Systems": {
+  "platform": "ashby",
+  "slug": "aureliussystems"
+ },
+ "Authzed": {
+  "platform": "ashby",
+  "slug": "authzed"
+ },
+ "Aven": {
+  "platform": "ashby",
+  "slug": "aven"
+ },
+ "Aviatrix": {
+  "platform": "greenhouse",
+  "slug": "aviatrix"
+ },
+ "Awardco": {
+  "platform": "greenhouse",
+  "slug": "awardco"
+ },
+ "B12": {
+  "platform": "greenhouse",
+  "slug": "b12"
+ },
+ "Baba": {
+  "platform": "ashby",
+  "slug": "baba"
+ },
+ "Baseten": {
+  "platform": "ashby",
+  "slug": "baseten"
+ },
+ "Beacon Biosignals": {
+  "platform": "greenhouse",
+  "slug": "beaconbiosignals"
+ },
+ "Bevel": {
+  "platform": "ashby",
+  "slug": "bevel"
+ },
+ "Black Forest Labs": {
+  "platform": "ashby",
+  "slug": "black-forest-labs"
+ },
+ "Blank Street": {
+  "platform": "greenhouse",
+  "slug": "blankstreet"
+ },
+ "Bolna": {
+  "platform": "ashby",
+  "slug": "bolna"
+ },
+ "Bounce": {
+  "platform": "ashby",
+  "slug": "bounce"
+ },
+ "Brainly": {
+  "platform": "ashby",
+  "slug": "brainly"
+ },
+ "Brave Health": {
+  "platform": "ashby",
+  "slug": "bravehealth"
+ },
+ "Bridge Neurotech": {
+  "platform": "ashby",
+  "slug": "bridgeneurotech"
+ },
+ "Brilliant": {
+  "platform": "lever",
+  "slug": "brilliant"
+ },
+ "Bugcrowd": {
+  "platform": "greenhouse",
+  "slug": "bugcrowd"
+ },
+ "Buildkite": {
+  "platform": "greenhouse",
+  "slug": "buildkite"
+ },
+ "Cambridge Mobile Telematics": {
+  "platform": "greenhouse",
+  "slug": "cambridgemobiletelematics"
+ },
+ "Campus": {
+  "platform": "ashby",
+  "slug": "campus"
+ },
+ "Candid Health": {
+  "platform": "ashby",
+  "slug": "candidhealth"
+ },
+ "Cape": {
+  "platform": "ashby",
+  "slug": "cape"
+ },
+ "CarbonChain": {
+  "platform": "greenhouse",
+  "slug": "carbonchain"
+ },
+ "Cartesia": {
+  "platform": "ashby",
+  "slug": "cartesia"
+ },
+ "Catalant": {
+  "platform": "ashby",
+  "slug": "catalant"
+ },
+ "Cellanome": {
+  "platform": "greenhouse",
+  "slug": "cellanome"
+ },
+ "Chai Discovery": {
+  "platform": "ashby",
+  "slug": "chaidiscovery"
+ },
+ "Chainguard": {
+  "platform": "greenhouse",
+  "slug": "chainguard"
+ },
+ "Chalk": {
+  "platform": "ashby",
+  "slug": "chalk"
+ },
+ "Chamber Cardio": {
+  "platform": "ashby",
+  "slug": "chambercardio"
+ },
+ "Chariot Defense": {
+  "platform": "greenhouse",
+  "slug": "chariotdefense"
+ },
+ "Charm Industrial": {
+  "platform": "lever",
+  "slug": "charmindustrial"
+ },
+ "Checkr": {
+  "platform": "greenhouse",
+  "slug": "checkr"
+ },
+ "Chief": {
+  "platform": "ashby",
+  "slug": "chief"
+ },
+ "Circleci": {
+  "platform": "greenhouse",
+  "slug": "circleci"
+ },
+ "Clara": {
+  "platform": "greenhouse",
+  "slug": "clara"
+ },
+ "Clarium": {
+  "platform": "ashby",
+  "slug": "clarium"
+ },
+ "Classdojo": {
+  "platform": "ashby",
+  "slug": "classdojo"
+ },
+ "Classpass": {
+  "platform": "greenhouse",
+  "slug": "classpass"
+ },
+ "Clearco": {
+  "platform": "ashby",
+  "slug": "clearco"
+ },
+ "Clickhouse": {
+  "platform": "ashby",
+  "slug": "clickhouse"
+ },
+ "Cloaked": {
+  "platform": "ashby",
+  "slug": "cloaked"
+ },
+ "Cobot": {
+  "platform": "ashby",
+  "slug": "cobot"
+ },
+ "Cobre": {
+  "platform": "greenhouse",
+  "slug": "cobre"
+ },
+ "Cointracker": {
+  "platform": "ashby",
+  "slug": "cointracker"
+ },
+ "Collective": {
+  "platform": "ashby",
+  "slug": "collective"
+ },
+ "Concurrence": {
+  "platform": "ashby",
+  "slug": "concurrence"
+ },
+ "Consensys": {
+  "platform": "greenhouse",
+  "slug": "consensys"
+ },
+ "Cookunity": {
+  "platform": "greenhouse",
+  "slug": "cookunity"
+ },
+ "Corelight": {
+  "platform": "greenhouse",
+  "slug": "corelight"
+ },
+ "Cortex": {
+  "platform": "greenhouse",
+  "slug": "cortex"
+ },
+ "Courier Health": {
+  "platform": "greenhouse",
+  "slug": "courierhealth"
+ },
+ "Cowboy Space Corporation": {
+  "platform": "ashby",
+  "slug": "cowboyspace"
+ },
+ "Cred": {
+  "platform": "lever",
+  "slug": "cred"
+ },
+ "Cribl": {
+  "platform": "greenhouse",
+  "slug": "cribl"
+ },
+ "Crossfit": {
+  "platform": "lever",
+  "slug": "crossfit"
+ },
+ "Ctgt": {
+  "platform": "ashby",
+  "slug": "ctgt"
+ },
+ "Daybreak Health": {
+  "platform": "greenhouse",
+  "slug": "daybreakhealth"
+ },
+ "Daylight": {
+  "platform": "greenhouse",
+  "slug": "daylight"
+ },
+ "Dealops": {
+  "platform": "ashby",
+  "slug": "dealops"
+ },
+ "Deepl": {
+  "platform": "ashby",
+  "slug": "deepl"
+ },
+ "Deliveroo": {
+  "platform": "greenhouse",
+  "slug": "deliveroo"
+ },
+ "Deputy": {
+  "platform": "lever",
+  "slug": "deputy"
+ },
+ "Disco": {
+  "platform": "greenhouse",
+  "slug": "disco"
+ },
+ "Doctronic": {
+  "platform": "ashby",
+  "slug": "doctronic"
+ },
+ "Dream Games": {
+  "platform": "greenhouse",
+  "slug": "dreamgames"
+ },
+ "Dryft": {
+  "platform": "ashby",
+  "slug": "dryft"
+ },
+ "Dune": {
+  "platform": "ashby",
+  "slug": "dune"
+ },
+ "Dwelly": {
+  "platform": "greenhouse",
+  "slug": "dwelly"
+ },
+ "Efficient Computer": {
+  "platform": "greenhouse",
+  "slug": "efficientcomputer"
+ },
+ "Eikon Therapeutics": {
+  "platform": "greenhouse",
+  "slug": "eikontherapeutics"
+ },
+ "Emidat": {
+  "platform": "ashby",
+  "slug": "emidat"
+ },
+ "Engram": {
+  "platform": "ashby",
+  "slug": "engram"
+ },
+ "Equip": {
+  "platform": "ashby",
+  "slug": "equip"
+ },
+ "Ethic": {
+  "platform": "greenhouse",
+  "slug": "ethic"
+ },
+ "Ethos Life": {
+  "platform": "greenhouse",
+  "slug": "ethoslife"
+ },
+ "Eudia": {
+  "platform": "greenhouse",
+  "slug": "eudia"
+ },
+ "Evergreen Nephrology": {
+  "platform": "greenhouse",
+  "slug": "evergreennephrology"
+ },
+ "Evvy": {
+  "platform": "ashby",
+  "slug": "evvy"
+ },
+ "FREE NOW": {
+  "platform": "greenhouse",
+  "slug": "freenow"
+ },
+ "Feedzai": {
+  "platform": "greenhouse",
+  "slug": "feedzai"
+ },
+ "Felix": {
+  "platform": "ashby",
+  "slug": "felix"
+ },
+ "Finch": {
+  "platform": "lever",
+  "slug": "finch"
+ },
+ "Finni Health": {
+  "platform": "ashby",
+  "slug": "finni-health"
+ },
+ "Flashfood": {
+  "platform": "greenhouse",
+  "slug": "flashfood"
+ },
+ "Forerunner": {
+  "platform": "ashby",
+  "slug": "forerunner"
+ },
+ "Forus": {
+  "platform": "ashby",
+  "slug": "forus"
+ },
+ "Found": {
+  "platform": "greenhouse",
+  "slug": "found"
+ },
+ "Fourier": {
+  "platform": "ashby",
+  "slug": "fourier"
+ },
+ "Fundamental": {
+  "platform": "ashby",
+  "slug": "fundamental"
+ },
+ "Funding Circle": {
+  "platform": "ashby",
+  "slug": "fundingcircle"
+ },
+ "G2": {
+  "platform": "ashby",
+  "slug": "g2"
+ },
+ "Galileo": {
+  "platform": "greenhouse",
+  "slug": "galileo"
+ },
+ "Generalist": {
+  "platform": "ashby",
+  "slug": "generalist"
+ },
+ "Geordie Ai": {
+  "platform": "ashby",
+  "slug": "geordieai"
+ },
+ "Ghost": {
+  "platform": "greenhouse",
+  "slug": "ghost"
+ },
+ "Gooddata": {
+  "platform": "ashby",
+  "slug": "gooddata"
+ },
+ "Goodstack": {
+  "platform": "ashby",
+  "slug": "goodstack"
+ },
+ "Greenboard": {
+  "platform": "ashby",
+  "slug": "greenboard"
+ },
+ "Gritt": {
+  "platform": "ashby",
+  "slug": "gritt"
+ },
+ "H1": {
+  "platform": "lever",
+  "slug": "h1"
+ },
+ "Hello Heart": {
+  "platform": "greenhouse",
+  "slug": "helloheart"
+ },
+ "Helsing": {
+  "platform": "greenhouse",
+  "slug": "helsing"
+ },
+ "Highnote": {
+  "platform": "greenhouse",
+  "slug": "highnote"
+ },
+ "Hockeystack": {
+  "platform": "ashby",
+  "slug": "hockeystack"
+ },
+ "Hometap": {
+  "platform": "greenhouse",
+  "slug": "hometap"
+ },
+ "Homeward": {
+  "platform": "greenhouse",
+  "slug": "homeward"
+ },
+ "Hume AI": {
+  "platform": "greenhouse",
+  "slug": "humeai"
+ },
+ "Hyde": {
+  "platform": "ashby",
+  "slug": "hyde"
+ },
+ "Iceye": {
+  "platform": "ashby",
+  "slug": "iceye"
+ },
+ "Iex": {
+  "platform": "greenhouse",
+  "slug": "iex"
+ },
+ "Illumio": {
+  "platform": "ashby",
+  "slug": "illumio"
+ },
+ "Imagine Pediatrics": {
+  "platform": "greenhouse",
+  "slug": "imaginepediatrics"
+ },
+ "Indigo": {
+  "platform": "greenhouse",
+  "slug": "indigo"
+ },
+ "Instride Health": {
+  "platform": "greenhouse",
+  "slug": "instridehealth"
+ },
+ "Iru": {
+  "platform": "lever",
+  "slug": "iru"
+ },
+ "Isembard": {
+  "platform": "ashby",
+  "slug": "isembard"
+ },
+ "Judi Health": {
+  "platform": "greenhouse",
+  "slug": "judihealth"
+ },
+ "Juro": {
+  "platform": "ashby",
+  "slug": "juro"
+ },
+ "Justworks": {
+  "platform": "greenhouse",
+  "slug": "justworks"
+ },
+ "Kalshi": {
+  "platform": "greenhouse",
+  "slug": "kalshi"
+ },
+ "Kano": {
+  "platform": "greenhouse",
+  "slug": "kano"
+ },
+ "Karat": {
+  "platform": "greenhouse",
+  "slug": "karat"
+ },
+ "Kavak": {
+  "platform": "lever",
+  "slug": "kavak"
+ },
+ "Kayak": {
+  "platform": "ashby",
+  "slug": "kayak"
+ },
+ "Kernel": {
+  "platform": "ashby",
+  "slug": "kernel"
+ },
+ "Kickstarter": {
+  "platform": "greenhouse",
+  "slug": "kickstarter"
+ },
+ "Ladder": {
+  "platform": "ashby",
+  "slug": "ladder"
+ },
+ "Langchain": {
+  "platform": "ashby",
+  "slug": "langchain"
+ },
+ "Laurel": {
+  "platform": "ashby",
+  "slug": "laurel"
+ },
+ "Layer Health": {
+  "platform": "greenhouse",
+  "slug": "layerhealth"
+ },
+ "Lessen": {
+  "platform": "lever",
+  "slug": "lessen"
+ },
+ "Lila Sciences": {
+  "platform": "greenhouse",
+  "slug": "lilasciences"
+ },
+ "Liquid": {
+  "platform": "ashby",
+  "slug": "liquid"
+ },
+ "Literati": {
+  "platform": "ashby",
+  "slug": "literati"
+ },
+ "Lottie": {
+  "platform": "ashby",
+  "slug": "lottie"
+ },
+ "Lucis": {
+  "platform": "ashby",
+  "slug": "lucis"
+ },
+ "Luma Ai": {
+  "platform": "ashby",
+  "slug": "lumaai"
+ },
+ "Lumafield": {
+  "platform": "lever",
+  "slug": "lumafield"
+ },
+ "Luminai": {
+  "platform": "ashby",
+  "slug": "luminai"
+ },
+ "Main Street Health": {
+  "platform": "greenhouse",
+  "slug": "mainstreethealth"
+ },
+ "Mainspring Energy": {
+  "platform": "lever",
+  "slug": "mainspringenergy"
+ },
+ "Mark43": {
+  "platform": "greenhouse",
+  "slug": "mark43"
+ },
+ "Material Bank": {
+  "platform": "greenhouse",
+  "slug": "materialbank"
+ },
+ "Maze Therapeutics": {
+  "platform": "greenhouse",
+  "slug": "mazetherapeutics"
+ },
+ "Medeloop": {
+  "platform": "greenhouse",
+  "slug": "medeloop"
+ },
+ "Medely": {
+  "platform": "ashby",
+  "slug": "medely"
+ },
+ "Melius": {
+  "platform": "ashby",
+  "slug": "melius"
+ },
+ "Menlo Security": {
+  "platform": "ashby",
+  "slug": "menlosecurity"
+ },
+ "Mercor": {
+  "platform": "ashby",
+  "slug": "mercor"
+ },
+ "Meter": {
+  "platform": "ashby",
+  "slug": "meter"
+ },
+ "Mindbody": {
+  "platform": "greenhouse",
+  "slug": "mindbody"
+ },
+ "Minio": {
+  "platform": "greenhouse",
+  "slug": "minio"
+ },
+ "Mirage": {
+  "platform": "ashby",
+  "slug": "mirage"
+ },
+ "Molten Industries": {
+  "platform": "lever",
+  "slug": "moltenindustries"
+ },
+ "Monte Carlo Data": {
+  "platform": "ashby",
+  "slug": "montecarlodata"
+ },
+ "Morpho": {
+  "platform": "ashby",
+  "slug": "morpho"
+ },
+ "Multiverse": {
+  "platform": "ashby",
+  "slug": "multiverse"
+ },
+ "Neko Health": {
+  "platform": "ashby",
+  "slug": "neko-health"
+ },
+ "Neon": {
+  "platform": "lever",
+  "slug": "neon"
+ },
+ "Nerdwallet": {
+  "platform": "ashby",
+  "slug": "nerdwallet"
+ },
+ "Nextdoor": {
+  "platform": "greenhouse",
+  "slug": "nextdoor"
+ },
+ "Nextroll": {
+  "platform": "greenhouse",
+  "slug": "nextroll"
+ },
+ "Nolla Health": {
+  "platform": "ashby",
+  "slug": "nollahealth"
+ },
+ "Notable": {
+  "platform": "ashby",
+  "slug": "notable"
+ },
+ "Nous Research": {
+  "platform": "ashby",
+  "slug": "nousresearch"
+ },
+ "Nova Credit": {
+  "platform": "greenhouse",
+  "slug": "novacredit"
+ },
+ "Numeric": {
+  "platform": "ashby",
+  "slug": "numeric"
+ },
+ "Nurix": {
+  "platform": "greenhouse",
+  "slug": "nurix"
+ },
+ "Obsidian Security": {
+  "platform": "greenhouse",
+  "slug": "obsidiansecurity"
+ },
+ "Ocrolus": {
+  "platform": "ashby",
+  "slug": "ocrolus"
+ },
+ "Onebrief": {
+  "platform": "ashby",
+  "slug": "onebrief"
+ },
+ "Oneschema": {
+  "platform": "ashby",
+  "slug": "oneschema"
+ },
+ "Ophelia": {
+  "platform": "greenhouse",
+  "slug": "ophelia"
+ },
+ "Oshi Health": {
+  "platform": "greenhouse",
+  "slug": "oshihealth"
+ },
+ "Ossium Health": {
+  "platform": "greenhouse",
+  "slug": "ossiumhealth"
+ },
+ "Ostrom": {
+  "platform": "ashby",
+  "slug": "ostrom"
+ },
+ "Outschool": {
+  "platform": "ashby",
+  "slug": "outschool"
+ },
+ "Overjet": {
+  "platform": "ashby",
+  "slug": "overjet"
+ },
+ "Pacific Fusion": {
+  "platform": "greenhouse",
+  "slug": "pacificfusion"
+ },
+ "Pallet": {
+  "platform": "greenhouse",
+  "slug": "pallet"
+ },
+ "Paradigm": {
+  "platform": "ashby",
+  "slug": "paradigm"
+ },
+ "Parloa": {
+  "platform": "ashby",
+  "slug": "parloa"
+ },
+ "Pathai": {
+  "platform": "greenhouse",
+  "slug": "pathai"
+ },
+ "Paxos": {
+  "platform": "ashby",
+  "slug": "paxos"
+ },
+ "PayJoy": {
+  "platform": "lever",
+  "slug": "payjoy"
+ },
+ "Payrails": {
+  "platform": "ashby",
+  "slug": "payrails"
+ },
+ "Pelico": {
+  "platform": "ashby",
+  "slug": "pelico"
+ },
+ "Percepta": {
+  "platform": "ashby",
+  "slug": "percepta"
+ },
+ "Pharmacy1st Health": {
+  "platform": "ashby",
+  "slug": "pharmacy1sthealth"
+ },
+ "Physicsx": {
+  "platform": "greenhouse",
+  "slug": "physicsx"
+ },
+ "Pigment": {
+  "platform": "lever",
+  "slug": "pigment"
+ },
+ "Pilot Fiber": {
+  "platform": "ashby",
+  "slug": "pilot-fiber"
+ },
+ "Ping Identity": {
+  "platform": "greenhouse",
+  "slug": "pingidentity"
+ },
+ "Plume": {
+  "platform": "greenhouse",
+  "slug": "plume"
+ },
+ "Pluralis Research": {
+  "platform": "ashby",
+  "slug": "pluralis-research"
+ },
+ "Polymarket": {
+  "platform": "ashby",
+  "slug": "polymarket"
+ },
+ "Possible Finance": {
+  "platform": "ashby",
+  "slug": "possible-finance"
+ },
+ "Profound Research": {
+  "platform": "lever",
+  "slug": "profoundresearch"
+ },
+ "Pronto": {
+  "platform": "greenhouse",
+  "slug": "pronto"
+ },
+ "Prosper": {
+  "platform": "lever",
+  "slug": "prosper"
+ },
+ "Prove": {
+  "platform": "greenhouse",
+  "slug": "prove"
+ },
+ "Pure Storage": {
+  "platform": "greenhouse",
+  "slug": "purestorage"
+ },
+ "Pylon": {
+  "platform": "ashby",
+  "slug": "pylon"
+ },
+ "Radiant": {
+  "platform": "ashby",
+  "slug": "radiant"
+ },
+ "Ranger": {
+  "platform": "lever",
+  "slug": "ranger"
+ },
+ "Re Build Manufacturing": {
+  "platform": "greenhouse",
+  "slug": "rebuildmanufacturing"
+ },
+ "Rebag": {
+  "platform": "greenhouse",
+  "slug": "rebag"
+ },
+ "Recall": {
+  "platform": "greenhouse",
+  "slug": "recall"
+ },
+ "Regard": {
+  "platform": "ashby",
+  "slug": "regard"
+ },
+ "Relay": {
+  "platform": "lever",
+  "slug": "relay"
+ },
+ "Remodel Health": {
+  "platform": "greenhouse",
+  "slug": "remodelhealth"
+ },
+ "Render": {
+  "platform": "ashby",
+  "slug": "render"
+ },
+ "Reservoir": {
+  "platform": "ashby",
+  "slug": "reservoir"
+ },
+ "Resilience": {
+  "platform": "greenhouse",
+  "slug": "resilience"
+ },
+ "Revel": {
+  "platform": "greenhouse",
+  "slug": "revel"
+ },
+ "Rialtic": {
+  "platform": "greenhouse",
+  "slug": "rialtic"
+ },
+ "Rillet": {
+  "platform": "ashby",
+  "slug": "rillet"
+ },
+ "River Ai": {
+  "platform": "greenhouse",
+  "slug": "riverai"
+ },
+ "Rubrik": {
+  "platform": "greenhouse",
+  "slug": "rubrik"
+ },
+ "Rylo": {
+  "platform": "lever",
+  "slug": "rylo"
+ },
+ "Sage Care": {
+  "platform": "ashby",
+  "slug": "sagecare"
+ },
+ "Sapien": {
+  "platform": "ashby",
+  "slug": "sapien"
+ },
+ "Scalar": {
+  "platform": "ashby",
+  "slug": "scalar"
+ },
+ "Senra Systems": {
+  "platform": "greenhouse",
+  "slug": "senrasystems"
+ },
+ "Seon": {
+  "platform": "ashby",
+  "slug": "seon"
+ },
+ "Serval": {
+  "platform": "ashby",
+  "slug": "serval"
+ },
+ "Shift Technology": {
+  "platform": "greenhouse",
+  "slug": "shifttechnology"
+ },
+ "Sift": {
+  "platform": "ashby",
+  "slug": "sift"
+ },
+ "Simulmedia": {
+  "platform": "lever",
+  "slug": "simulmedia"
+ },
+ "Singular": {
+  "platform": "ashby",
+  "slug": "singular"
+ },
+ "Sleeper": {
+  "platform": "ashby",
+  "slug": "sleeper"
+ },
+ "Slide": {
+  "platform": "ashby",
+  "slug": "slide"
+ },
+ "Slope": {
+  "platform": "ashby",
+  "slug": "slope"
+ },
+ "Snackpass": {
+  "platform": "ashby",
+  "slug": "snackpass"
+ },
+ "Sofar Sounds": {
+  "platform": "lever",
+  "slug": "sofarsounds"
+ },
+ "Somethings": {
+  "platform": "ashby",
+  "slug": "somethings"
+ },
+ "Sonarsource": {
+  "platform": "lever",
+  "slug": "sonarsource"
+ },
+ "Sondermind": {
+  "platform": "ashby",
+  "slug": "sondermind"
+ },
+ "Sorare": {
+  "platform": "ashby",
+  "slug": "sorare"
+ },
+ "Spiral": {
+  "platform": "ashby",
+  "slug": "spiral"
+ },
+ "Splice": {
+  "platform": "greenhouse",
+  "slug": "splice"
+ },
+ "Sprinter Health": {
+  "platform": "ashby",
+  "slug": "sprinter-health"
+ },
+ "Stacks": {
+  "platform": "ashby",
+  "slug": "stacks"
+ },
+ "Standard Bots": {
+  "platform": "ashby",
+  "slug": "standardbots"
+ },
+ "Stedi": {
+  "platform": "ashby",
+  "slug": "stedi"
+ },
+ "Step": {
+  "platform": "greenhouse",
+  "slug": "step"
+ },
+ "Stepful": {
+  "platform": "ashby",
+  "slug": "stepful"
+ },
+ "Substrate": {
+  "platform": "ashby",
+  "slug": "substrate"
+ },
+ "Summer": {
+  "platform": "greenhouse",
+  "slug": "summer"
+ },
+ "Suno": {
+  "platform": "ashby",
+  "slug": "suno"
+ },
+ "Super Payments": {
+  "platform": "greenhouse",
+  "slug": "superpayments"
+ },
+ "Supercell": {
+  "platform": "ashby",
+  "slug": "supercell"
+ },
+ "Tabs": {
+  "platform": "ashby",
+  "slug": "tabs"
+ },
+ "Tanium": {
+  "platform": "greenhouse",
+  "slug": "tanium"
+ },
+ "Taxbit": {
+  "platform": "greenhouse",
+  "slug": "taxbit"
+ },
+ "Teambridge": {
+  "platform": "ashby",
+  "slug": "teambridge"
+ },
+ "Teamshares": {
+  "platform": "lever",
+  "slug": "teamshares"
+ },
+ "Teamworks": {
+  "platform": "ashby",
+  "slug": "teamworks"
+ },
+ "Tempo": {
+  "platform": "greenhouse",
+  "slug": "tempo"
+ },
+ "Tendo": {
+  "platform": "lever",
+  "slug": "tendo"
+ },
+ "Tennr": {
+  "platform": "ashby",
+  "slug": "tennr"
+ },
+ "Thatch": {
+  "platform": "greenhouse",
+  "slug": "thatch"
+ },
+ "The Predictive Index": {
+  "platform": "greenhouse",
+  "slug": "predictiveindex"
+ },
+ "Toku": {
+  "platform": "lever",
+  "slug": "toku"
+ },
+ "Traba": {
+  "platform": "ashby",
+  "slug": "traba"
+ },
+ "Transmutex": {
+  "platform": "lever",
+  "slug": "transmutex"
+ },
+ "Tucows": {
+  "platform": "greenhouse",
+  "slug": "tucows"
+ },
+ "Turquoise Health": {
+  "platform": "ashby",
+  "slug": "turquoise-health"
+ },
+ "Tutor Intelligence": {
+  "platform": "lever",
+  "slug": "tutorintelligence"
+ },
+ "Twenty": {
+  "platform": "ashby",
+  "slug": "twenty"
+ },
+ "Uniswap": {
+  "platform": "ashby",
+  "slug": "uniswap"
+ },
+ "Unite Us": {
+  "platform": "greenhouse",
+  "slug": "uniteus"
+ },
+ "Universe": {
+  "platform": "ashby",
+  "slug": "universe"
+ },
+ "Upgrade": {
+  "platform": "greenhouse",
+  "slug": "upgrade"
+ },
+ "Upside": {
+  "platform": "ashby",
+  "slug": "upside"
+ },
+ "Valerie Health": {
+  "platform": "ashby",
+  "slug": "valeriehealth"
+ },
+ "Valinor": {
+  "platform": "ashby",
+  "slug": "valinor"
+ },
+ "Vannevar Labs": {
+  "platform": "greenhouse",
+  "slug": "vannevarlabs"
+ },
+ "Veriff": {
+  "platform": "greenhouse",
+  "slug": "veriff"
+ },
+ "Verkada": {
+  "platform": "greenhouse",
+  "slug": "verkada"
+ },
+ "Vital Lyfe": {
+  "platform": "ashby",
+  "slug": "vital-lyfe"
+ },
+ "Warp Sciences": {
+  "platform": "ashby",
+  "slug": "warp-sciences"
+ },
+ "Wattpad": {
+  "platform": "lever",
+  "slug": "wattpad"
+ },
+ "Welltheory": {
+  "platform": "ashby",
+  "slug": "welltheory"
+ },
+ "Wonderful": {
+  "platform": "ashby",
+  "slug": "wonderful"
+ },
+ "Yext": {
+  "platform": "greenhouse",
+  "slug": "yext"
+ },
+ "YieldMo": {
+  "platform": "greenhouse",
+  "slug": "yieldmo"
+ },
+ "Zarminali Health": {
+  "platform": "greenhouse",
+  "slug": "zarminalihealth"
+ },
+ "Zefr": {
+  "platform": "ashby",
+  "slug": "zefr"
+ },
+ "Zego": {
+  "platform": "ashby",
+  "slug": "zego"
+ },
+ "Zenbusiness": {
+  "platform": "greenhouse",
+  "slug": "zenbusiness"
+ },
+ "Ziprecruiter": {
+  "platform": "greenhouse",
+  "slug": "ziprecruiter"
+ },
+ "0x": {
+  "platform": "ashby",
+  "slug": "0x"
+ },
+ "100ms": {
+  "platform": "lever",
+  "slug": "100ms"
+ },
+ "1password": {
+  "platform": "ashby",
+  "slug": "1password"
+ },
+ "6sense": {
+  "platform": "greenhouse",
+  "slug": "6sense"
+ },
+ "Abby Care": {
+  "platform": "ashby",
+  "slug": "abby-care"
+ },
+ "Acadia Pharmaceuticals": {
+  "platform": "greenhouse",
+  "slug": "acadiapharmaceuticals"
+ },
+ "Acceldata": {
+  "platform": "lever",
+  "slug": "acceldata"
+ },
+ "Acquia": {
+  "platform": "greenhouse",
+  "slug": "acquia"
+ },
+ "Act Security": {
+  "platform": "ashby",
+  "slug": "act-security"
+ },
+ "Advocate": {
+  "platform": "lever",
+  "slug": "advocate"
+ },
+ "Agave": {
+  "platform": "ashby",
+  "slug": "agave"
+ },
+ "Ai Squared": {
+  "platform": "greenhouse",
+  "slug": "aisquared"
+ },
+ "Aigen": {
+  "platform": "lever",
+  "slug": "aigen"
+ },
+ "Air": {
+  "platform": "greenhouse",
+  "slug": "air"
+ },
+ "Airbound": {
+  "platform": "ashby",
+  "slug": "airbound"
+ },
+ "Airbyte": {
+  "platform": "ashby",
+  "slug": "airbyte"
+ },
+ "Airops": {
+  "platform": "ashby",
+  "slug": "airops"
+ },
+ "Alan": {
+  "platform": "ashby",
+  "slug": "alan"
+ },
+ "Alchemy": {
+  "platform": "ashby",
+  "slug": "alchemy"
+ },
+ "Aleph": {
+  "platform": "lever",
+  "slug": "aleph"
+ },
+ "Algolia": {
+  "platform": "greenhouse",
+  "slug": "algolia"
+ },
+ "Allara Health": {
+  "platform": "ashby",
+  "slug": "allarahealth"
+ },
+ "Alljoined": {
+  "platform": "ashby",
+  "slug": "alljoined"
+ },
+ "Alloy": {
+  "platform": "greenhouse",
+  "slug": "alloy"
+ },
+ "Amca": {
+  "platform": "greenhouse",
+  "slug": "amca"
+ },
+ "Amperos": {
+  "platform": "ashby",
+  "slug": "amperos"
+ },
+ "Ampersand": {
+  "platform": "ashby",
+  "slug": "ampersand"
+ },
+ "Andera": {
+  "platform": "ashby",
+  "slug": "andera"
+ },
+ "Ando": {
+  "platform": "ashby",
+  "slug": "ando"
+ },
+ "Anine Bing": {
+  "platform": "greenhouse",
+  "slug": "aninebing"
+ },
+ "Ankorstore": {
+  "platform": "ashby",
+  "slug": "ankorstore"
+ },
+ "Anrok": {
+  "platform": "ashby",
+  "slug": "anrok"
+ },
+ "Ansible Health": {
+  "platform": "ashby",
+  "slug": "ansiblehealth"
+ },
+ "Anterior": {
+  "platform": "ashby",
+  "slug": "anterior"
+ },
+ "Antioch": {
+  "platform": "ashby",
+  "slug": "antioch"
+ },
+ "Anybotics": {
+  "platform": "lever",
+  "slug": "anybotics"
+ },
+ "Anysignal": {
+  "platform": "ashby",
+  "slug": "anysignal"
+ },
+ "Apex Ai": {
+  "platform": "lever",
+  "slug": "apex-ai"
+ },
+ "Appian": {
+  "platform": "greenhouse",
+  "slug": "appian"
+ },
+ "Applications": {
+  "platform": "greenhouse",
+  "slug": "applications"
+ },
+ "Appzen": {
+  "platform": "lever",
+  "slug": "appzen"
+ },
+ "Aquabyte": {
+  "platform": "lever",
+  "slug": "aquabyte"
+ },
+ "Arca": {
+  "platform": "ashby",
+  "slug": "arca"
+ },
+ "Arcade": {
+  "platform": "ashby",
+  "slug": "arcade"
+ },
+ "Archive": {
+  "platform": "ashby",
+  "slug": "archive"
+ },
+ "Archy": {
+  "platform": "ashby",
+  "slug": "archy"
+ },
+ "Arena": {
+  "platform": "ashby",
+  "slug": "arena"
+ },
+ "Armadin": {
+  "platform": "ashby",
+  "slug": "armadin"
+ },
+ "Arq": {
+  "platform": "ashby",
+  "slug": "arq"
+ },
+ "Aslan": {
+  "platform": "ashby",
+  "slug": "aslan"
+ },
+ "Aspora": {
+  "platform": "ashby",
+  "slug": "aspora"
+ },
+ "Assemblyai": {
+  "platform": "greenhouse",
+  "slug": "assemblyai"
+ },
+ "Assort Health": {
+  "platform": "ashby",
+  "slug": "assorthealth"
+ },
+ "Astrocade": {
+  "platform": "ashby",
+  "slug": "astrocade"
+ },
+ "Atira": {
+  "platform": "ashby",
+  "slug": "atira"
+ },
+ "Atlas": {
+  "platform": "ashby",
+  "slug": "atlas"
+ },
+ "Atomic": {
+  "platform": "ashby",
+  "slug": "atomic"
+ },
+ "Atrato": {
+  "platform": "ashby",
+  "slug": "atrato"
+ },
+ "Auctor": {
+  "platform": "ashby",
+  "slug": "auctor"
+ },
+ "Audiomob": {
+  "platform": "greenhouse",
+  "slug": "audiomob"
+ },
+ "August": {
+  "platform": "ashby",
+  "slug": "august"
+ },
+ "Aurelian": {
+  "platform": "ashby",
+  "slug": "aurelian"
+ },
+ "Auterion": {
+  "platform": "greenhouse",
+  "slug": "auterion"
+ },
+ "Automat": {
+  "platform": "ashby",
+  "slug": "automat"
+ },
+ "Avantos": {
+  "platform": "ashby",
+  "slug": "avantos"
+ },
+ "Avarra": {
+  "platform": "ashby",
+  "slug": "avarra"
+ },
+ "Axion": {
+  "platform": "ashby",
+  "slug": "axion"
+ },
+ "Axonius": {
+  "platform": "greenhouse",
+  "slug": "axonius"
+ },
+ "Ayble Health": {
+  "platform": "ashby",
+  "slug": "ayblehealth"
+ },
+ "Backbone": {
+  "platform": "ashby",
+  "slug": "backbone"
+ },
+ "Bankjoy": {
+  "platform": "ashby",
+  "slug": "bankjoy"
+ },
+ "Base Power": {
+  "platform": "ashby",
+  "slug": "base-power"
+ },
+ "Basis": {
+  "platform": "lever",
+  "slug": "basis"
+ },
+ "Baublebar": {
+  "platform": "greenhouse",
+  "slug": "baublebar"
+ },
+ "Beamery": {
+  "platform": "ashby",
+  "slug": "beamery"
+ },
+ "Bedrock Robotics": {
+  "platform": "ashby",
+  "slug": "bedrock-robotics"
+ },
+ "Behavox": {
+  "platform": "greenhouse",
+  "slug": "behavox"
+ },
+ "Believer": {
+  "platform": "ashby",
+  "slug": "believer"
+ },
+ "Belong Health": {
+  "platform": "greenhouse",
+  "slug": "belonghealth"
+ },
+ "Bere Al": {
+  "platform": "ashby",
+  "slug": "bereal"
+ },
+ "Betterup": {
+  "platform": "ashby",
+  "slug": "betterup"
+ },
+ "Beyond": {
+  "platform": "greenhouse",
+  "slug": "beyond"
+ },
+ "Big Health": {
+  "platform": "lever",
+  "slug": "bighealth"
+ },
+ "Bigger Games": {
+  "platform": "ashby",
+  "slug": "biggergames"
+ },
+ "Bigid": {
+  "platform": "greenhouse",
+  "slug": "bigid"
+ },
+ "Bild Ai": {
+  "platform": "ashby",
+  "slug": "bild-ai"
+ },
+ "Birdie": {
+  "platform": "ashby",
+  "slug": "birdie"
+ },
+ "Blablacar": {
+  "platform": "lever",
+  "slug": "blablacar"
+ },
+ "Blacksmith": {
+  "platform": "ashby",
+  "slug": "blacksmith"
+ },
+ "Blend": {
+  "platform": "greenhouse",
+  "slug": "blend"
+ },
+ "Block Renovation": {
+  "platform": "greenhouse",
+  "slug": "blockrenovation"
+ },
+ "Blockchain": {
+  "platform": "greenhouse",
+  "slug": "blockchain"
+ },
+ "Blockstream": {
+  "platform": "ashby",
+  "slug": "blockstream"
+ },
+ "Bloomreach": {
+  "platform": "greenhouse",
+  "slug": "bloomreach"
+ },
+ "Bluefish Ai": {
+  "platform": "greenhouse",
+  "slug": "bluefishai"
+ },
+ "Blueshift": {
+  "platform": "greenhouse",
+  "slug": "blueshift"
+ },
+ "Bluestone": {
+  "platform": "greenhouse",
+  "slug": "bluestone"
+ },
+ "Boku": {
+  "platform": "greenhouse",
+  "slug": "boku"
+ },
+ "Bold": {
+  "platform": "greenhouse",
+  "slug": "bold"
+ },
+ "Bold Metrics": {
+  "platform": "greenhouse",
+  "slug": "boldmetrics"
+ },
+ "Boulevard": {
+  "platform": "greenhouse",
+  "slug": "boulevard"
+ },
+ "Braintrust": {
+  "platform": "ashby",
+  "slug": "braintrust"
+ },
+ "Brale": {
+  "platform": "ashby",
+  "slug": "brale"
+ },
+ "Branch": {
+  "platform": "greenhouse",
+  "slug": "branch"
+ },
+ "Breaker": {
+  "platform": "ashby",
+  "slug": "breaker"
+ },
+ "Bridgebio": {
+  "platform": "greenhouse",
+  "slug": "bridgebio"
+ },
+ "Brightai": {
+  "platform": "greenhouse",
+  "slug": "brightai"
+ },
+ "Brighthire": {
+  "platform": "greenhouse",
+  "slug": "brighthire"
+ },
+ "Brigit": {
+  "platform": "ashby",
+  "slug": "brigit"
+ },
+ "Brinc": {
+  "platform": "ashby",
+  "slug": "brinc"
+ },
+ "Brisk Teaching": {
+  "platform": "ashby",
+  "slug": "brisk-teaching"
+ },
+ "Britive": {
+  "platform": "greenhouse",
+  "slug": "britive"
+ },
+ "Build": {
+  "platform": "ashby",
+  "slug": "build"
+ },
+ "Built Robotics": {
+  "platform": "ashby",
+  "slug": "built-robotics"
+ },
+ "Bunkerhill Health": {
+  "platform": "ashby",
+  "slug": "bunkerhillhealth"
+ },
+ "Cambly": {
+  "platform": "ashby",
+  "slug": "cambly"
+ },
+ "Cameo": {
+  "platform": "greenhouse",
+  "slug": "cameo"
+ },
+ "Campfire": {
+  "platform": "ashby",
+  "slug": "campfire"
+ },
+ "Candid Co": {
+  "platform": "greenhouse",
+  "slug": "candid"
+ },
+ "Canvas Medical": {
+  "platform": "lever",
+  "slug": "canvasmedical"
+ },
+ "Capitolis": {
+  "platform": "greenhouse",
+  "slug": "capitolis"
+ },
+ "Captivateiq": {
+  "platform": "lever",
+  "slug": "captivateiq"
+ },
+ "Carwow": {
+  "platform": "ashby",
+  "slug": "carwow"
+ },
+ "Castle": {
+  "platform": "ashby",
+  "slug": "castle"
+ },
+ "Catalog": {
+  "platform": "ashby",
+  "slug": "catalog"
+ },
+ "Catawiki": {
+  "platform": "greenhouse",
+  "slug": "catawiki"
+ },
+ "Cato Networks": {
+  "platform": "greenhouse",
+  "slug": "catonetworks"
+ },
+ "Causal": {
+  "platform": "ashby",
+  "slug": "causal"
+ },
+ "Causaly": {
+  "platform": "ashby",
+  "slug": "causaly"
+ },
+ "Cellular Intelligence": {
+  "platform": "ashby",
+  "slug": "cellular-intelligence"
+ },
+ "Censys": {
+  "platform": "greenhouse",
+  "slug": "censys"
+ },
+ "Centralize": {
+  "platform": "ashby",
+  "slug": "centralize"
+ },
+ "Certik": {
+  "platform": "lever",
+  "slug": "certik"
+ },
+ "Charles": {
+  "platform": "greenhouse",
+  "slug": "charles"
+ },
+ "Checkly": {
+  "platform": "ashby",
+  "slug": "checkly"
+ },
+ "Cheddar": {
+  "platform": "greenhouse",
+  "slug": "cheddar"
+ },
+ "Choco": {
+  "platform": "ashby",
+  "slug": "choco"
+ },
+ "Chownow": {
+  "platform": "lever",
+  "slug": "chownow"
+ },
+ "Cinder": {
+  "platform": "ashby",
+  "slug": "cinder"
+ },
+ "Circadia Health": {
+  "platform": "lever",
+  "slug": "circadiahealth"
+ },
+ "Ciridae": {
+  "platform": "ashby",
+  "slug": "ciridae"
+ },
+ "Citizen": {
+  "platform": "ashby",
+  "slug": "citizen"
+ },
+ "Clair": {
+  "platform": "ashby",
+  "slug": "clair"
+ },
+ "Clarify": {
+  "platform": "ashby",
+  "slug": "clarify"
+ },
+ "Clark": {
+  "platform": "ashby",
+  "slug": "clark"
+ },
+ "Cleo": {
+  "platform": "greenhouse",
+  "slug": "cleo"
+ },
+ "Clever": {
+  "platform": "greenhouse",
+  "slug": "clever"
+ },
+ "Clickup": {
+  "platform": "ashby",
+  "slug": "clickup"
+ },
+ "Cloudinary": {
+  "platform": "lever",
+  "slug": "cloudinary"
+ },
+ "Clutch": {
+  "platform": "greenhouse",
+  "slug": "clutch"
+ },
+ "Coast": {
+  "platform": "greenhouse",
+  "slug": "coast"
+ },
+ "Cockroach Labs": {
+  "platform": "greenhouse",
+  "slug": "cockroachlabs"
+ },
+ "Codat": {
+  "platform": "ashby",
+  "slug": "codat"
+ },
+ "Code Metal": {
+  "platform": "ashby",
+  "slug": "code-metal"
+ },
+ "Coder": {
+  "platform": "ashby",
+  "slug": "coder"
+ },
+ "Coframe": {
+  "platform": "ashby",
+  "slug": "coframe"
+ },
+ "Cogent Security": {
+  "platform": "ashby",
+  "slug": "cogent-security"
+ },
+ "Cognite": {
+  "platform": "greenhouse",
+  "slug": "cognite"
+ },
+ "Cognition": {
+  "platform": "ashby",
+  "slug": "cognition"
+ },
+ "Cohere Inc": {
+  "platform": "ashby",
+  "slug": "cohere"
+ },
+ "Collective Health": {
+  "platform": "greenhouse",
+  "slug": "collectivehealth"
+ },
+ "Collibra": {
+  "platform": "greenhouse",
+  "slug": "collibra"
+ },
+ "Commercetools": {
+  "platform": "greenhouse",
+  "slug": "commercetools"
+ },
+ "Commons": {
+  "platform": "ashby",
+  "slug": "commons"
+ },
+ "Complete": {
+  "platform": "ashby",
+  "slug": "complete"
+ },
+ "Complyadvantage": {
+  "platform": "greenhouse",
+  "slug": "complyadvantage"
+ },
+ "Composio": {
+  "platform": "ashby",
+  "slug": "composio"
+ },
+ "Compound Eye": {
+  "platform": "ashby",
+  "slug": "compound-eye"
+ },
+ "Conduct": {
+  "platform": "ashby",
+  "slug": "conduct"
+ },
+ "Confluera": {
+  "platform": "lever",
+  "slug": "confluera"
+ },
+ "Contra": {
+  "platform": "ashby",
+  "slug": "contra"
+ },
+ "Convey": {
+  "platform": "ashby",
+  "slug": "convey"
+ },
+ "Conviva": {
+  "platform": "greenhouse",
+  "slug": "conviva"
+ },
+ "Copilotiq": {
+  "platform": "greenhouse",
+  "slug": "copilotiq"
+ },
+ "Corestory": {
+  "platform": "greenhouse",
+  "slug": "corestory"
+ },
+ "Cowboy Space": {
+  "platform": "ashby",
+  "slug": "cowboyspace"
+ },
+ "Cradlebio": {
+  "platform": "ashby",
+  "slug": "cradlebio"
+ },
+ "Credit Genie": {
+  "platform": "ashby",
+  "slug": "creditgenie"
+ },
+ "Cresta": {
+  "platform": "greenhouse",
+  "slug": "cresta"
+ },
+ "Critical Energy": {
+  "platform": "ashby",
+  "slug": "critical-energy"
+ },
+ "Crosby": {
+  "platform": "ashby",
+  "slug": "crosby"
+ },
+ "Crossing Minds": {
+  "platform": "lever",
+  "slug": "crossing-minds"
+ },
+ "Crucibl": {
+  "platform": "ashby",
+  "slug": "crucibl"
+ },
+ "Culture Amp": {
+  "platform": "greenhouse",
+  "slug": "cultureamp"
+ },
+ "Current": {
+  "platform": "greenhouse",
+  "slug": "current"
+ },
+ "Cuspai": {
+  "platform": "ashby",
+  "slug": "cuspai"
+ },
+ "Cx2": {
+  "platform": "lever",
+  "slug": "cx2"
+ },
+ "Dandelion": {
+  "platform": "ashby",
+  "slug": "dandelion"
+ },
+ "Dash0": {
+  "platform": "ashby",
+  "slug": "dash0"
+ },
+ "Dashlane": {
+  "platform": "greenhouse",
+  "slug": "dashlane"
+ },
+ "Databento": {
+  "platform": "greenhouse",
+  "slug": "databento"
+ },
+ "Databook": {
+  "platform": "ashby",
+  "slug": "databook"
+ },
+ "Datafold": {
+  "platform": "ashby",
+  "slug": "datafold"
+ },
+ "Datasnipper": {
+  "platform": "ashby",
+  "slug": "datasnipper"
+ },
+ "Daydream": {
+  "platform": "ashby",
+  "slug": "daydream"
+ },
+ "Deepnote": {
+  "platform": "ashby",
+  "slug": "deepnote"
+ },
+ "Delphi": {
+  "platform": "ashby",
+  "slug": "delphi"
+ },
+ "Depthfirst": {
+  "platform": "ashby",
+  "slug": "depthfirst"
+ },
+ "Descope": {
+  "platform": "greenhouse",
+  "slug": "descope"
+ },
+ "Despegar": {
+  "platform": "lever",
+  "slug": "despegar"
+ },
+ "Devrev": {
+  "platform": "greenhouse",
+  "slug": "devrev"
+ },
+ "Dexterity": {
+  "platform": "lever",
+  "slug": "dexterity"
+ },
+ "Dialogue Ai": {
+  "platform": "ashby",
+  "slug": "dialogueai"
+ },
+ "Distyl": {
+  "platform": "ashby",
+  "slug": "distyl"
+ },
+ "Docker": {
+  "platform": "ashby",
+  "slug": "docker"
+ },
+ "Doctolib": {
+  "platform": "ashby",
+  "slug": "doctolib"
+ },
+ "Dolls Kill": {
+  "platform": "lever",
+  "slug": "dollskill"
+ },
+ "Domino Data Lab": {
+  "platform": "greenhouse",
+  "slug": "dominodatalab"
+ },
+ "Doppel": {
+  "platform": "greenhouse",
+  "slug": "doppel"
+ },
+ "Doppler": {
+  "platform": "ashby",
+  "slug": "doppler"
+ },
+ "Dorsia": {
+  "platform": "greenhouse",
+  "slug": "dorsia"
+ },
+ "Double": {
+  "platform": "ashby",
+  "slug": "double"
+ },
+ "Dovetail": {
+  "platform": "ashby",
+  "slug": "dovetail"
+ },
+ "Dremio": {
+  "platform": "greenhouse",
+  "slug": "dremio"
+ },
+ "Drivewealth": {
+  "platform": "greenhouse",
+  "slug": "drivewealth"
+ },
+ "Dualentry": {
+  "platform": "ashby",
+  "slug": "dualentry"
+ },
+ "Duna": {
+  "platform": "ashby",
+  "slug": "duna"
+ },
+ "Dust": {
+  "platform": "ashby",
+  "slug": "dust"
+ },
+ "Eagle": {
+  "platform": "ashby",
+  "slug": "eagle"
+ },
+ "Earli": {
+  "platform": "greenhouse",
+  "slug": "earli"
+ },
+ "Edra": {
+  "platform": "ashby",
+  "slug": "edra"
+ },
+ "Eisen": {
+  "platform": "ashby",
+  "slug": "eisen"
+ },
+ "Eka Robotics": {
+  "platform": "ashby",
+  "slug": "ekarobotics"
+ },
+ "Eliseai": {
+  "platform": "ashby",
+  "slug": "eliseai"
+ },
+ "Ellipsis Health": {
+  "platform": "ashby",
+  "slug": "ellipsis-health"
+ },
+ "Ello": {
+  "platform": "ashby",
+  "slug": "ello"
+ },
+ "Emi Labs": {
+  "platform": "lever",
+  "slug": "emilabs"
+ },
+ "Enable": {
+  "platform": "lever",
+  "slug": "enable"
+ },
+ "Endor Labs": {
+  "platform": "greenhouse",
+  "slug": "endorlabs"
+ },
+ "Eon": {
+  "platform": "ashby",
+  "slug": "eon"
+ },
+ "Eragon": {
+  "platform": "ashby",
+  "slug": "eragon"
+ },
+ "Etched": {
+  "platform": "ashby",
+  "slug": "etched"
+ },
+ "Eve": {
+  "platform": "greenhouse",
+  "slug": "eve"
+ },
+ "Eventual": {
+  "platform": "ashby",
+  "slug": "eventual"
+ },
+ "Evervault": {
+  "platform": "ashby",
+  "slug": "evervault"
+ },
+ "Evident Id": {
+  "platform": "lever",
+  "slug": "evidentid"
+ },
+ "Exa": {
+  "platform": "ashby",
+  "slug": "exa"
+ },
+ "Expel": {
+  "platform": "greenhouse",
+  "slug": "expel"
+ },
+ "Eye Security": {
+  "platform": "ashby",
+  "slug": "eye-security"
+ },
+ "Factory": {
+  "platform": "ashby",
+  "slug": "factory"
+ },
+ "Fal Ai": {
+  "platform": "ashby",
+  "slug": "fal-ai"
+ },
+ "Falconx": {
+  "platform": "greenhouse",
+  "slug": "falconx"
+ },
+ "Fandom": {
+  "platform": "greenhouse",
+  "slug": "fandom"
+ },
+ "Farther Finance": {
+  "platform": "greenhouse",
+  "slug": "fartherfinance"
+ },
+ "Fathom": {
+  "platform": "ashby",
+  "slug": "fathom"
+ },
+ "Feathery": {
+  "platform": "ashby",
+  "slug": "feathery"
+ },
+ "Ferry Health": {
+  "platform": "ashby",
+  "slug": "ferryhealth"
+ },
+ "Fictiv": {
+  "platform": "greenhouse",
+  "slug": "fictiv"
+ },
+ "Field Ai": {
+  "platform": "lever",
+  "slug": "field-ai"
+ },
+ "Fieldguide": {
+  "platform": "ashby",
+  "slug": "fieldguide"
+ },
+ "Filevine": {
+  "platform": "lever",
+  "slug": "filevine"
+ },
+ "Filigran": {
+  "platform": "ashby",
+  "slug": "filigran"
+ },
+ "Fin": {
+  "platform": "ashby",
+  "slug": "fin"
+ },
+ "Finix": {
+  "platform": "lever",
+  "slug": "finix"
+ },
+ "Fintual": {
+  "platform": "lever",
+  "slug": "fintual"
+ },
+ "Fireblocks": {
+  "platform": "greenhouse",
+  "slug": "fireblocks"
+ },
+ "Fireworks": {
+  "platform": "ashby",
+  "slug": "fireworks"
+ },
+ "Fiscalnote": {
+  "platform": "lever",
+  "slug": "fiscalnote"
+ },
+ "Fizz": {
+  "platform": "ashby",
+  "slug": "fizz"
+ },
+ "Flagler Health": {
+  "platform": "ashby",
+  "slug": "flaglerhealth"
+ },
+ "Flex": {
+  "platform": "greenhouse",
+  "slug": "flex"
+ },
+ "Flint": {
+  "platform": "ashby",
+  "slug": "flint"
+ },
+ "Flip": {
+  "platform": "greenhouse",
+  "slug": "flip"
+ },
+ "Flipturn": {
+  "platform": "ashby",
+  "slug": "flipturn"
+ },
+ "Flow Engineering": {
+  "platform": "ashby",
+  "slug": "flowengineering"
+ },
+ "Flox": {
+  "platform": "ashby",
+  "slug": "flox"
+ },
+ "Fluency": {
+  "platform": "greenhouse",
+  "slug": "fluency"
+ },
+ "Folx Health": {
+  "platform": "greenhouse",
+  "slug": "folxhealth"
+ },
+ "Fonoa": {
+  "platform": "ashby",
+  "slug": "fonoa"
+ },
+ "Footprint": {
+  "platform": "ashby",
+  "slug": "footprint"
+ },
+ "Foresight": {
+  "platform": "ashby",
+  "slug": "foresight"
+ },
+ "Formation Bio": {
+  "platform": "greenhouse",
+  "slug": "formationbio"
+ },
+ "Formlabs": {
+  "platform": "greenhouse",
+  "slug": "formlabs"
+ },
+ "Forter": {
+  "platform": "greenhouse",
+  "slug": "forter"
+ },
+ "Foundry Robotics": {
+  "platform": "ashby",
+  "slug": "foundry-robotics"
+ },
+ "Foxglove": {
+  "platform": "ashby",
+  "slug": "foxglove"
+ },
+ "Fractile": {
+  "platform": "ashby",
+  "slug": "fractile"
+ },
+ "Frec": {
+  "platform": "ashby",
+  "slug": "frec"
+ },
+ "Freed": {
+  "platform": "ashby",
+  "slug": "freed"
+ },
+ "Fulcrum": {
+  "platform": "ashby",
+  "slug": "fulcrum"
+ },
+ "Furientis": {
+  "platform": "lever",
+  "slug": "furientis"
+ },
+ "Gainsight": {
+  "platform": "ashby",
+  "slug": "gainsight"
+ },
+ "Gardens": {
+  "platform": "ashby",
+  "slug": "gardens"
+ },
+ "Garner Health": {
+  "platform": "greenhouse",
+  "slug": "garnerhealth"
+ },
+ "Genalyte": {
+  "platform": "lever",
+  "slug": "genalyte"
+ },
+ "General Translation": {
+  "platform": "ashby",
+  "slug": "generaltranslation"
+ },
+ "Genies": {
+  "platform": "ashby",
+  "slug": "genies"
+ },
+ "Genmo": {
+  "platform": "ashby",
+  "slug": "genmo"
+ },
+ "Gigfinesse": {
+  "platform": "greenhouse",
+  "slug": "gigfinesse"
+ },
+ "Gigi": {
+  "platform": "ashby",
+  "slug": "gigi"
+ },
+ "Glacier": {
+  "platform": "ashby",
+  "slug": "glacier"
+ },
+ "Gladia": {
+  "platform": "ashby",
+  "slug": "gladia"
+ },
+ "Glydways": {
+  "platform": "greenhouse",
+  "slug": "glydways"
+ },
+ "Goat Group": {
+  "platform": "greenhouse",
+  "slug": "goatgroup"
+ },
+ "Gocardless": {
+  "platform": "greenhouse",
+  "slug": "gocardless"
+ },
+ "Gofundme": {
+  "platform": "greenhouse",
+  "slug": "gofundme"
+ },
+ "Goodfire": {
+  "platform": "greenhouse",
+  "slug": "goodfire"
+ },
+ "Goodleap": {
+  "platform": "lever",
+  "slug": "goodleap"
+ },
+ "Goody": {
+  "platform": "greenhouse",
+  "slug": "goody"
+ },
+ "Goop": {
+  "platform": "greenhouse",
+  "slug": "goop"
+ },
+ "Gossamer Bio": {
+  "platform": "greenhouse",
+  "slug": "gossamerbio"
+ },
+ "Granica": {
+  "platform": "ashby",
+  "slug": "granica"
+ },
+ "Granola": {
+  "platform": "ashby",
+  "slug": "granola"
+ },
+ "Gravity Sketch": {
+  "platform": "ashby",
+  "slug": "gravitysketch"
+ },
+ "Greenlight": {
+  "platform": "lever",
+  "slug": "greenlight"
+ },
+ "Gremlin": {
+  "platform": "greenhouse",
+  "slug": "gremlin"
+ },
+ "Gridware": {
+  "platform": "lever",
+  "slug": "gridware"
+ },
+ "Groupon": {
+  "platform": "greenhouse",
+  "slug": "groupon"
+ },
+ "Grow Therapy": {
+  "platform": "ashby",
+  "slug": "grow-therapy"
+ },
+ "Gumgum": {
+  "platform": "greenhouse",
+  "slug": "gumgum"
+ },
+ "Gushwork": {
+  "platform": "lever",
+  "slug": "gushwork"
+ },
+ "Gyde": {
+  "platform": "greenhouse",
+  "slug": "gyde"
+ },
+ "H Company": {
+  "platform": "ashby",
+  "slug": "hcompany"
+ },
+ "Habitat Health": {
+  "platform": "greenhouse",
+  "slug": "habitathealth"
+ },
+ "Hackerone": {
+  "platform": "ashby",
+  "slug": "hackerone"
+ },
+ "Hackerrank": {
+  "platform": "greenhouse",
+  "slug": "hackerrank"
+ },
+ "Halter": {
+  "platform": "ashby",
+  "slug": "halter"
+ },
+ "Harmonic": {
+  "platform": "ashby",
+  "slug": "harmonic"
+ },
+ "Harmony": {
+  "platform": "lever",
+  "slug": "harmony"
+ },
+ "Hatch": {
+  "platform": "ashby",
+  "slug": "hatch"
+ },
+ "Headway": {
+  "platform": "ashby",
+  "slug": "headway"
+ },
+ "Healthleap": {
+  "platform": "ashby",
+  "slug": "healthleap"
+ },
+ "Helion": {
+  "platform": "ashby",
+  "slug": "helion"
+ },
+ "Hermeus": {
+  "platform": "lever",
+  "slug": "hermeus"
+ },
+ "Higgsfield Ai": {
+  "platform": "ashby",
+  "slug": "higgsfieldai"
+ },
+ "Hinge Health": {
+  "platform": "ashby",
+  "slug": "hinge-health"
+ },
+ "Homebase": {
+  "platform": "ashby",
+  "slug": "homebase"
+ },
+ "Homebound": {
+  "platform": "ashby",
+  "slug": "homebound"
+ },
+ "Hone": {
+  "platform": "greenhouse",
+  "slug": "hone"
+ },
+ "Hook": {
+  "platform": "greenhouse",
+  "slug": "hook"
+ },
+ "Hootsuite": {
+  "platform": "greenhouse",
+  "slug": "hootsuite"
+ },
+ "Hopskipdrive": {
+  "platform": "greenhouse",
+  "slug": "hopskipdrive"
+ },
+ "Horizon3ai": {
+  "platform": "ashby",
+  "slug": "horizon3ai"
+ },
+ "House Rx": {
+  "platform": "greenhouse",
+  "slug": "houserx"
+ },
+ "Houzz": {
+  "platform": "lever",
+  "slug": "houzz"
+ },
+ "Hudl": {
+  "platform": "greenhouse",
+  "slug": "hudl"
+ },
+ "Hungryroot": {
+  "platform": "greenhouse",
+  "slug": "hungryroot"
+ },
+ "Hyperscience": {
+  "platform": "ashby",
+  "slug": "hyperscience"
+ },
+ "Iambic Therapeutics": {
+  "platform": "ashby",
+  "slug": "iambic-therapeutics"
+ },
+ "Imply": {
+  "platform": "greenhouse",
+  "slug": "imply"
+ },
+ "Incident": {
+  "platform": "ashby",
+  "slug": "incident"
+ },
+ "Incognia": {
+  "platform": "greenhouse",
+  "slug": "incognia"
+ },
+ "Ineffable": {
+  "platform": "ashby",
+  "slug": "ineffable"
+ },
+ "Inertia": {
+  "platform": "ashby",
+  "slug": "inertia"
+ },
+ "Inferact": {
+  "platform": "ashby",
+  "slug": "inferact"
+ },
+ "Inflection Ai": {
+  "platform": "greenhouse",
+  "slug": "inflectionai"
+ },
+ "Infosum": {
+  "platform": "greenhouse",
+  "slug": "infosum"
+ },
+ "Inherent": {
+  "platform": "ashby",
+  "slug": "inherent"
+ },
+ "Inkeep": {
+  "platform": "ashby",
+  "slug": "inkeep"
+ },
+ "Inkitt": {
+  "platform": "lever",
+  "slug": "inkitt"
+ },
+ "Insify": {
+  "platform": "lever",
+  "slug": "insify"
+ },
+ "Instawork": {
+  "platform": "greenhouse",
+  "slug": "instawork"
+ },
+ "Instructure": {
+  "platform": "ashby",
+  "slug": "instructure"
+ },
+ "Intenseye": {
+  "platform": "lever",
+  "slug": "intenseye"
+ },
+ "Inworld Ai": {
+  "platform": "ashby",
+  "slug": "inworld-ai"
+ },
+ "Ionq": {
+  "platform": "greenhouse",
+  "slug": "ionq"
+ },
+ "Iris Labs": {
+  "platform": "greenhouse",
+  "slug": "iris-labs"
+ },
+ "Irregular": {
+  "platform": "ashby",
+  "slug": "irregular"
+ },
+ "Island": {
+  "platform": "greenhouse",
+  "slug": "island"
+ },
+ "Jellyfish": {
+  "platform": "ashby",
+  "slug": "jellyfish"
+ },
+ "Judgment Labs": {
+  "platform": "ashby",
+  "slug": "judgmentlabs"
+ },
+ "Juicebox": {
+  "platform": "ashby",
+  "slug": "juicebox"
+ },
+ "Jump": {
+  "platform": "ashby",
+  "slug": "jump"
+ },
+ "K Id": {
+  "platform": "ashby",
+  "slug": "k-id"
+ },
+ "Kaizen Labs": {
+  "platform": "ashby",
+  "slug": "kaizenlabs"
+ },
+ "Ketryx": {
+  "platform": "greenhouse",
+  "slug": "ketryx"
+ },
+ "Kikoff": {
+  "platform": "greenhouse",
+  "slug": "kikoff"
+ },
+ "Kindred": {
+  "platform": "ashby",
+  "slug": "kindred"
+ },
+ "Kira": {
+  "platform": "ashby",
+  "slug": "kira"
+ },
+ "Knoetic": {
+  "platform": "ashby",
+  "slug": "knoetic"
+ },
+ "Kodiak": {
+  "platform": "greenhouse",
+  "slug": "kodiak"
+ },
+ "Kognitos": {
+  "platform": "ashby",
+  "slug": "kognitos"
+ },
+ "Kong": {
+  "platform": "ashby",
+  "slug": "kong"
+ },
+ "Konux": {
+  "platform": "greenhouse",
+  "slug": "konux"
+ },
+ "Kroll Bond Rating Agency": {
+  "platform": "greenhouse",
+  "slug": "krollbondratingagency"
+ },
+ "Kubera Health": {
+  "platform": "ashby",
+  "slug": "kubera-health"
+ },
+ "Kymera Therapeutics": {
+  "platform": "greenhouse",
+  "slug": "kymeratherapeutics"
+ },
+ "Lassie": {
+  "platform": "ashby",
+  "slug": "lassie"
+ },
+ "Latitude": {
+  "platform": "greenhouse",
+  "slug": "latitude"
+ },
+ "Lead Bank": {
+  "platform": "ashby",
+  "slug": "leadbank"
+ },
+ "Ledge": {
+  "platform": "ashby",
+  "slug": "ledge"
+ },
+ "Ledgy": {
+  "platform": "greenhouse",
+  "slug": "ledgy"
+ },
+ "Legora": {
+  "platform": "ashby",
+  "slug": "legora"
+ },
+ "Lemon Markets": {
+  "platform": "ashby",
+  "slug": "lemon-markets"
+ },
+ "Level": {
+  "platform": "ashby",
+  "slug": "level"
+ },
+ "Life360": {
+  "platform": "greenhouse",
+  "slug": "life360"
+ },
+ "Lightdash": {
+  "platform": "ashby",
+  "slug": "lightdash"
+ },
+ "Lightfield": {
+  "platform": "ashby",
+  "slug": "lightfield"
+ },
+ "Lighthouse": {
+  "platform": "greenhouse",
+  "slug": "lighthouse"
+ },
+ "Lightrun": {
+  "platform": "greenhouse",
+  "slug": "lightrun"
+ },
+ "Lightship": {
+  "platform": "lever",
+  "slug": "lightship"
+ },
+ "Lightsource": {
+  "platform": "ashby",
+  "slug": "lightsource"
+ },
+ "Lightspeed": {
+  "platform": "ashby",
+  "slug": "lightspeed"
+ },
+ "Limbic": {
+  "platform": "ashby",
+  "slug": "limbic"
+ },
+ "Limelight Steel": {
+  "platform": "ashby",
+  "slug": "limelight-steel"
+ },
+ "Linear": {
+  "platform": "ashby",
+  "slug": "linear"
+ },
+ "Linero": {
+  "platform": "ashby",
+  "slug": "linero"
+ },
+ "Lio": {
+  "platform": "ashby",
+  "slug": "lio"
+ },
+ "Listen Labs": {
+  "platform": "ashby",
+  "slug": "listenlabs"
+ },
+ "Lithic": {
+  "platform": "greenhouse",
+  "slug": "lithic"
+ },
+ "Litify": {
+  "platform": "greenhouse",
+  "slug": "litify"
+ },
+ "Livekit": {
+  "platform": "ashby",
+  "slug": "livekit"
+ },
+ "Liza Health": {
+  "platform": "ashby",
+  "slug": "liza-health"
+ },
+ "Llamaindex": {
+  "platform": "ashby",
+  "slug": "llamaindex"
+ },
+ "Lovable": {
+  "platform": "greenhouse",
+  "slug": "lovable"
+ },
+ "Luminary": {
+  "platform": "ashby",
+  "slug": "luminary"
+ },
+ "Luxury Presence": {
+  "platform": "lever",
+  "slug": "luxurypresence"
+ },
+ "Mach Industries": {
+  "platform": "greenhouse",
+  "slug": "machindustries"
+ },
+ "Mach9": {
+  "platform": "ashby",
+  "slug": "mach9"
+ },
+ "Macroscope": {
+  "platform": "ashby",
+  "slug": "macroscope"
+ },
+ "Magentic": {
+  "platform": "ashby",
+  "slug": "magentic"
+ },
+ "Magic Eden": {
+  "platform": "ashby",
+  "slug": "magiceden"
+ },
+ "Magical": {
+  "platform": "ashby",
+  "slug": "magical"
+ },
+ "Maintainx": {
+  "platform": "ashby",
+  "slug": "maintainx"
+ },
+ "Mandl": {
+  "platform": "ashby",
+  "slug": "mandl"
+ },
+ "Mandolin": {
+  "platform": "ashby",
+  "slug": "mandolin"
+ },
+ "Marble Health": {
+  "platform": "ashby",
+  "slug": "marblehealth"
+ },
+ "Mariana Minerals": {
+  "platform": "ashby",
+  "slug": "marianaminerals"
+ },
+ "Mashgin": {
+  "platform": "lever",
+  "slug": "mashgin"
+ },
+ "Materialize": {
+  "platform": "ashby",
+  "slug": "materialize"
+ },
+ "Matillion": {
+  "platform": "lever",
+  "slug": "matillion"
+ },
+ "Mbx Biosciences": {
+  "platform": "greenhouse",
+  "slug": "mbxbiosciences"
+ },
+ "Mejuri": {
+  "platform": "greenhouse",
+  "slug": "mejuri"
+ },
+ "Melio Payments": {
+  "platform": "ashby",
+  "slug": "melio-payments"
+ },
+ "Meltplan": {
+  "platform": "greenhouse",
+  "slug": "meltplan"
+ },
+ "Metabase": {
+  "platform": "lever",
+  "slug": "metabase"
+ },
+ "Middesk": {
+  "platform": "ashby",
+  "slug": "middesk"
+ },
+ "Mind Robotics": {
+  "platform": "ashby",
+  "slug": "mindrobotics"
+ },
+ "Mindtickle": {
+  "platform": "lever",
+  "slug": "mindtickle"
+ },
+ "Mintlify": {
+  "platform": "ashby",
+  "slug": "mintlify"
+ },
+ "Mirelo": {
+  "platform": "ashby",
+  "slug": "mirelo"
+ },
+ "Mirum Pharmaceuticals": {
+  "platform": "greenhouse",
+  "slug": "mirumpharmaceuticals"
+ },
+ "Misfits Market": {
+  "platform": "greenhouse",
+  "slug": "misfitsmarket"
+ },
+ "Miter": {
+  "platform": "ashby",
+  "slug": "miter"
+ },
+ "Mithril": {
+  "platform": "greenhouse",
+  "slug": "mithril"
+ },
+ "Modern Animal": {
+  "platform": "greenhouse",
+  "slug": "modernanimal"
+ },
+ "Modus": {
+  "platform": "ashby",
+  "slug": "modus"
+ },
+ "Moment": {
+  "platform": "ashby",
+  "slug": "moment"
+ },
+ "Monarch Money": {
+  "platform": "ashby",
+  "slug": "monarchmoney"
+ },
+ "Moo": {
+  "platform": "lever",
+  "slug": "moo"
+ },
+ "Moonpay": {
+  "platform": "lever",
+  "slug": "moonpay"
+ },
+ "Motorway": {
+  "platform": "ashby",
+  "slug": "motorway"
+ },
+ "Mutiny": {
+  "platform": "ashby",
+  "slug": "mutiny"
+ },
+ "Mux": {
+  "platform": "ashby",
+  "slug": "mux"
+ },
+ "Myfitnesspal": {
+  "platform": "greenhouse",
+  "slug": "myfitnesspal"
+ },
+ "Myheritage": {
+  "platform": "greenhouse",
+  "slug": "myheritage"
+ },
+ "Myome": {
+  "platform": "greenhouse",
+  "slug": "myome"
+ },
+ "Mysten Labs": {
+  "platform": "ashby",
+  "slug": "mystenlabs"
+ },
+ "N8n": {
+  "platform": "ashby",
+  "slug": "n8n"
+ },
+ "Namespace": {
+  "platform": "ashby",
+  "slug": "namespace"
+ },
+ "Nanit": {
+  "platform": "greenhouse",
+  "slug": "nanit"
+ },
+ "Narvar": {
+  "platform": "greenhouse",
+  "slug": "narvar"
+ },
+ "Nebius": {
+  "platform": "greenhouse",
+  "slug": "nebius"
+ },
+ "Neo Cybernetica": {
+  "platform": "greenhouse",
+  "slug": "neocybernetica"
+ },
+ "Netic": {
+  "platform": "ashby",
+  "slug": "netic"
+ },
+ "Netskope": {
+  "platform": "greenhouse",
+  "slug": "netskope"
+ },
+ "Neuehealth": {
+  "platform": "greenhouse",
+  "slug": "neuehealth"
+ },
+ "Neuralink": {
+  "platform": "greenhouse",
+  "slug": "neuralink"
+ },
+ "Neuropace": {
+  "platform": "greenhouse",
+  "slug": "neuropace"
+ },
+ "Nevis": {
+  "platform": "ashby",
+  "slug": "nevis"
+ },
+ "Newton Research": {
+  "platform": "greenhouse",
+  "slug": "newtonresearch"
+ },
+ "Nimble Robotics": {
+  "platform": "greenhouse",
+  "slug": "nimblerobotics"
+ },
+ "Ninjaone": {
+  "platform": "greenhouse",
+  "slug": "ninjaone"
+ },
+ "Nirvana": {
+  "platform": "ashby",
+  "slug": "nirvana"
+ },
+ "Niteshift": {
+  "platform": "ashby",
+  "slug": "niteshift"
+ },
+ "Nitra": {
+  "platform": "lever",
+  "slug": "nitra"
+ },
+ "Nitricity": {
+  "platform": "greenhouse",
+  "slug": "nitricity"
+ },
+ "Nkarta Therapeutics": {
+  "platform": "greenhouse",
+  "slug": "nkartatherapeutics"
+ },
+ "Noda Ai": {
+  "platform": "ashby",
+  "slug": "noda-ai"
+ },
+ "Norm Ai": {
+  "platform": "ashby",
+  "slug": "norm-ai"
+ },
+ "Novellia": {
+  "platform": "ashby",
+  "slug": "novellia"
+ },
+ "Nuance Labs": {
+  "platform": "greenhouse",
+  "slug": "nuancelabs"
+ },
+ "Nuvacore": {
+  "platform": "lever",
+  "slug": "nuvacore"
+ },
+ "Observable Space": {
+  "platform": "ashby",
+  "slug": "observable-space"
+ },
+ "Offchain Labs": {
+  "platform": "lever",
+  "slug": "offchainlabs"
+ },
+ "Office Ally": {
+  "platform": "greenhouse",
+  "slug": "officeally"
+ },
+ "Ohalo Genetics": {
+  "platform": "greenhouse",
+  "slug": "ohalogenetics"
+ },
+ "Okendo": {
+  "platform": "lever",
+  "slug": "okendo"
+ },
+ "Olema": {
+  "platform": "greenhouse",
+  "slug": "olema"
+ },
+ "Oligo": {
+  "platform": "ashby",
+  "slug": "oligo"
+ },
+ "Omnea": {
+  "platform": "ashby",
+  "slug": "omnea"
+ },
+ "Omnifold": {
+  "platform": "ashby",
+  "slug": "omnifold"
+ },
+ "One Robot": {
+  "platform": "ashby",
+  "slug": "onerobot"
+ },
+ "Onxmaps": {
+  "platform": "greenhouse",
+  "slug": "onxmaps"
+ },
+ "Opal": {
+  "platform": "ashby",
+  "slug": "opal"
+ },
+ "Openevidence": {
+  "platform": "ashby",
+  "slug": "openevidence"
+ },
+ "Openfx": {
+  "platform": "greenhouse",
+  "slug": "openfx"
+ },
+ "Openx": {
+  "platform": "lever",
+  "slug": "openx"
+ },
+ "Optimal Dynamics": {
+  "platform": "greenhouse",
+  "slug": "optimaldynamics"
+ },
+ "Oratomic": {
+  "platform": "ashby",
+  "slug": "oratomic"
+ },
+ "Originhq": {
+  "platform": "ashby",
+  "slug": "originhq"
+ },
+ "Orum": {
+  "platform": "ashby",
+  "slug": "orum"
+ },
+ "Osmo": {
+  "platform": "ashby",
+  "slug": "osmo"
+ },
+ "Oso": {
+  "platform": "ashby",
+  "slug": "oso"
+ },
+ "Otter": {
+  "platform": "greenhouse",
+  "slug": "otter"
+ },
+ "Outrider": {
+  "platform": "greenhouse",
+  "slug": "outrider"
+ },
+ "Outsmart": {
+  "platform": "ashby",
+  "slug": "outsmart"
+ },
+ "Paid": {
+  "platform": "ashby",
+  "slug": "paid"
+ },
+ "Parachute Home": {
+  "platform": "greenhouse",
+  "slug": "parachutehome"
+ },
+ "Parallel": {
+  "platform": "greenhouse",
+  "slug": "parallel"
+ },
+ "Patronus": {
+  "platform": "ashby",
+  "slug": "patronus"
+ },
+ "Pave Bank": {
+  "platform": "ashby",
+  "slug": "pavebank"
+ },
+ "Pendulum": {
+  "platform": "lever",
+  "slug": "pendulum"
+ },
+ "Pennylane": {
+  "platform": "ashby",
+  "slug": "pennylane"
+ },
+ "People Ai": {
+  "platform": "lever",
+  "slug": "people-ai"
+ },
+ "Peregrine": {
+  "platform": "greenhouse",
+  "slug": "peregrine"
+ },
+ "Periodic Labs": {
+  "platform": "ashby",
+  "slug": "periodic-labs"
+ },
+ "Permitflow": {
+  "platform": "ashby",
+  "slug": "permitflow"
+ },
+ "Persona": {
+  "platform": "ashby",
+  "slug": "persona"
+ },
+ "Phaidra": {
+  "platform": "greenhouse",
+  "slug": "phaidra"
+ },
+ "Phantom": {
+  "platform": "ashby",
+  "slug": "phantom"
+ },
+ "Phasev": {
+  "platform": "greenhouse",
+  "slug": "phasev"
+ },
+ "Philo": {
+  "platform": "ashby",
+  "slug": "philo"
+ },
+ "Physical Intelligence": {
+  "platform": "ashby",
+  "slug": "physicalintelligence"
+ },
+ "Picogrid": {
+  "platform": "ashby",
+  "slug": "picogrid"
+ },
+ "Picsart": {
+  "platform": "greenhouse",
+  "slug": "picsart"
+ },
+ "Pika": {
+  "platform": "ashby",
+  "slug": "pika"
+ },
+ "Pine": {
+  "platform": "greenhouse",
+  "slug": "pine"
+ },
+ "Pivotal Health": {
+  "platform": "ashby",
+  "slug": "pivotal-health"
+ },
+ "Plenful": {
+  "platform": "ashby",
+  "slug": "plenful"
+ },
+ "Pocket": {
+  "platform": "ashby",
+  "slug": "pocket"
+ },
+ "Pocket Fm": {
+  "platform": "lever",
+  "slug": "pocketfm"
+ },
+ "Point One Navigation": {
+  "platform": "ashby",
+  "slug": "point-one-navigation"
+ },
+ "Pointfive": {
+  "platform": "ashby",
+  "slug": "pointfive"
+ },
+ "Polar": {
+  "platform": "ashby",
+  "slug": "polar"
+ },
+ "Polyai": {
+  "platform": "greenhouse",
+  "slug": "polyai"
+ },
+ "Pontera": {
+  "platform": "greenhouse",
+  "slug": "pontera"
+ },
+ "Postscript": {
+  "platform": "greenhouse",
+  "slug": "postscript"
+ },
+ "Pramaana Labs": {
+  "platform": "ashby",
+  "slug": "pramaana-labs"
+ },
+ "Pravah": {
+  "platform": "ashby",
+  "slug": "pravah"
+ },
+ "Prefect": {
+  "platform": "ashby",
+  "slug": "prefect"
+ },
+ "Preql": {
+  "platform": "ashby",
+  "slug": "preql"
+ },
+ "Primer": {
+  "platform": "ashby",
+  "slug": "primer"
+ },
+ "Probably Genetic": {
+  "platform": "ashby",
+  "slug": "probablygenetic"
+ },
+ "Probook": {
+  "platform": "ashby",
+  "slug": "probook"
+ },
+ "Process Street": {
+  "platform": "greenhouse",
+  "slug": "processstreet"
+ },
+ "Prodigal": {
+  "platform": "greenhouse",
+  "slug": "prodigal"
+ },
+ "Profound": {
+  "platform": "greenhouse",
+  "slug": "profound"
+ },
+ "Prophet Security": {
+  "platform": "ashby",
+  "slug": "prophet-security"
+ },
+ "Protege": {
+  "platform": "ashby",
+  "slug": "protege"
+ },
+ "Quanta": {
+  "platform": "ashby",
+  "slug": "quanta"
+ },
+ "Quartzy": {
+  "platform": "lever",
+  "slug": "quartzy"
+ },
+ "Quilt": {
+  "platform": "greenhouse",
+  "slug": "quilt"
+ },
+ "Quilter": {
+  "platform": "ashby",
+  "slug": "quilter"
+ },
+ "Quip": {
+  "platform": "greenhouse",
+  "slug": "quip"
+ },
+ "Quotewell": {
+  "platform": "ashby",
+  "slug": "quotewell"
+ },
+ "Qventus": {
+  "platform": "greenhouse",
+  "slug": "qventus"
+ },
+ "R Zero": {
+  "platform": "greenhouse",
+  "slug": "rzero"
+ },
+ "Rad Ai": {
+  "platform": "ashby",
+  "slug": "radai"
+ },
+ "Radar": {
+  "platform": "greenhouse",
+  "slug": "radar"
+ },
+ "Radixark": {
+  "platform": "ashby",
+  "slug": "radixark"
+ },
+ "Raft": {
+  "platform": "greenhouse",
+  "slug": "raft"
+ },
+ "Rain": {
+  "platform": "ashby",
+  "slug": "rain"
+ },
+ "Raindrop": {
+  "platform": "ashby",
+  "slug": "raindrop"
+ },
+ "Raisin": {
+  "platform": "greenhouse",
+  "slug": "raisin"
+ },
+ "Ravenna": {
+  "platform": "ashby",
+  "slug": "ravenna"
+ },
+ "Recraft": {
+  "platform": "ashby",
+  "slug": "recraft"
+ },
+ "Reflect Orbital": {
+  "platform": "ashby",
+  "slug": "reflect-orbital"
+ },
+ "Reflection Ai": {
+  "platform": "ashby",
+  "slug": "reflectionai"
+ },
+ "Reflex Robotics": {
+  "platform": "ashby",
+  "slug": "reflexrobotics"
+ },
+ "Regie": {
+  "platform": "greenhouse",
+  "slug": "regie"
+ },
+ "Reindeer Ai": {
+  "platform": "ashby",
+  "slug": "reindeer-ai"
+ },
+ "Relevance Ai": {
+  "platform": "ashby",
+  "slug": "relevanceai"
+ },
+ "Reliable Robotics": {
+  "platform": "ashby",
+  "slug": "reliable-robotics"
+ },
+ "Reltio": {
+  "platform": "greenhouse",
+  "slug": "reltio"
+ },
+ "Resolve Ai": {
+  "platform": "ashby",
+  "slug": "resolveai"
+ },
+ "Restaurant365": {
+  "platform": "lever",
+  "slug": "restaurant365"
+ },
+ "Rev": {
+  "platform": "ashby",
+  "slug": "rev"
+ },
+ "Revenuecat Inc": {
+  "platform": "ashby",
+  "slug": "revenuecat"
+ },
+ "Rewind": {
+  "platform": "ashby",
+  "slug": "rewind"
+ },
+ "Rhoda Ai": {
+  "platform": "ashby",
+  "slug": "rhoda-ai"
+ },
+ "Rhythms": {
+  "platform": "ashby",
+  "slug": "rhythms"
+ },
+ "Rightway": {
+  "platform": "greenhouse",
+  "slug": "rightway"
+ },
+ "Rilla": {
+  "platform": "ashby",
+  "slug": "rilla"
+ },
+ "Robco": {
+  "platform": "ashby",
+  "slug": "robco"
+ },
+ "Rocket Chat": {
+  "platform": "greenhouse",
+  "slug": "rocketchat"
+ },
+ "Rogo": {
+  "platform": "ashby",
+  "slug": "rogo"
+ },
+ "Roofstock": {
+  "platform": "greenhouse",
+  "slug": "roofstock"
+ },
+ "Rothys": {
+  "platform": "ashby",
+  "slug": "rothys"
+ },
+ "Rowspace": {
+  "platform": "ashby",
+  "slug": "rowspace"
+ },
+ "Rula": {
+  "platform": "ashby",
+  "slug": "rula"
+ },
+ "Rundoo": {
+  "platform": "ashby",
+  "slug": "rundoo"
+ },
+ "Runlayer": {
+  "platform": "ashby",
+  "slug": "runlayer"
+ },
+ "Sabi Inc": {
+  "platform": "ashby",
+  "slug": "sabi"
+ },
+ "Salt Security": {
+  "platform": "greenhouse",
+  "slug": "saltsecurity"
+ },
+ "Sandbar": {
+  "platform": "ashby",
+  "slug": "sandbar"
+ },
+ "Sandstone": {
+  "platform": "ashby",
+  "slug": "sandstone"
+ },
+ "Sapiom": {
+  "platform": "ashby",
+  "slug": "sapiom"
+ },
+ "Sarvam": {
+  "platform": "ashby",
+  "slug": "sarvam"
+ },
+ "Savvy": {
+  "platform": "ashby",
+  "slug": "savvy"
+ },
+ "Scaled Cognition": {
+  "platform": "ashby",
+  "slug": "scaled-cognition"
+ },
+ "Scaleops": {
+  "platform": "greenhouse",
+  "slug": "scaleops"
+ },
+ "Scanner": {
+  "platform": "greenhouse",
+  "slug": "scanner"
+ },
+ "Sciencelogic": {
+  "platform": "ashby",
+  "slug": "sciencelogic"
+ },
+ "Scopely": {
+  "platform": "greenhouse",
+  "slug": "scopely"
+ },
+ "Seatgeek": {
+  "platform": "greenhouse",
+  "slug": "seatgeek"
+ },
+ "Security Scorecard": {
+  "platform": "greenhouse",
+  "slug": "securityscorecard"
+ },
+ "Sekai": {
+  "platform": "ashby",
+  "slug": "sekai"
+ },
+ "Semgrep": {
+  "platform": "ashby",
+  "slug": "semgrep"
+ },
+ "Sent": {
+  "platform": "ashby",
+  "slug": "sent"
+ },
+ "Sentra": {
+  "platform": "ashby",
+  "slug": "sentra"
+ },
+ "Sentry": {
+  "platform": "ashby",
+  "slug": "sentry"
+ },
+ "Shade Inc": {
+  "platform": "ashby",
+  "slug": "shade-inc"
+ },
+ "Shapes": {
+  "platform": "ashby",
+  "slug": "shapes"
+ },
+ "Shopmonkey": {
+  "platform": "greenhouse",
+  "slug": "shopmonkey"
+ },
+ "Shopmy": {
+  "platform": "greenhouse",
+  "slug": "shopmy"
+ },
+ "Sila Nanotechnologies": {
+  "platform": "greenhouse",
+  "slug": "silananotechnologies"
+ },
+ "Silverrail": {
+  "platform": "greenhouse",
+  "slug": "silverrail"
+ },
+ "Silversky": {
+  "platform": "greenhouse",
+  "slug": "silversky"
+ },
+ "Simile": {
+  "platform": "ashby",
+  "slug": "simile"
+ },
+ "Singlestore": {
+  "platform": "greenhouse",
+  "slug": "singlestore"
+ },
+ "Siro": {
+  "platform": "ashby",
+  "slug": "siro"
+ },
+ "Sisense": {
+  "platform": "ashby",
+  "slug": "sisense"
+ },
+ "Sisu": {
+  "platform": "ashby",
+  "slug": "sisu"
+ },
+ "Sitetracker": {
+  "platform": "lever",
+  "slug": "sitetracker"
+ },
+ "Sky Mavis": {
+  "platform": "ashby",
+  "slug": "skymavis"
+ },
+ "Skyflow": {
+  "platform": "ashby",
+  "slug": "skyflow"
+ },
+ "Slice": {
+  "platform": "greenhouse",
+  "slug": "slice"
+ },
+ "Smallstep": {
+  "platform": "ashby",
+  "slug": "smallstep"
+ },
+ "Smarterdx": {
+  "platform": "greenhouse",
+  "slug": "smarterdx"
+ },
+ "Snapdocs": {
+  "platform": "ashby",
+  "slug": "snapdocs"
+ },
+ "Snorkel Ai": {
+  "platform": "greenhouse",
+  "slug": "snorkelai"
+ },
+ "Socure": {
+  "platform": "ashby",
+  "slug": "socure"
+ },
+ "Sol": {
+  "platform": "ashby",
+  "slug": "sol"
+ },
+ "Sonatype": {
+  "platform": "lever",
+  "slug": "sonatype"
+ },
+ "Spacex": {
+  "platform": "greenhouse",
+  "slug": "spacex"
+ },
+ "Speak": {
+  "platform": "ashby",
+  "slug": "speak"
+ },
+ "Spektr": {
+  "platform": "greenhouse",
+  "slug": "spektr"
+ },
+ "Sphinx": {
+  "platform": "ashby",
+  "slug": "sphinx"
+ },
+ "Sprig": {
+  "platform": "ashby",
+  "slug": "sprig"
+ },
+ "Sprout Social": {
+  "platform": "greenhouse",
+  "slug": "sproutsocial"
+ },
+ "Spruce": {
+  "platform": "ashby",
+  "slug": "spruce"
+ },
+ "Stability Ai": {
+  "platform": "greenhouse",
+  "slug": "stabilityai"
+ },
+ "Stackblitz": {
+  "platform": "greenhouse",
+  "slug": "stackblitz"
+ },
+ "Stacklok": {
+  "platform": "greenhouse",
+  "slug": "stacklok"
+ },
+ "Starburst": {
+  "platform": "greenhouse",
+  "slug": "starburst"
+ },
+ "State Affairs": {
+  "platform": "greenhouse",
+  "slug": "stateaffairs"
+ },
+ "Strella": {
+  "platform": "ashby",
+  "slug": "strella"
+ },
+ "Strive Health": {
+  "platform": "greenhouse",
+  "slug": "strivehealth"
+ },
+ "Stylus Medicine": {
+  "platform": "greenhouse",
+  "slug": "stylusmedicine"
+ },
+ "Summer Health": {
+  "platform": "ashby",
+  "slug": "summerhealth"
+ },
+ "Sunday": {
+  "platform": "ashby",
+  "slug": "sunday"
+ },
+ "Supabase": {
+  "platform": "ashby",
+  "slug": "supabase"
+ },
+ "Super": {
+  "platform": "greenhouse",
+  "slug": "super"
+ },
+ "Surf Ai": {
+  "platform": "greenhouse",
+  "slug": "surfai"
+ },
+ "Swan": {
+  "platform": "ashby",
+  "slug": "swan"
+ },
+ "Swarm Aero": {
+  "platform": "ashby",
+  "slug": "swarmaero"
+ },
+ "Swile": {
+  "platform": "lever",
+  "slug": "swile"
+ },
+ "Sycamore": {
+  "platform": "ashby",
+  "slug": "sycamore"
+ },
+ "Sylvera": {
+  "platform": "ashby",
+  "slug": "sylvera"
+ },
+ "Synctera": {
+  "platform": "ashby",
+  "slug": "synctera"
+ },
+ "Syndio": {
+  "platform": "greenhouse",
+  "slug": "syndio"
+ },
+ "Synthetic": {
+  "platform": "ashby",
+  "slug": "synthetic"
+ },
+ "Sysdig": {
+  "platform": "lever",
+  "slug": "sysdig"
+ },
+ "Tacit": {
+  "platform": "ashby",
+  "slug": "tacit"
+ },
+ "Tactile Games": {
+  "platform": "greenhouse",
+  "slug": "tactilegames"
+ },
+ "Tacto": {
+  "platform": "ashby",
+  "slug": "tacto"
+ },
+ "Tailscale": {
+  "platform": "greenhouse",
+  "slug": "tailscale"
+ },
+ "Taktile": {
+  "platform": "ashby",
+  "slug": "taktile"
+ },
+ "Taskrabbit": {
+  "platform": "greenhouse",
+  "slug": "taskrabbit"
+ },
+ "Tavus": {
+  "platform": "ashby",
+  "slug": "tavus"
+ },
+ "Tebi": {
+  "platform": "ashby",
+  "slug": "tebi"
+ },
+ "Tekion": {
+  "platform": "ashby",
+  "slug": "tekion"
+ },
+ "Tem": {
+  "platform": "ashby",
+  "slug": "tem"
+ },
+ "Temporal": {
+  "platform": "ashby",
+  "slug": "temporal"
+ },
+ "Terminal": {
+  "platform": "ashby",
+  "slug": "terminal"
+ },
+ "Terra Ai": {
+  "platform": "ashby",
+  "slug": "terraai"
+ },
+ "Teya": {
+  "platform": "ashby",
+  "slug": "teya"
+ },
+ "The Business Of Fashion": {
+  "platform": "greenhouse",
+  "slug": "businessoffashion"
+ },
+ "The Exploration Company": {
+  "platform": "ashby",
+  "slug": "the-exploration-company"
+ },
+ "The Nudge": {
+  "platform": "ashby",
+  "slug": "nudge"
+ },
+ "The Yes": {
+  "platform": "greenhouse",
+  "slug": "yes"
+ },
+ "Theorycraft Games": {
+  "platform": "lever",
+  "slug": "theorycraftgames"
+ },
+ "Thinking Machines": {
+  "platform": "ashby",
+  "slug": "thinkingmachines"
+ },
+ "Thirdlove": {
+  "platform": "greenhouse",
+  "slug": "thirdlove"
+ },
+ "Thread Ai": {
+  "platform": "ashby",
+  "slug": "thread-ai"
+ },
+ "Thumbtack": {
+  "platform": "ashby",
+  "slug": "thumbtack"
+ },
+ "Thunes": {
+  "platform": "greenhouse",
+  "slug": "thunes"
+ },
+ "Thunkable": {
+  "platform": "lever",
+  "slug": "thunkable"
+ },
+ "Tigera": {
+  "platform": "greenhouse",
+  "slug": "tigera"
+ },
+ "Tigerdata": {
+  "platform": "ashby",
+  "slug": "tigerdata"
+ },
+ "Tin Can": {
+  "platform": "ashby",
+  "slug": "tin-can"
+ },
+ "Tines": {
+  "platform": "greenhouse",
+  "slug": "tines"
+ },
+ "Titan": {
+  "platform": "ashby",
+  "slug": "titan"
+ },
+ "Tolken": {
+  "platform": "ashby",
+  "slug": "tolken"
+ },
+ "Tollbit": {
+  "platform": "greenhouse",
+  "slug": "tollbit"
+ },
+ "Tonkean": {
+  "platform": "lever",
+  "slug": "tonkean"
+ },
+ "Torch Dental": {
+  "platform": "lever",
+  "slug": "torchdental"
+ },
+ "Tourlane": {
+  "platform": "ashby",
+  "slug": "tourlane"
+ },
+ "Town": {
+  "platform": "ashby",
+  "slug": "town"
+ },
+ "Tracebit": {
+  "platform": "ashby",
+  "slug": "tracebit"
+ },
+ "Trajectory": {
+  "platform": "ashby",
+  "slug": "trajectory"
+ },
+ "Translucent": {
+  "platform": "greenhouse",
+  "slug": "translucent"
+ },
+ "Traversal": {
+  "platform": "ashby",
+  "slug": "traversal"
+ },
+ "Triomics": {
+  "platform": "ashby",
+  "slug": "triomics"
+ },
+ "Trm Labs": {
+  "platform": "ashby",
+  "slug": "trm-labs"
+ },
+ "True Link Financial": {
+  "platform": "ashby",
+  "slug": "truelinkfinancial"
+ },
+ "True Short": {
+  "platform": "ashby",
+  "slug": "trueshort"
+ },
+ "Truebill": {
+  "platform": "greenhouse",
+  "slug": "truebill"
+ },
+ "Trustarc": {
+  "platform": "lever",
+  "slug": "trustarc"
+ },
+ "Trustpilot": {
+  "platform": "greenhouse",
+  "slug": "trustpilot"
+ },
+ "Tulip": {
+  "platform": "greenhouse",
+  "slug": "tulip"
+ },
+ "Turbineone": {
+  "platform": "greenhouse",
+  "slug": "turbineone"
+ },
+ "Turnkey": {
+  "platform": "ashby",
+  "slug": "turnkey"
+ },
+ "Twelve Labs": {
+  "platform": "ashby",
+  "slug": "twelve-labs"
+ },
+ "Typeform": {
+  "platform": "greenhouse",
+  "slug": "typeform"
+ },
+ "Typesafe Ai": {
+  "platform": "ashby",
+  "slug": "typesafe-ai"
+ },
+ "Ultima Genomics": {
+  "platform": "greenhouse",
+  "slug": "ultimagenomics"
+ },
+ "Unit": {
+  "platform": "ashby",
+  "slug": "unit"
+ },
+ "United Capital": {
+  "platform": "greenhouse",
+  "slug": "unitedcapital"
+ },
+ "Unitq": {
+  "platform": "lever",
+  "slug": "unitq"
+ },
+ "Unrivaled Basketball": {
+  "platform": "greenhouse",
+  "slug": "unrivaledbasketball"
+ },
+ "Upvest": {
+  "platform": "ashby",
+  "slug": "upvest"
+ },
+ "Valar Atomics": {
+  "platform": "greenhouse",
+  "slug": "valaratomics"
+ },
+ "Valarian": {
+  "platform": "lever",
+  "slug": "valarian"
+ },
+ "Valdera": {
+  "platform": "lever",
+  "slug": "valdera"
+ },
+ "Valon": {
+  "platform": "ashby",
+  "slug": "valon"
+ },
+ "Vanta": {
+  "platform": "ashby",
+  "slug": "vanta"
+ },
+ "Vapi": {
+  "platform": "ashby",
+  "slug": "vapi"
+ },
+ "Vega Health": {
+  "platform": "greenhouse",
+  "slug": "vegahealth"
+ },
+ "Velo3d": {
+  "platform": "lever",
+  "slug": "velo3d"
+ },
+ "Verisign": {
+  "platform": "greenhouse",
+  "slug": "verisign"
+ },
+ "Verse": {
+  "platform": "greenhouse",
+  "slug": "verse"
+ },
+ "Vertice": {
+  "platform": "ashby",
+  "slug": "vertice"
+ },
+ "Vesta": {
+  "platform": "ashby",
+  "slug": "vesta"
+ },
+ "Vestwell": {
+  "platform": "greenhouse",
+  "slug": "vestwell"
+ },
+ "Viagogo": {
+  "platform": "greenhouse",
+  "slug": "viagogo"
+ },
+ "Village": {
+  "platform": "greenhouse",
+  "slug": "village"
+ },
+ "Vinyl Equity": {
+  "platform": "ashby",
+  "slug": "vinylequity"
+ },
+ "Viome": {
+  "platform": "lever",
+  "slug": "viome"
+ },
+ "Virtru": {
+  "platform": "greenhouse",
+  "slug": "virtru"
+ },
+ "Vise": {
+  "platform": "ashby",
+  "slug": "vise"
+ },
+ "Vivodyne": {
+  "platform": "greenhouse",
+  "slug": "vivodyne"
+ },
+ "Vivun": {
+  "platform": "ashby",
+  "slug": "vivun"
+ },
+ "Vizcom": {
+  "platform": "ashby",
+  "slug": "vizcom"
+ },
+ "Volta Labs": {
+  "platform": "lever",
+  "slug": "voltalabs"
+ },
+ "Vonage": {
+  "platform": "greenhouse",
+  "slug": "vonage"
+ },
+ "Vooma": {
+  "platform": "ashby",
+  "slug": "vooma"
+ },
+ "Vori": {
+  "platform": "ashby",
+  "slug": "vori"
+ },
+ "Voxel51": {
+  "platform": "greenhouse",
+  "slug": "voxel51"
+ },
+ "Waabi": {
+  "platform": "lever",
+  "slug": "waabi"
+ },
+ "Wallapop": {
+  "platform": "greenhouse",
+  "slug": "wallapop"
+ },
+ "Warp": {
+  "platform": "greenhouse",
+  "slug": "warp"
+ },
+ "Waymark": {
+  "platform": "greenhouse",
+  "slug": "waymark"
+ },
+ "Weave": {
+  "platform": "greenhouse",
+  "slug": "weave"
+ },
+ "Weaviate": {
+  "platform": "ashby",
+  "slug": "weaviate"
+ },
+ "Weee": {
+  "platform": "greenhouse",
+  "slug": "weee"
+ },
+ "Wetravel": {
+  "platform": "ashby",
+  "slug": "wetravel"
+ },
+ "Wheelhouse": {
+  "platform": "greenhouse",
+  "slug": "wheelhouse"
+ },
+ "Whop": {
+  "platform": "ashby",
+  "slug": "whop"
+ },
+ "Windborne Systems": {
+  "platform": "ashby",
+  "slug": "windborne-systems"
+ },
+ "Wirescreen": {
+  "platform": "ashby",
+  "slug": "wirescreen"
+ },
+ "Wisetack": {
+  "platform": "greenhouse",
+  "slug": "wisetack"
+ },
+ "Withcoverage": {
+  "platform": "greenhouse",
+  "slug": "withcoverage"
+ },
+ "Wizard": {
+  "platform": "ashby",
+  "slug": "wizard"
+ },
+ "Workera": {
+  "platform": "greenhouse",
+  "slug": "workera"
+ },
+ "Workos": {
+  "platform": "ashby",
+  "slug": "workos"
+ },
+ "World Labs": {
+  "platform": "ashby",
+  "slug": "worldlabs"
+ },
+ "Wrapbook": {
+  "platform": "ashby",
+  "slug": "wrapbook"
+ },
+ "Xai": {
+  "platform": "greenhouse",
+  "slug": "xai"
+ },
+ "Xaira Therapeutics": {
+  "platform": "greenhouse",
+  "slug": "xairatherapeutics"
+ },
+ "Xendit": {
+  "platform": "greenhouse",
+  "slug": "xendit"
+ },
+ "Xero": {
+  "platform": "ashby",
+  "slug": "xero"
+ },
+ "Yotpo": {
+  "platform": "greenhouse",
+  "slug": "yotpo"
+ },
+ "Yubico": {
+  "platform": "greenhouse",
+  "slug": "yubico"
+ },
+ "Yugabyte": {
+  "platform": "greenhouse",
+  "slug": "yugabyte"
+ },
+ "Zania": {
+  "platform": "ashby",
+  "slug": "zania"
+ },
+ "Zapier": {
+  "platform": "ashby",
+  "slug": "zapier"
+ },
+ "Zbiotics Company": {
+  "platform": "greenhouse",
+  "slug": "zbioticscompany"
+ },
+ "Zed": {
+  "platform": "ashby",
+  "slug": "zed"
+ },
+ "Zefir": {
+  "platform": "ashby",
+  "slug": "zefir"
+ },
+ "Zenoti": {
+  "platform": "greenhouse",
+  "slug": "zenoti"
+ },
+ "Zerion": {
+  "platform": "lever",
+  "slug": "zerion"
+ },
+ "Zero": {
+  "platform": "ashby",
+  "slug": "zero"
+ },
+ "Zest Ai": {
+  "platform": "greenhouse",
+  "slug": "zestai"
+ },
+ "Zinier": {
+  "platform": "greenhouse",
+  "slug": "zinier"
+ },
+ "Zola": {
+  "platform": "greenhouse",
+  "slug": "zola"
+ },
+ "Zopa": {
+  "platform": "lever",
+  "slug": "zopa"
+ },
+ "Zuora": {
+  "platform": "greenhouse",
+  "slug": "zuora"
+ },
  "Cartesian": {
   "platform": "pinpoint",
   "slug": "cartesian"
@@ -1363,5 +5750,25 @@
  "ECG Management Consultants": {
   "platform": "jibe",
   "slug": "careers.ecgmc.com"
+ },
+ "Nvidia": {
+  "platform": "workday",
+  "slug": "nvidia"
+ },
+ "Adobe": {
+  "platform": "workday",
+  "slug": "adobe"
+ },
+ "Intel": {
+  "platform": "workday",
+  "slug": "intel"
+ },
+ "Cisco": {
+  "platform": "workday",
+  "slug": "cisco"
+ },
+ "AMD": {
+  "platform": "jibe",
+  "slug": "careers.amd.com"
  }
 }

@@ -18,6 +18,13 @@ CATEGORIES = [
                                 r"\bstrategy (&|and) planning\b|\boperations (&|and) strategy\b"),
     ("Corp Strategy", r"\bcorporate strategy\b|\bstrategic planning\b|\bstrategy (manager|lead|associate)\b|\bstrategic finance\b|"
                       r"\bcorporate development\b|\bcorp dev\b|\bhead of strategy\b|\b(manager|senior manager|associate),? strategy\b"),
+    # Roles MBAs also go into (added 2026-11-09, user decision). Product management first so "Product Manager, Growth" is a product role.
+    ("Product Management", r"\bproduct manager\b|\bproduct management\b|\bproduct lead\b|\bapm\b"),
+    ("Business Development", r"\bbusiness development\b|\bbizdev\b|\bbd (manager|lead)\b|\bnew business\b"),
+    ("Partnerships", r"\bpartnerships?\b|(?<!business )\bpartner (manager|lead|development)\b|\balliances?\b"),
+    ("Growth", r"\bgrowth\b"),
+    ("General Management", r"\bgeneral manager\b|\bgeneral management\b|\bgm\b"),
+    ("Account Executive", r"\baccount executive\b|\bsales executive\b"),
     ("Tech & Digital Consulting", r"\b(technology|digital|data|ai|cloud|cyber ?security|it) (strategy )?consult(ant|ing)\b|\bdigital strategy\b|"
                                   r"\bsolutions? consultant\b|\btechnology advisory\b|"
                                   r"\b(workday|oracle|sap|salesforce|servicenow|netsuite|microsoft 365|azure|aws|erp|"
@@ -42,10 +49,10 @@ LADDER_PREFIX_NOT = re.compile(
 
 EXCLUDE = re.compile(
     r"\bintern(ship)?s?\b|\bsummer (associate|consultant|analyst|intern|program|fellow)\b|\bco-?op\b|\bstudent\b|\bapprentice|\bnew grad|\bgraduate\b|\bentry[- ]level\b|"
-    r"\bengineer|\bdeveloper\b|\bsoftware\b|\bscientist\b|\bdesigner\b|\brecruit|\bcounsel\b|\battorney\b|\bparalegal\b|"
-    r"\baccountant\b|\bauditor\b|\btax\b|\bpayroll\b|\bsdr\b|\bbdr\b|\baccount executive\b|\bcustomer success\b|"
+    r"\bengineer|\bdeveloper\b|\bsoftware\b|\bscientist\b|\bdesigner\b|\bdevops\b|\bprogrammer\b|\brecruit|\bcounsel\b|\battorney\b|\bparalegal\b|"
+    r"\baccountant\b|\bauditor\b|\btax\b|\bpayroll\b|\bsdr\b|\bbdr\b|\bsales development\b|\bbusiness development (representative|rep)\b|\bcustomer success\b|"
     r"\bsupport (specialist|engineer)\b|\bcoordinator\b|\bassistant\b|\badministrative\b|\bmechanic|\btechnician\b|"
-    r"\bdirector\b|\bvice president\b|\bvp\b|\bsvp\b|\bevp\b|\bchief (?!of staff)|\bpartner\b|\bprincipal\b|\bhead of\b|"
+    r"\bdirector\b|\bvice president\b|\bvp\b|\bsvp\b|\bevp\b|\bchief (?!of staff)|\bpartner\b(?!s?hips?|\s+(manager|lead|development|alliances?|ecosystem|programs?))|\bprincipal\b|\bhead of\b|"
     r"\banalyst\b|\bjunior\b|\bmanaging director\b|\bsales representative\b|\bnurse\b|\bclinical\b|\bphysician\b|"
     # presales / technical roles that share consulting-sounding words, and staff-level (8+ yrs) titles
     r"\bsolutions? (consultant|architect)\b|\btechnical (solutions|program)\b|\bspecialist\b|(?<!chief of )\bstaff\b|"

@@ -1,8 +1,8 @@
-Built 2026-11-09: 924 jobs from 268 of 562 companies.
-By category: {'Strategy Consulting': 400, 'Transformation / PMO': 162, 'Tech & Digital Consulting': 135, 'Corp Strategy': 87, 'GTM / Revenue Ops': 60, 'BizOps / Strategy & Ops': 56, 'Chief of Staff': 14, 'Product Ops': 10}
-By visa label: {'Unlikely': 568, 'Likely': 72, 'Case-by-case': 78, 'Unknown': 206}
-Review-flagged: 38
-Low-pay roles left off (stated top of range <= $110K, no MBA mention): 9
+Built 2026-11-09: 3470 jobs from 1370 of 1663 companies.
+By category: {'Account Executive': 996, 'Product Management': 730, 'Strategy Consulting': 394, 'Partnerships': 218, 'Growth': 193, 'Transformation / PMO': 179, 'Corp Strategy': 161, 'BizOps / Strategy & Ops': 160, 'Tech & Digital Consulting': 131, 'GTM / Revenue Ops': 128, 'Business Development': 98, 'Chief of Staff': 37, 'Product Ops': 29, 'General Management': 16}
+By visa label: {'Unlikely': 794, 'Likely': 168, 'Case-by-case': 86, 'Unknown': 2422}
+Review-flagged: 340
+Low-pay roles left off (stated top of range <= $110K, no MBA mention): 91
   Capgemini | Domain: Associate Application Consultant | $48K-$92K
   Capgemini | C&CA: Associate Application Consultant | $48K-$92K
   Capgemini | DCX: Associate Application Consultant | $48K-$92K
@@ -11,7 +11,89 @@ Low-pay roles left off (stated top of range <= $110K, no MBA mention): 9
   Charles River Associates | Associate (Financial Economics practice) | $92K-$105K
   Elixirr | Consumer Insights Senior Consultant | $90K-$110K
   Kearney | Consultant, Kearney Activate - Prokura | $85K-$95K
+  Datadog | Commercial Account Executive | $65K-$70K
+  Datadog | Commercial Account Executive - Boston | $65K-$70K
+  Datadog | Commercial Account Executive - LATAM (Portuguese Speaking) - Boston | $65K-$70K
+  Datadog | Commercial Account Executive - LATAM (Portuguese Speaking) - Denver | $65K-$70K
+  Datadog | Commercial Account Executive - LATAM (Spanish Speaking) - Boston | $65K-$70K
+  Datadog | Mid Market Account Executive | $90K-$95K
+  Datadog | Mid Market Account Executive | $90K-$95K
+  Datadog | Mid-Market Account Executive - Boston | $90K-$95K
+  Figma | Account Executive, SMB | $70K-$70K
+  Figma | Senior Account Executive, SMB | $82K-$82K
+  Miro | Expression of Interest: Enterprise & Strategic Account Executive | $50K-$100K
+  MongoDB | Associate Commercial Growth Account Executive | $60K-$60K
+  Elastic | Inside Account Executive (Hunter) | $65K-$103K
+  Elastic | Inside Account Executive (Hunter) | $65K-$103K
+  Elastic | Territory Account Executive - West | $65K-$103K
+  GitLab | New Business Account Executive - East | $68K-$106K
+  Salesforce | Territory Account Executive, Non-Profit: Tableau | $62K-$103K
+  Salesforce | Business Development Associate (Early Career) | $63K-$63K
+  Salesforce | Platform and Security Growth Business Account Executive | $62K-$103K
+  Salesforce | Non-Profit Territory Account Executive, Growth Business | $62K-$103K
+  Qualtrics | Account Executive - Account Management Organization | $82K-$99K
+  Braze | Account Executive, Retail Scale | $67K-$105K
+  Braze | Account Executive, Retail Scale | $67K-$105K
+  Braze | Account Executive, Scale, Financial Services | $80K-$100K
+  Braze | Account Executive, Scale, Financial Services | $80K-$106K
+  Braze | Account Executive, Scale, MEGS | $63K-$99K
+  Braze | Account Executive, Scale, MEGS | $70K-$110K
+  Braze | Account Executive, Scale, MEGS | $70K-$110K
+  Braze | Account Executive, Scale, MEGS | $67K-$105K
+  Braze | Manager, Business Development | $76K-$96K
+  Klaviyo | Commercial Account Executive | $75K-$75K
+  Klaviyo | Commercial Account Executive | $75K-$75K
+  Klaviyo | Commercial Account Executive (Portuguese Speaking) | $75K-$75K
+  Rho | Associate Growth Account Executive | $100K-$110K
+  Gemini | Associate, Growth Marketing (Advanced Trading Products) | $82K-$110K
+  Acorns | Growth Marketing Sr. Associate, Podcasts & CTV | $94K-$108K
+  Talkspace | Business Development & Growth Associate, Pharma | $67K-$95K
+  Aledade | Account Manager Enterprise Partnerships, Alabama & Mississippi Gulf Coast | $90K-$100K
+  Aledade | Account Manager Enterprise Partnerships, Greater Philadelphia Area | $90K-$100K
+  Aledade | Account Manager Enterprise Partnerships, NE & Central Pennsylvania | $90K-$100K
+  Aledade | Account Manager Enterprise Partnerships, Utah/Montana | $90K-$100K
+  Aledade | Growth Development Representative | $0K-$0.0K
   Hello Fresh | Associate Strategy Manager, Produce Execution | $76K-$96K
+  Flexport | Enterprise Account Executive | $83K-$105K
+  Flexport | Enterprise Account Executive | $83K-$105K
+  Axios | Business Development Associate | $65K-$75K
+  Blank Street | General Manager | Brooklyn | $67K-$80K
+  Blank Street | General Manager | Washington DC | $65K-$75K
+  Dealops | Founding Account Executive | $50K-$100K
+  Mindbody | Account Executive - SMB | $50K-$60K
+  Mindbody | SMB Account Executive | $50K-$60K
+  Nextroll | New Business Account Executive | $82K-$103K
+  Ophelia | Senior Associate, Community Partnership Operations | $85K-$95K
+  Pure Storage | Territory Account Executive - Central Region, Ohio and West Virginia | $62K-$94K
+  Unite Us | Community Strategy Manager - Hawaii | $75K-$85K
+  Unite Us | Community Strategy Manager - Virginia | $75K-$85K
+  Unite Us | Senior Community Strategy Manager - New Hampshire | $85K-$95K
+  Big Health | Provider Growth Manager | $90K-$110K
+  Coast | Account Executive (SMB) SLC | $60K-$75K
+  Coast | Business Operations Associate | $85K-$110K
+  Complyadvantage | Account Executive, Commercial | $70K-$80K
+  Fiscalnote | Manager, New Business Sales | $100K-$110K
+  Hudl | Account Executive - Club & Youth Sports | $35K-$45K
+  Lithic | Business Operations Associate, Program Management | $75K-$100K
+  Melio Payments | Senior Account Executive - UHV Payors | $95K-$105K
+  Misfits Market | Manager, Strategy & Planning | $80K-$90K
+  Nitra | Account Executive | $80K-$100K
+  Nitra | Account Executive | $80K-$100K
+  Nitra | Account Executive | $80K-$100K
+  Restaurant365 | Account Executive, Commercial Sales | $66K-$99K
+  Restaurant365 | Account Executive, Commercial Sales | $66K-$99K
+  Restaurant365 | Account Executive, Commercial Sales - Greater NYC Area | $66K-$99K
+  Restaurant365 | Account Executive, Commercial Sales (Chicago or Denver) | $66K-$99K
+  Restaurant365 | Account Executive, Commercial Sales (Orange County/Los Angeles, CA) | $85K-$100K
+  Restaurant365 | Account Executive, Commercial Sales, Tennessee | $66K-$99K
+  Shopmy | Account Executive, SMB | $80K-$100K
+  Tulip | Channel Partner Manager | $85K-$110K
+  Tulip | Partner Manager, Business Development | $85K-$110K
+  Vestwell | Product Manager | $95K-$110K
+  Weee | Business Development Associate | $60K-$69K
+  Weee | Business Development Manager | $88K-$108K
+  Zenoti | Business Development Manager – Fitness Industry | $80K-$95K
+  Zenoti | Business Development Manager – Fitness Industry | $80K-$95K
 Early-career roles left off (<= 2 years, no MBA or advanced degree): 119
   Accenture | Crowdstrike Technical Consultant | 2 yrs
   Accenture | Investment Banking Consultant | 2 yrs
@@ -132,7 +214,7 @@ Early-career roles left off (<= 2 years, no MBA or advanced degree): 119
   West Monroe Partners | Experienced Consultant, M&A (Healthcare & Life Sciences) | 2 yrs
   West Monroe Partners | Experienced Consultant, Organization, People & Change | 1 yrs
   West Monroe Partners | Manager, Insurance | 1 yrs
-Manager / Senior Manager roles left off (no MBA mention): 579 {'PwC': 95, 'KPMG': 87, 'EY': 85, 'Deloitte': 63, 'Accenture': 58, 'Huron Consulting Group': 33, 'Protiviti': 22, 'West Monroe Partners': 21}
+Manager / Senior Manager roles left off (no MBA mention): 574 {'PwC': 95, 'EY': 85, 'KPMG': 83, 'Deloitte': 63, 'Accenture': 58, 'Huron Consulting Group': 33, 'Protiviti': 22, 'West Monroe Partners': 21}
 
 Consulting firms with a board (verify these are the right companies):
   Abt Global                                 lever       abt                          jobs=3 matched=0
@@ -146,8 +228,8 @@ Consulting firms with a board (verify these are the right companies):
   Booz Allen Hamilton                        workday     bah                          jobs=33 matched=2
   Boston Consulting Group (BCG)              phenom      https://careers.bcg.com      jobs=25 matched=15
   Capco                                      greenhouse  capco                        jobs=722 matched=4
-  Capgemini                                  capgemini   Capgemini                    jobs=77 matched=46
-  Charles River Associates                   greenhouse  charlesriverassociates       jobs=92 matched=4
+  Capgemini                                  capgemini   Capgemini                    jobs=77 matched=45
+  Charles River Associates                   greenhouse  charlesriverassociates       jobs=92 matched=5
   Chartis                                    ashby       chartis                      jobs=32 matched=4
   ClearView Healthcare Partners              greenhouse  clearviewhealthcarepartners  jobs=22 matched=2
   DayBlink Consulting                        lever       dayblinkconsulting           jobs=0 matched=0
@@ -157,28 +239,28 @@ Consulting firms with a board (verify these are the right companies):
   Elixirr                                    greenhouse  elixirr                      jobs=16 matched=1
   EY                                         sfhtml      https://careers.ey.com       jobs=196 matched=71
   FSG                                        greenhouse  fsg                          jobs=0 matched=0
-  Gallup Consulting                          greenhouse  gallup                       jobs=26 matched=1
+  Gallup Consulting                          greenhouse  gallup                       jobs=26 matched=2
   Guidehouse                                 workday     guidehouse                   jobs=171 matched=117
   Huron Consulting Group                     workday     huron                        jobs=128 matched=22
   Insero Advisors LLC                        zoho        inserocpa.zohorecruit.com    jobs=1 matched=1
   Investor Group Services                    pinpoint    careers.igsinsights.com      jobs=1 matched=0
   Kearney                                    recsolu     EPd41qlA4_03IncZMnWyRQ       jobs=30 matched=10
   Keystone Strategy                          greenhouse  keystonestrategy             jobs=0 matched=0
-  KPMG                                       kpmg        https://www.kpmguscareers.com jobs=169 matched=72
+  KPMG                                       kpmg        https://www.kpmguscareers.com jobs=169 matched=74
   L.E.K. Consulting                          talnet      L.E.K. Consulting            jobs=2 matched=1
   LifeSciences Consultants                   teamtailor  https://careers.consultingls.com jobs=8 matched=5
   McChrystal Group                           lever       mcchrystalgroup              jobs=4 matched=0
   McKinsey & Company                         standing    careers page                 jobs=1 matched=1
-  Oliver Wyman                               workday     mmc                          jobs=32 matched=12
+  Oliver Wyman                               workday     mmc                          jobs=32 matched=13
   Point B                                    lever       pointb                       jobs=1 matched=1
   Protiviti                                  workday     roberthalf                   jobs=68 matched=7
-  PwC                                        phenom      https://jobs-us.pwc.com      jobs=168 matched=58
+  PwC                                        phenom      https://jobs-us.pwc.com      jobs=168 matched=57
   Simon-Kucher                               csod        simon-kucher.csod.com        jobs=9 matched=5
   Stax                                       lever       stax                         jobs=0 matched=0
   The Brattle Group                          greenhouse  thebrattlegroup              jobs=44 matched=2
   ThoughtWorks                               greenhouse  thoughtworks                 jobs=43 matched=0
   Wavestone                                  smartrecruiters Wavestone1                   jobs=0 matched=0
-  West Monroe Partners                       greenhouse  westmonroe4                  jobs=119 matched=15
+  West Monroe Partners                       greenhouse  westmonroe4                  jobs=119 matched=16
   ZS Associates                              jibe        jobs.zs.com                  jobs=78 matched=27
   Cartesian                                  pinpoint    cartesian                    jobs=2 matched=1
   Lincoln International                      greenhouse  lincolninternational         jobs=1 matched=1
@@ -189,26 +271,26 @@ Consulting firms with a board (verify these are the right companies):
 Top companies by matches:
   Deloitte                       126
   Guidehouse                     117
-  KPMG                           72
+  KPMG                           74
   EY                             71
-  PwC                            58
+  Cloudflare                     60
+  PwC                            57
   Accenture                      53
-  Capgemini                      46
+  Anthropic                      46
+  Capgemini                      45
+  Stripe                         44
+  Salesforce                     37
+  Verkada                        36
+  Cisco                          34
+  Databricks                     33
+  Toast                          31
+  Eliseai                        29
+  Veeva                          28
   ZS Associates                  27
+  OpenAI                         26
+  Plaid                          23
+  Spacex                         23
   Huron Consulting Group         22
-  Boston Consulting Group (BCG)  15
-  EY-Parthenon                   15
-  West Monroe Partners           15
-  Oliver Wyman                   12
-  OpenAI                         11
-  Kearney                        10
-  Decagon                        9
-  Shield AI                      8
-  Baringa Partners               7
-  Protiviti                      7
-  Notion                         7
-  Crusoe                         6
-  LifeSciences Consultants       5
-  Strategy&                      5
-  Simon-Kucher                   5
-  Anthropic                      5
+  Elastic                        22
+  Dualentry                      22
+  Nvidia                         22

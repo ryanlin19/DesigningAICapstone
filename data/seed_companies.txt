@@ -423,3 +423,1103 @@ AlixPartners
 Alvarez & Marsal
 Huron Consulting
 Accenture
+
+# --- VC portfolio companies (added 2026-11-09 from General Catalyst, Oak HC/FT, USV and IVP portfolios; only those with a readable job feed) ---
+Accompany Health
+Addi
+Agentmail
+Airslate
+Akido Labs
+Allego
+Alpha 9 Oncology
+Altos Labs
+Ambience Healthcare
+Amperity
+Anagram
+Andesite
+Anomali
+Apiiro
+Aplazo
+Arch
+Arlo
+Array
+Artie
+Atob
+August Health
+Aura
+Aurelius Systems
+Authzed
+Aven
+Aviatrix
+Awardco
+B12
+Baba
+Baseten
+Beacon Biosignals
+Bevel
+Black Forest Labs
+Blank Street
+Bolna
+Bounce
+Brainly
+Brave Health
+Bridge Neurotech
+Brilliant
+Bugcrowd
+Buildkite
+Cambridge Mobile Telematics
+Campus
+Candid Health
+Cape
+CarbonChain
+Cartesia
+Catalant
+Cellanome
+Chai Discovery
+Chainguard
+Chalk
+Chamber Cardio
+Chariot Defense
+Charm Industrial
+Checkr
+Chief
+Circleci
+Clara
+Clarium
+Classdojo
+Classpass
+Clearco
+Clickhouse
+Cloaked
+Cobot
+Cobre
+Cointracker
+Collective
+Concurrence
+Consensys
+Cookunity
+Corelight
+Cortex
+Courier Health
+Cowboy Space Corporation
+Cred
+Cribl
+Crossfit
+Ctgt
+Daybreak Health
+Daylight
+Dealops
+Deepl
+Deliveroo
+Deputy
+Disco
+Doctronic
+Dream Games
+Dryft
+Dune
+Dwelly
+Efficient Computer
+Eikon Therapeutics
+Emidat
+Engram
+Equip
+Ethic
+Ethos Life
+Eudia
+Evergreen Nephrology
+Evvy
+FREE NOW
+Feedzai
+Felix
+Finch
+Finni Health
+Flashfood
+Forerunner
+Forus
+Found
+Fourier
+Fundamental
+Funding Circle
+G2
+Galileo
+Generalist
+Geordie Ai
+Ghost
+Gooddata
+Goodstack
+Greenboard
+Gritt
+H1
+Hello Heart
+Helsing
+Highnote
+Hockeystack
+Hometap
+Homeward
+Hume AI
+Hyde
+Iceye
+Iex
+Illumio
+Imagine Pediatrics
+Indigo
+Instride Health
+Iru
+Isembard
+Judi Health
+Juro
+Justworks
+Kalshi
+Kano
+Karat
+Kavak
+Kayak
+Kernel
+Kickstarter
+Ladder
+Langchain
+Laurel
+Layer Health
+Lessen
+Lila Sciences
+Liquid
+Literati
+Lottie
+Lucis
+Luma Ai
+Lumafield
+Luminai
+Main Street Health
+Mainspring Energy
+Mark43
+Material Bank
+Maze Therapeutics
+Medeloop
+Medely
+Melius
+Menlo Security
+Mercor
+Meter
+Mindbody
+Minio
+Mirage
+Molten Industries
+Monte Carlo Data
+Morpho
+Multiverse
+Neko Health
+Neon
+Nerdwallet
+Nextdoor
+Nextroll
+Nolla Health
+Notable
+Nous Research
+Nova Credit
+Numeric
+Nurix
+Obsidian Security
+Ocrolus
+Onebrief
+Oneschema
+Ophelia
+Oshi Health
+Ossium Health
+Ostrom
+Outschool
+Overjet
+Pacific Fusion
+Pallet
+Paradigm
+Parloa
+Pathai
+Paxos
+PayJoy
+Payrails
+Pelico
+Percepta
+Pharmacy1st Health
+Physicsx
+Pigment
+Pilot Fiber
+Ping Identity
+Plume
+Pluralis Research
+Polymarket
+Possible Finance
+Profound Research
+Pronto
+Prosper
+Prove
+Pure Storage
+Pylon
+Radiant
+Ranger
+Re Build Manufacturing
+Rebag
+Recall
+Regard
+Relay
+Remodel Health
+Render
+Reservoir
+Resilience
+Revel
+Rialtic
+Rillet
+River Ai
+Rubrik
+Rylo
+Sage Care
+Sapien
+Scalar
+Senra Systems
+Seon
+Serval
+Shift Technology
+Sift
+Simulmedia
+Singular
+Sleeper
+Slide
+Slope
+Snackpass
+Sofar Sounds
+Somethings
+Sonarsource
+Sondermind
+Sorare
+Spiral
+Splice
+Sprinter Health
+Stacks
+Standard Bots
+Stedi
+Step
+Stepful
+Substrate
+Summer
+Suno
+Super Payments
+Supercell
+Tabs
+Tanium
+Taxbit
+Teambridge
+Teamshares
+Teamworks
+Tempo
+Tendo
+Tennr
+Thatch
+The Predictive Index
+Toku
+Traba
+Transmutex
+Tucows
+Turquoise Health
+Tutor Intelligence
+Twenty
+Uniswap
+Unite Us
+Universe
+Upgrade
+Upside
+Valerie Health
+Valinor
+Vannevar Labs
+Veriff
+Verkada
+Vital Lyfe
+Warp Sciences
+Wattpad
+Welltheory
+Wonderful
+Yext
+YieldMo
+Zarminali Health
+Zefr
+Zego
+Zenbusiness
+Ziprecruiter
+
+# --- Larger VC portfolios (added 2026-11-09 from a16z, Lightspeed, Index, Khosla, Greylock, Upfront, Accel, Sequoia, Bessemer, NEA; only companies with a readable job feed) ---
+0x
+100ms
+1password
+6sense
+Abby Care
+Acadia Pharmaceuticals
+Acceldata
+Acquia
+Act Security
+Advocate
+Agave
+Ai Squared
+Aigen
+Air
+Airbound
+Airbyte
+Airops
+Alan
+Alchemy
+Aleph
+Algolia
+Allara Health
+Alljoined
+Alloy
+Amca
+Amperos
+Ampersand
+Andera
+Ando
+Anine Bing
+Ankorstore
+Anrok
+Ansible Health
+Anterior
+Antioch
+Anybotics
+Anysignal
+Apex Ai
+Appian
+Applications
+Appzen
+Aquabyte
+Arca
+Arcade
+Archive
+Archy
+Arena
+Armadin
+Arq
+Aslan
+Aspora
+Assemblyai
+Assort Health
+Astrocade
+Atira
+Atlas
+Atomic
+Atrato
+Auctor
+Audiomob
+August
+Aurelian
+Auterion
+Automat
+Avantos
+Avarra
+Axion
+Axonius
+Ayble Health
+Backbone
+Bankjoy
+Base Power
+Basis
+Baublebar
+Beamery
+Bedrock Robotics
+Behavox
+Believer
+Belong Health
+Bere Al
+Betterup
+Beyond
+Big Health
+Bigger Games
+Bigid
+Bild Ai
+Birdie
+Blablacar
+Blacksmith
+Blend
+Block Renovation
+Blockchain
+Blockstream
+Bloomreach
+Bluefish Ai
+Blueshift
+Bluestone
+Boku
+Bold
+Bold Metrics
+Boulevard
+Braintrust
+Brale
+Branch
+Breaker
+Bridgebio
+Brightai
+Brighthire
+Brigit
+Brinc
+Brisk Teaching
+Britive
+Build
+Built Robotics
+Bunkerhill Health
+Cambly
+Cameo
+Campfire
+Candid Co
+Canvas Medical
+Capitolis
+Captivateiq
+Carwow
+Castle
+Catalog
+Catawiki
+Cato Networks
+Causal
+Causaly
+Cellular Intelligence
+Censys
+Centralize
+Certik
+Charles
+Checkly
+Cheddar
+Choco
+Chownow
+Cinder
+Circadia Health
+Ciridae
+Citizen
+Clair
+Clarify
+Clark
+Cleo
+Clever
+Clickup
+Cloudinary
+Clutch
+Coast
+Cockroach Labs
+Codat
+Code Metal
+Coder
+Coframe
+Cogent Security
+Cognite
+Cognition
+Cohere Inc
+Collective Health
+Collibra
+Commercetools
+Commons
+Complete
+Complyadvantage
+Composio
+Compound Eye
+Conduct
+Confluera
+Contra
+Convey
+Conviva
+Copilotiq
+Corestory
+Cowboy Space
+Cradlebio
+Credit Genie
+Cresta
+Critical Energy
+Crosby
+Crossing Minds
+Crucibl
+Culture Amp
+Current
+Cuspai
+Cx2
+Dandelion
+Dash0
+Dashlane
+Databento
+Databook
+Datafold
+Datasnipper
+Daydream
+Deepnote
+Delphi
+Depthfirst
+Descope
+Despegar
+Devrev
+Dexterity
+Dialogue Ai
+Distyl
+Docker
+Doctolib
+Dolls Kill
+Domino Data Lab
+Doppel
+Doppler
+Dorsia
+Double
+Dovetail
+Dremio
+Drivewealth
+Dualentry
+Duna
+Dust
+Eagle
+Earli
+Edra
+Eisen
+Eka Robotics
+Eliseai
+Ellipsis Health
+Ello
+Emi Labs
+Enable
+Endor Labs
+Eon
+Eragon
+Etched
+Eve
+Eventual
+Evervault
+Evident Id
+Exa
+Expel
+Eye Security
+Factory
+Fal Ai
+Falconx
+Fandom
+Farther Finance
+Fathom
+Feathery
+Ferry Health
+Fictiv
+Field Ai
+Fieldguide
+Filevine
+Filigran
+Fin
+Finix
+Fintual
+Fireblocks
+Fireworks
+Fiscalnote
+Fizz
+Flagler Health
+Flex
+Flint
+Flip
+Flipturn
+Flow Engineering
+Flox
+Fluency
+Folx Health
+Fonoa
+Footprint
+Foresight
+Formation Bio
+Formlabs
+Forter
+Foundry Robotics
+Foxglove
+Fractile
+Frec
+Freed
+Fulcrum
+Furientis
+Gainsight
+Gardens
+Garner Health
+Genalyte
+General Translation
+Genies
+Genmo
+Gigfinesse
+Gigi
+Glacier
+Gladia
+Glydways
+Goat Group
+Gocardless
+Gofundme
+Goodfire
+Goodleap
+Goody
+Goop
+Gossamer Bio
+Granica
+Granola
+Gravity Sketch
+Greenlight
+Gremlin
+Gridware
+Groupon
+Grow Therapy
+Gumgum
+Gushwork
+Gyde
+H Company
+Habitat Health
+Hackerone
+Hackerrank
+Halter
+Harmonic
+Harmony
+Hatch
+Headway
+Healthleap
+Helion
+Hermeus
+Higgsfield Ai
+Hinge Health
+Homebase
+Homebound
+Hone
+Hook
+Hootsuite
+Hopskipdrive
+Horizon3ai
+House Rx
+Houzz
+Hudl
+Hungryroot
+Hyperscience
+Iambic Therapeutics
+Imply
+Incident
+Incognia
+Ineffable
+Inertia
+Inferact
+Inflection Ai
+Infosum
+Inherent
+Inkeep
+Inkitt
+Insify
+Instawork
+Instructure
+Intenseye
+Inworld Ai
+Ionq
+Iris Labs
+Irregular
+Island
+Jellyfish
+Judgment Labs
+Juicebox
+Jump
+K Id
+Kaizen Labs
+Ketryx
+Kikoff
+Kindred
+Kira
+Knoetic
+Kodiak
+Kognitos
+Kong
+Konux
+Kroll Bond Rating Agency
+Kubera Health
+Kymera Therapeutics
+Lassie
+Latitude
+Lead Bank
+Ledge
+Ledgy
+Legora
+Lemon Markets
+Level
+Life360
+Lightdash
+Lightfield
+Lighthouse
+Lightrun
+Lightship
+Lightsource
+Lightspeed
+Limbic
+Limelight Steel
+Linear
+Linero
+Lio
+Listen Labs
+Lithic
+Litify
+Livekit
+Liza Health
+Llamaindex
+Lovable
+Luminary
+Luxury Presence
+Mach Industries
+Mach9
+Macroscope
+Magentic
+Magic Eden
+Magical
+Maintainx
+Mandl
+Mandolin
+Marble Health
+Mariana Minerals
+Mashgin
+Materialize
+Matillion
+Mbx Biosciences
+Mejuri
+Melio Payments
+Meltplan
+Metabase
+Middesk
+Mind Robotics
+Mindtickle
+Mintlify
+Mirelo
+Mirum Pharmaceuticals
+Misfits Market
+Miter
+Mithril
+Modern Animal
+Modus
+Moment
+Monarch Money
+Moo
+Moonpay
+Motorway
+Mutiny
+Mux
+Myfitnesspal
+Myheritage
+Myome
+Mysten Labs
+N8n
+Namespace
+Nanit
+Narvar
+Nebius
+Neo Cybernetica
+Netic
+Netskope
+Neuehealth
+Neuralink
+Neuropace
+Nevis
+Newton Research
+Nimble Robotics
+Ninjaone
+Nirvana
+Niteshift
+Nitra
+Nitricity
+Nkarta Therapeutics
+Noda Ai
+Norm Ai
+Novellia
+Nuance Labs
+Nuvacore
+Observable Space
+Offchain Labs
+Office Ally
+Ohalo Genetics
+Okendo
+Olema
+Oligo
+Omnea
+Omnifold
+One Robot
+Onxmaps
+Opal
+Openevidence
+Openfx
+Openx
+Optimal Dynamics
+Oratomic
+Originhq
+Orum
+Osmo
+Oso
+Otter
+Outrider
+Outsmart
+Paid
+Parachute Home
+Parallel
+Patronus
+Pave Bank
+Pendulum
+Pennylane
+People Ai
+Peregrine
+Periodic Labs
+Permitflow
+Persona
+Phaidra
+Phantom
+Phasev
+Philo
+Physical Intelligence
+Picogrid
+Picsart
+Pika
+Pine
+Pivotal Health
+Plenful
+Pocket
+Pocket Fm
+Point One Navigation
+Pointfive
+Polar
+Polyai
+Pontera
+Postscript
+Pramaana Labs
+Pravah
+Prefect
+Preql
+Primer
+Probably Genetic
+Probook
+Process Street
+Prodigal
+Profound
+Prophet Security
+Protege
+Quanta
+Quartzy
+Quilt
+Quilter
+Quip
+Quotewell
+Qventus
+R Zero
+Rad Ai
+Radar
+Radixark
+Raft
+Rain
+Raindrop
+Raisin
+Ravenna
+Recraft
+Reflect Orbital
+Reflection Ai
+Reflex Robotics
+Regie
+Reindeer Ai
+Relevance Ai
+Reliable Robotics
+Reltio
+Resolve Ai
+Restaurant365
+Rev
+Revenuecat Inc
+Rewind
+Rhoda Ai
+Rhythms
+Rightway
+Rilla
+Robco
+Rocket Chat
+Rogo
+Roofstock
+Rothys
+Rowspace
+Rula
+Rundoo
+Runlayer
+Sabi Inc
+Salt Security
+Sandbar
+Sandstone
+Sapiom
+Sarvam
+Savvy
+Scaled Cognition
+Scaleops
+Scanner
+Sciencelogic
+Scopely
+Seatgeek
+Security Scorecard
+Sekai
+Semgrep
+Sent
+Sentra
+Sentry
+Shade Inc
+Shapes
+Shopmonkey
+Shopmy
+Sila Nanotechnologies
+Silverrail
+Silversky
+Simile
+Singlestore
+Siro
+Sisense
+Sisu
+Sitetracker
+Sky Mavis
+Skyflow
+Slice
+Smallstep
+Smarterdx
+Snapdocs
+Snorkel Ai
+Socure
+Sol
+Sonatype
+Spacex
+Speak
+Spektr
+Sphinx
+Sprig
+Sprout Social
+Spruce
+Stability Ai
+Stackblitz
+Stacklok
+Starburst
+State Affairs
+Strella
+Strive Health
+Stylus Medicine
+Summer Health
+Sunday
+Supabase
+Super
+Surf Ai
+Swan
+Swarm Aero
+Swile
+Sycamore
+Sylvera
+Synctera
+Syndio
+Synthetic
+Sysdig
+Tacit
+Tactile Games
+Tacto
+Tailscale
+Taktile
+Taskrabbit
+Tavus
+Tebi
+Tekion
+Tem
+Temporal
+Terminal
+Terra Ai
+Teya
+The Business Of Fashion
+The Exploration Company
+The Nudge
+The Yes
+Theorycraft Games
+Thinking Machines
+Thirdlove
+Thread Ai
+Thumbtack
+Thunes
+Thunkable
+Tigera
+Tigerdata
+Tin Can
+Tines
+Titan
+Tolken
+Tollbit
+Tonkean
+Torch Dental
+Tourlane
+Town
+Tracebit
+Trajectory
+Translucent
+Traversal
+Triomics
+Trm Labs
+True Link Financial
+True Short
+Truebill
+Trustarc
+Trustpilot
+Tulip
+Turbineone
+Turnkey
+Twelve Labs
+Typeform
+Typesafe Ai
+Ultima Genomics
+Unit
+United Capital
+Unitq
+Unrivaled Basketball
+Upvest
+Valar Atomics
+Valarian
+Valdera
+Valon
+Vanta
+Vapi
+Vega Health
+Velo3d
+Verisign
+Verse
+Vertice
+Vesta
+Vestwell
+Viagogo
+Village
+Vinyl Equity
+Viome
+Virtru
+Vise
+Vivodyne
+Vivun
+Vizcom
+Volta Labs
+Vonage
+Vooma
+Vori
+Voxel51
+Waabi
+Wallapop
+Warp
+Waymark
+Weave
+Weaviate
+Weee
+Wetravel
+Wheelhouse
+Whop
+Windborne Systems
+Wirescreen
+Wisetack
+Withcoverage
+Wizard
+Workera
+Workos
+World Labs
+Wrapbook
+Xai
+Xaira Therapeutics
+Xendit
+Xero
+Yotpo
+Yubico
+Yugabyte
+Zania
+Zapier
+Zbiotics Company
+Zed
+Zefir
+Zenoti
+Zerion
+Zero
+Zest Ai
+Zinier
+Zola
+Zopa
+Zuora

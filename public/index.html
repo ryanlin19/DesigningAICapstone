@@ -3,30 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Strategy &amp; Consulting Job Board</title>
+<title>MBA Job Board</title>
 <style>
   :root {
     color-scheme: light;
-    --bg: #f7f6f3; --card: #ffffff; --panel: #fbfaf8; --text: #151515; --text-2: #555249; --muted: #8a867c;
-    --border: rgba(20,20,20,0.12); --brand: #b31b1b; --brand-dark: #7a1212; --brand-ink: #ffffff;
-    --good: #14724f; --good-bg: #e2f3ea; --warn: #8a5a00; --warn-bg: #fbefd2; --bad: #a3231f; --bad-bg: #fbe3e1;
-    --neutral: #55524a; --neutral-bg: #ebe9e3; --chip: #efede7; --shadow: 0 1px 2px rgba(20,20,20,.05), 0 6px 18px rgba(20,20,20,.06);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      color-scheme: dark;
-      --bg: #0f0f0e; --card: #1a1a19; --panel: #151514; --text: #f3f2ee; --text-2: #c4c2b8; --muted: #8e8b80;
-      --border: rgba(255,255,255,0.12); --brand: #e34948; --brand-dark: #8f1414; --brand-ink: #ffffff;
-      --good: #5fd3a2; --good-bg: #12342a; --warn: #f0c35c; --warn-bg: #3a2e0e; --bad: #ff8f8a; --bad-bg: #3d1a19;
-      --neutral: #c4c2b8; --neutral-bg: #2a2a28; --chip: #242422; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35);
-    }
-  }
-  :root[data-theme="dark"] {
-    color-scheme: dark;
-    --bg: #0f0f0e; --card: #1a1a19; --panel: #151514; --text: #f3f2ee; --text-2: #c4c2b8; --muted: #8e8b80;
-    --border: rgba(255,255,255,0.12); --brand: #e34948; --brand-dark: #8f1414; --brand-ink: #ffffff;
-    --good: #5fd3a2; --good-bg: #12342a; --warn: #f0c35c; --warn-bg: #3a2e0e; --bad: #ff8f8a; --bad-bg: #3d1a19;
-    --neutral: #c4c2b8; --neutral-bg: #2a2a28; --chip: #242422; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35);
+    /* white and very light gray backgrounds, charcoal text, blue brand accent, green Apply buttons, teal and orange used sparingly */
+    --bg: #f6f8fa; --card: #ffffff; --panel: #f3f5f8; --text: #1f2933; --text-2: #3e4c59; --muted: #66727f;
+    --border: rgba(31,41,51,0.14); --brand: #0a66c2; --brand-dark: #084e96; --brand-ink: #ffffff; --brand-bg: #e7f0fa;
+    --apply: #15803d; --apply-dark: #116b32;
+    --good: #15803d; --good-bg: #e3f4ea; --warn: #8a5a00; --warn-bg: #fbefd2; --bad: #b42318; --bad-bg: #fde8e6;
+    --neutral: #3e4c59; --neutral-bg: #eceff3; --chip: #eaeef3;
+    --accent: #0f766e; --accent-bg: #dcf3f0; --orange: #9a3412; --orange-bg: #ffedd5;
+    --shadow: 0 1px 2px rgba(31,41,51,.06), 0 4px 14px rgba(31,41,51,.06);
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -35,15 +23,16 @@
   button, select, input { font: inherit; color: inherit; }
   .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 
-  header.hero { background: linear-gradient(135deg, #1b1b1a 0%, var(--brand-dark) 160%); color: #f4f3ef; padding: 28px 0 0; }
+  header.hero { background: #ffffff; border-bottom: 1px solid var(--border); color: var(--text); padding: 28px 0 0; }
   header.hero h1 { margin: 0; font-size: clamp(22px, 4vw, 32px); letter-spacing: .02em; }
-  header.hero p { margin: 6px 0 16px; color: #d8d6cc; }
+  header.hero p { margin: 6px 0 16px; color: var(--text-2); }
   .stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
-  .stat { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
+  .stat { background: var(--chip); border: 1px solid var(--border); color: var(--text-2); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
   .stat b { font-weight: 650; }
   nav.tabs { display: flex; gap: 4px; flex-wrap: wrap; }
-  nav.tabs button { background: transparent; border: 0; color: #d8d6cc; padding: 10px 16px; border-radius: 10px 10px 0 0; cursor: pointer; font-weight: 600; }
-  nav.tabs button[aria-selected="true"] { background: var(--bg); color: var(--text); }
+  nav.tabs button { background: transparent; border: 0; border-bottom: 3px solid transparent; color: var(--text-2); padding: 10px 16px; cursor: pointer; font-weight: 600; }
+  nav.tabs button:hover { color: var(--brand); }
+  nav.tabs button[aria-selected="true"] { color: var(--brand); border-bottom-color: var(--brand); }
   nav.tabs .count { background: var(--brand); color: #fff; border-radius: 999px; padding: 0 7px; font-size: 12px; margin-left: 6px; }
 
   main { padding: 18px 0 60px; }
@@ -57,7 +46,7 @@
   label.chk:hover { background: var(--chip); }
   label.chk input { accent-color: var(--brand); width: 20px; height: 20px; margin: 0; flex-shrink: 0; cursor: pointer; }
   label.chk .n { margin-left: auto; color: var(--muted); font-size: 12px; }
-  .intl { background: var(--good-bg); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin-bottom: 4px; }
+  .intl { background: var(--brand-bg); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin-bottom: 4px; }
   .intl label.chk { font-weight: 600; }
   .resetbtn { width: 100%; margin-bottom: 6px; }
   .grplinks { display: flex; gap: 6px; justify-content: flex-end; font-size: 12.5px; color: var(--muted); margin: -4px 0 2px; }
@@ -89,13 +78,16 @@
   .badge.warn { background: var(--warn-bg); color: var(--warn); }
   .badge.bad { background: var(--bad-bg); color: var(--bad); }
   .badge.neutral { background: var(--neutral-bg); color: var(--neutral); }
+  .badge.accent { background: var(--accent-bg); color: var(--accent); }
+  .badge.orange { background: var(--orange-bg); color: var(--orange); }
   .actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
   .btn { border: 1px solid var(--border); background: var(--panel); border-radius: 9px; padding: 6px 12px; cursor: pointer; font-weight: 600; font-size: 13px; text-decoration: none; display: inline-block; }
-  .btn.primary { background: var(--brand); color: var(--brand-ink); border-color: transparent; }
+  .btn.primary { background: var(--apply); color: #ffffff; border-color: transparent; }
+  .btn.primary:hover { background: var(--apply-dark); }
   .actions > .btn, .actions > .applywrap { width: 104px; }
   .actions > .btn, .actions .applywrap > .btn { text-align: center; box-sizing: border-box; }
   .actions .applywrap > .btn { width: 100%; }
-  .btn.on { background: var(--warn-bg); color: var(--warn); }
+  .btn.on { background: var(--brand-bg); color: var(--brand-dark); border-color: var(--brand); }
   .heronote { font-size: 14.5px; font-weight: 600; line-height: 1.45; max-width: 780px; background: #fff3cd; color: #3a2a00; border-left: 6px solid #f2b705; border-radius: 10px; padding: 10px 14px; margin: 12px 0 0; }
   .hero p.heronote { color: #3a2a00; opacity: 1; }
   .heronote b { font-weight: 800; letter-spacing: .04em; }
@@ -131,7 +123,7 @@
   .mylisttop { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin: 4px 0 12px; }
   .mylisttop .notice { flex: 1; margin: 0; background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 9px 12px; font-size: 13.5px; font-weight: 600; }
   .mylisttop .btn { flex-shrink: 0; }
-  .exportbtn { padding: 12px 22px; font-size: 15px; font-weight: 700; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+  .exportbtn { padding: 12px 22px; font-size: 15px; font-weight: 700; border-radius: 10px; box-shadow: 0 2px 8px rgba(31,41,51,.18); }
   .exportbtn:hover:not(:disabled) { filter: brightness(1.12); }
   .exportbtn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
   @media (max-width: 860px) { .mylisttop { flex-direction: column; align-items: stretch; } }
@@ -145,16 +137,6 @@
   .credit { font-size: 12.5px; color: var(--muted); text-align: center; padding: 18px 0 30px; }
   .note { font-size: 12.5px; color: var(--muted); margin-top: 22px; line-height: 1.5; }
 
-  table.firms { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-  .firms th, .firms td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: top; }
-  .firms th { background: var(--panel); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); cursor: pointer; white-space: nowrap; }
-  .firms tr.row { cursor: pointer; }
-  .firms tr.row:hover td { background: var(--panel); }
-  .firms tr.detail td { background: var(--panel); color: var(--text-2); font-size: 13.5px; }
-  .tagline { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-  .fwrap { overflow-x: auto; }
-  .filterbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-  .filterbar .field { width: auto; min-width: 150px; }
   .status { padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); font-size: 13px; }
 
   @media (max-width: 860px) {
@@ -174,15 +156,14 @@
 <body>
 <header class="hero">
   <div class="wrap">
-    <h1>Strategy &amp; Consulting Job Board</h1>
-    <p>Strategy, consulting and ops roles pulled from firms' public job pages, with visa signals.</p>
+    <h1>MBA Job Board</h1>
+    <p>Roles for MBA students, pulled from firms' public job pages, with visa signals.</p>
     <p class="heronote"><b>DISCLAIMER:</b> Many of these openings are experienced-hire roles rather than structured campus recruiting cycles, so check each firm's page for how and when to apply. This is not an exhaustive list: it only includes roles pulled from firms' public job pages, so also look for other opportunities beyond what is listed here.</p>
     <div class="stats" id="stats"></div>
     <nav class="tabs" role="tablist" id="tabs">
       <button role="tab" aria-selected="false" data-tab="new" id="tabNew">What's new<span id="newDate"></span> <span class="count" id="newCount">0</span></button>
-      <button role="tab" aria-selected="true" data-tab="mba" id="tabMba">MBA roles <span class="count" id="mbaCount">0</span></button>
+      <button role="tab" aria-selected="true" data-tab="mba" id="tabMba">Roles for MBAs <span class="count" id="mbaCount">0</span></button>
       <button role="tab" aria-selected="false" data-tab="other" id="tabOther">Other roles <span class="count" id="otherCount">0</span></button>
-      
       <button role="tab" aria-selected="false" data-tab="mylist">My list <span class="count" id="mycount">0</span></button>
     </nav>
   </div>
@@ -244,7 +225,6 @@
     </div>
   </section>
 
-  
 
   <!-- MY LIST -->
   <section id="tab-mylist" class="hidden">
@@ -264,7 +244,6 @@
   "use strict";
   var D = window.BOARD_DATA || { jobs: [], firms: [], stats: {}, generated: "" };
   var jobs = D.jobs;
-  
   var $ = function (id) { return document.getElementById(id); };
   var VISA_ORDER = { "Likely": 0, "Case-by-case": 1, "Unknown": 2, "Unlikely": 3 };
   var VISA_CLASS = { "Likely": "good", "Case-by-case": "warn", "Unknown": "neutral", "Unlikely": "bad" };
@@ -293,7 +272,8 @@
   var MBA_LABELS = { title: "MBA in title", required: "MBA required", preferred: "MBA preferred", firm: "Firm recruits MBAs" };
   var SENIORITY_ORDER = ["Associate", "Sr. Associate", "Manager", "Sr. Manager"];
   var CATEGORY_ORDER = ["Strategy Consulting", "Tech & Digital Consulting", "Corp Strategy", "BizOps / Strategy & Ops",
-    "Chief of Staff", "Product Ops", "GTM / Revenue Ops", "Transformation / PMO"];
+    "Chief of Staff", "Product Ops", "GTM / Revenue Ops", "Transformation / PMO",
+    "Product Management", "Business Development", "Partnerships", "Growth", "General Management", "Account Executive"];
 
   // ---- safe storage (can throw in private windows) ----
   var store = {
@@ -413,20 +393,19 @@
   var st = D.stats || {};
   var statItems = [["Refreshed", D.generated], ["Roles", jobs.length],
     ["Companies with a job feed", (st.companies_with_board || 0) + " of " + (st.companies_scanned || 0)]];
-  
   statItems.forEach(function (p) {
     $("stats").appendChild(el("span", { class: "stat" }, [p[0] + " ", el("b", { text: String(p[1]) })]));
   });
 
   // ---- tabs ----
-  // "MBA roles" and "Other roles" are two views of the same list; they share one section of the page.
+  // "Roles for MBAs" and "Other roles" are two views of the same list; they share one section of the page.
   var jobsTab = "mba";
   function showTab(name) {
     if (name === "jobs") name = "mba";                                       // an older remembered value
     var section = (name === "mba" || name === "other" || name === "new") ? "jobs" : name;
     if (!$("tab-" + section)) { name = "mba"; section = "jobs"; }            // e.g. a remembered tab this version doesn't have
     if (section === "jobs") jobsTab = name;
-    ["jobs", "firms", "mylist"].forEach(function (t) { var s = $("tab-" + t); if (s) s.classList.toggle("hidden", t !== section); });
+    ["jobs", "mylist"].forEach(function (t) { var s = $("tab-" + t); if (s) s.classList.toggle("hidden", t !== section); });
     Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function (b) { b.setAttribute("aria-selected", String(b.dataset.tab === name)); });
     if (name === "mylist") renderMyList();
     if (section === "jobs") render();
@@ -462,7 +441,7 @@
   }
   function initFilters() {
     var cats = CATEGORY_ORDER.filter(function (c) { return jobs.some(function (j) { return j.category === c; }); });
-    buildCheckGroup("f-category", "category", cats, count(jobs, function (j) { return j.category; }));
+    buildCheckGroup("f-category", "category", cats, count(jobs, function (j) { return j.category; }), ["Account Executive"]);   // starts unticked (user decision 2026-11-09): about a third of the board
     var sen = SENIORITY_ORDER.filter(function (s) { return jobs.some(function (j) { return j.seniority === s; }); });
     buildCheckGroup("f-seniority", "seniority", sen, count(jobs, function (j) { return j.seniority; }));
     buildCheckGroup("f-visa", "visa", ["Likely", "Case-by-case", "Unknown"], count(jobs, function (j) { return j.visa; }));
@@ -559,11 +538,11 @@
       el("span", { class: "badge " + dl.cls, text: "Deadline: " + dl.text }),
       el("span", { class: "badge", text: j.category }),
       el("span", { class: "badge", text: j.seniority }),
-      addedOn[j.url] ? el("span", { class: "badge good", text: "NEW \u00b7 " + dayLabel(addedOn[j.url]) }) : null,
+      addedOn[j.url] ? el("span", { class: "badge orange", text: "NEW \u00b7 " + dayLabel(addedOn[j.url]) }) : null,
       j.n_locations > 1 ? el("span", { class: "badge neutral", text: j.n_locations + " locations" }) : null,
       j.remote_ok && locNames(j).some(function (n) { return n !== "Remote"; }) ? el("span", { class: "badge neutral", text: "Remote OK" }) : null,
       el("span", { class: "badge " + VISA_CLASS[j.visa], text: "Visa: " + j.visa }),
-      j.mba ? el("span", { class: "badge good", text: MBA_LABELS[j.mba] || "MBA preferred" }) : null,
+      j.mba ? el("span", { class: "badge accent", text: MBA_LABELS[j.mba] || "MBA preferred" }) : null,
       sal ? el("span", { class: "badge", text: sal }) : null,
       j.min_years ? el("span", { class: "badge", text: j.min_years + "+ yrs" }) : null,
       j.review ? el("span", { class: "badge warn", text: "Low-confidence match" }) : null
@@ -643,6 +622,12 @@
     { co: "Fidelity Consulting", url: "https://jobs.fidelity.com/", extra: "Known opening: 2027 MBA Graduate, Senior Consultant (Boston, MA).", tab: "mba" },
     { co: "U.S. Secret Service", url: "https://www.secretservice.gov/careers", extra: "Known opening: Special Advisor Program (Internal Consulting), Washington, DC. Apply by Feb 26, 2027. Federal jobs usually require U.S. citizenship, so check the posting.", tab: "mba" },
     { co: "Kroll", url: "https://careers.kroll.com/" },
+    // big tech firms whose job systems the board cannot read (added 2026-11-09)
+    { co: "Meta", url: "https://www.metacareers.com/jobs", group: "tech", tab: "other" },
+    { co: "Tesla", url: "https://www.tesla.com/careers/search/", group: "tech", tab: "other" },
+    { co: "Qualcomm", url: "https://careers.qualcomm.com/", group: "tech", tab: "other" },
+    { co: "Intuit", url: "https://jobs.intuit.com/", group: "tech", tab: "other" },
+    { co: "IBM", url: "https://careers.ibm.com/", group: "tech", tab: "other" },
     { co: "Wipfli", url: "https://www.wipfli.com/careers", extra: "Known area: Transaction Advisory Services." },
     { co: "StoneTurn", url: "https://www.stoneturn.com/careers/" },
     { co: "PwC", url: "https://jobs-us.pwc.com/us/en" },
@@ -732,9 +717,9 @@
     // Firms to check directly: shown with the search and the employer filter, next to the firms that have roles.
     var q0 = $("q").value.trim().toLowerCase(), directOf = {};
     DIRECT.forEach(function (f) {
-      if (jobsTab === "new" || (f.tab && f.tab !== jobsTab)) return;                 // e.g. TCS and DHL Consulting belong with the MBA roles
+      if (jobsTab === "new" || (f.tab && f.tab !== jobsTab)) return;                 // e.g. TCS and DHL Consulting belong with the roles for MBAs
       var hasRolesAnywhere = jobs.some(function (j) { return j.company === f.co; });
-      if (!filterState.group.consulting) return;
+      if (!filterState.group[f.group || "consulting"]) return;                  // tech firms follow the "Tech & other companies" filter
       if (q0 && !q0.split(/\s+/).every(function (w) { return f.co.toLowerCase().indexOf(w) >= 0; })) return;
       if (hasRolesAnywhere) { if (byCo[f.co]) directOf[f.co] = f; return; }     // after its roles, in the tabs that show them
       if ($("location").value) return;                                        // a place filter can't match a careers page
@@ -750,9 +735,9 @@
     if (!list.length && jobsTab === "new") {
       box.appendChild(el("div", { class: "empty", text: "No new roles match these filters." + (newList.length ? "" : " Nothing new has been added since the " + (SINCE ? dayLabel(SINCE) + " update." : "last update.")) }));
     } else if (!list.length) {
-      var otherTab = jobsTab === "other" ? "MBA" : "Other", elsewhere = jobsTab === "other" ? mbaList.length : otherList.length;
-      box.appendChild(el("div", { class: "empty", text: "No " + (jobsTab === "other" ? "other" : "MBA") + " roles match these filters." +
-        (elsewhere ? " " + elsewhere + " match in the " + otherTab + " roles tab." : " Try resetting the filters.") }));
+      var otherTab = jobsTab === "other" ? "Roles for MBAs" : "Other roles", elsewhere = jobsTab === "other" ? mbaList.length : otherList.length;
+      box.appendChild(el("div", { class: "empty", text: "No " + (jobsTab === "other" ? "other roles" : "roles for MBAs") + " match these filters." +
+        (elsewhere ? " " + elsewhere + " match in the " + otherTab + " tab." : " Try resetting the filters.") }));
     }
 
     var s = $("sort").value;
@@ -776,12 +761,11 @@
       "Confirm with the employer before relying on them. Listings come from each company's public job feed; check the company page for the latest status. " +
       "At consulting firms, manager and senior manager roles are listed only when the posting mentions an MBA or asks for fewer than 5 years of experience." +
       (jobsTab === "new" ? " New roles are postings that were not on the firms' pages at the " + (SINCE ? dayLabel(SINCE) + " update" : "previous update") + "; the date is the update that first showed them." : "") +
-      (jobsTab === "mba" ? " MBA roles are postings with \"MBA\" in the title or that say an MBA is preferred or required, plus consulting roles at firms that recruit MBAs." : "");
+      (jobsTab === "mba" ? " Roles for MBAs are postings that mention an MBA (in the title, or as preferred or required), plus consulting and strategy roles at firms that recruit MBAs even when the posting does not say so. The tag on each role shows which." : "");
   }
   $("expandAll").addEventListener("click", function () { visibleCompanies.forEach(function (c) { openGroups[c] = true; }); render(); });
   $("collapseAll").addEventListener("click", function () { visibleCompanies.forEach(function (c) { openGroups[c] = false; }); render(); });
 
-  
 
   // ---- my list ----
   var STATUSES = ["Saved", "Applied", "Interviewing", "Offer", "Passed"];
@@ -839,8 +823,7 @@
   }
 
   initFilters(); fillSuggestions(); updateMyCount(); render();
-  
-  showTab(store.get("jb_tab", "mba"));   // opens on MBA roles unless the visitor last used another tab
+  showTab(store.get("jb_tab", "mba"));   // opens on Roles for MBAs unless the visitor last used another tab
 })();
 </script>
 </body>

@@ -1,6 +1,6 @@
-# Strategy & Consulting Job Board
+# MBA Job Board
 
-A static job board for strategy, consulting and ops roles, with visa signals. No server needed:
+A static job board of roles for MBA students (consulting, strategy, ops and similar), with visa signals. No server needed:
 open `site/index.html` in a browser (double-click it) after building.
 
 **Live site:** your own Cloudflare address once you deploy (public folder only).
@@ -15,8 +15,8 @@ The firm database says **do not share publicly**, so every build writes two vers
 
 | Folder | Contains | Share it? |
 |---|---|---|
-| `site/` | Roles **and** the Firm directory; the visa reasons spell out the firm's stated policy | **No.** Local use only. |
-| `public/` | **Job listings only.** No firm directory. The visa *label* (Likely / Possible / Unknown / Unlikely) is informed by the firm database, but the page never names it or shows its fields; reasons are public-source evidence or generic wording | Yes. This is the folder to upload. |
+| `site/` | Roles only (the Firm directory was removed 2026-11-09); the visa reasons spell out the firm's stated policy | **No.** Local use only. |
+| `public/` | **Job listings only.** The visa *label* (Likely / Possible / Unknown / Unlikely) is informed by the firm database, but the page never names it or shows its fields; reasons are public-source evidence or generic wording | Yes. This is the folder to upload. |
 
 Note: because the label uses the database, a firm's stance can be roughly inferred from its labels. If the sheet's owner
 objects, set the stance to `None` in `build.py` (the `visa_label(tags, stance)` call) and rebuild.
@@ -37,7 +37,7 @@ python pipeline/check_public.py     # must print OK
 npx wrangler deploy                 # uploads public/ to the same site
 ```
 
-Node.js and Wrangler are installed; log in once with `npx wrangler login`. Never upload `site/` (it holds the firm directory).
+Node.js and Wrangler are installed; log in once with `npx wrangler login`. Never upload `site/` (its visa reasons spell out each firm's stated policy).
 
 ## Refresh the data
 
@@ -84,7 +84,7 @@ What builds the board:
 - `pipeline/places.py` - turns messy location strings into the places in the Location filter
 - `pipeline/deadline.py` - application deadlines
 - `pipeline/salary.py` - pay ranges stated in the posting text
-- `site/index.html` - the page (filters, What's new, firm directory, My list); `build.py` makes the public copy from it
+- `site/index.html` - the page (filters, What's new, My list); `build.py` makes the public copy from it
 
 Running and checking it:
 
@@ -101,7 +101,7 @@ Running and checking it:
 ## Known limits
 
 - Only companies on Greenhouse, Lever or Ashby (plus the few firms in `data/custom_boards.json`) appear as live roles. MBB,
-  Big 4 and most large consultancies post elsewhere, so they appear in the firm directory with a careers link instead.
+  Big 4 and most large consultancies post elsewhere, so they appear as "see careers page" cards instead.
 - Visa labels are a guide. Always confirm with the employer.
 - "Vice President" titles are excluded as too senior, except at AlixPartners where the rung is about a senior associate
   (`VP_FIRMS` in `pipeline/build.py`; senior/executive VPs and forensic, compliance and e-discovery VPs stay out).
@@ -189,3 +189,42 @@ later and are gone again, or dropped off and came back, count as no change. Remo
 netting works. Move `CHANGES_SINCE` forward to start a fresh comparison. Hand-typed standing roles (`data/standing_roles.json`,
 McKinsey and Bain) are never reported as new or gone. `pipeline/archive/seed_history.py` started the file once (do not run it again) (baseline Oct 27, first update Oct 23 to Oct 27). A `--cached` build never
 changes the history.
+
+## VC portfolio companies (added 2026-11-09)
+
+The seed list (`data/seed_companies.txt`) now ends with a section of venture-backed companies taken from the portfolios of
+General Catalyst, Oak HC/FT, USV and IVP. Company names came from each firm's public sitemap or portfolio page. Each name was
+tried against Greenhouse, Lever and Ashby, and only companies with a readable feed that also named the company in its
+postings were kept (317 of 935). Jobs are read from the company's own job page, never from the VC's job aggregator, so apply
+links go to the company. The same title filters apply, so engineering roles stay out.
+
+Second round (2026-11-09): the same method was run on the portfolios of a16z, Lightspeed, Index, Khosla, Greylock, Upfront, Accel,
+Sequoia, Bessemer and NEA (company names from their public sitemaps or portfolio pages). Of about 3,500 new names, 779 had a
+readable feed that named the company in its postings, and about 200 roles passed the filters. A few generic names matched the
+wrong company ("Pulse", "Remote", "Agency") and were left out by hand.
+
+Not done: GV (its site exposes no company list), and companies whose feed exists but was empty on 2026-11-09. Companies on other
+job systems (Workday, Lever sub-sites, custom pages) are not covered by this method.
+
+## Role types added 2026-11-09
+
+On request, the title filters now also keep product management, business development, partnerships, growth, general management and
+account executive roles (`CATEGORIES` and `EXCLUDE` in `pipeline/classify.py`; tests in `pipeline/test_new_roles.py`). Still left out:
+director, VP, head of, principal and staff titles; business development / sales development *representatives*; analysts; and
+account managers. Technical product managers and growth marketing were added on 2026-11-09. Account executive postings that differ only
+by territory, state, country or language are folded into one role with several locations (`fold_ae_title` in `pipeline/build.py`). At firms read through a custom feed (Workday, Avature, KPMG and so on) the
+download only opens titles the filters accepted at the time, so the new role types appear there after the next full download.
+
+The Role type filter starts with **Account Executive unticked** (about a third of the board; user decision 2026-11-09). Visitors can tick it, and
+the "Role type: 13 of 14 shown" tag above the results restores it. The default lives in `initFilters()` in `site/index.html`.
+
+## Big tech companies (added 2026-11-09)
+
+Read through their own job systems (`data/custom_boards.json`, group `tech`, US postings only):
+Nvidia, Salesforce, Adobe, Intel and Cisco use Workday; AMD uses the iCIMS Jibe reader. About 120 roles pass the filters.
+Meta, Tesla, Qualcomm, Intuit and IBM only get "see careers page" cards (`DIRECT` in `site/index.html`): Meta and Tesla block automated
+reading, and Qualcomm, Intuit and IBM use systems the board has no reader for.
+
+Not done yet: Amazon, Google, Microsoft, Apple, Uber and Netflix. Each needs its own reader and a check of the site's terms.
+Workday searches stop at `max_per_term` (300 here), so a big firm's list can be partial; Intel returned very few roles for that reason or because
+few of its postings match.

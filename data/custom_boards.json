@@ -50,7 +50,9 @@
   "path": "/ey",
   "location": "United States",
   "country_suffix": "United States",
-  "terms": [""],
+  "terms": [
+   ""
+  ],
   "max_per_term": 2000,
   "split": {
    "EY-Parthenon": "^(EY-Parthenon|EYP)\\b"
@@ -194,5 +196,131 @@
   "host": "inserocpa.zohorecruit.com",
   "group": "consulting",
   "exclude": "\\\\b(Tax|Audit|Accountant|Accounting|Controller|Administrative|Intern|Internship|Future Consideration)\\\\b"
+ },
+ "Nvidia": {
+  "platform": "workday",
+  "tenant": "nvidia",
+  "host": "wd5",
+  "site": "NVIDIAExternalCareerSite",
+  "group": "tech",
+  "us_only": true,
+  "terms": [
+   "strategy",
+   "strategic",
+   "business operations",
+   "operations",
+   "chief of staff",
+   "corporate development",
+   "product manager",
+   "partnerships",
+   "business development",
+   "growth",
+   "general manager",
+   "program management",
+   "transformation"
+  ],
+  "max_per_term": 300
+ },
+ "Salesforce": {
+  "platform": "workday",
+  "tenant": "salesforce",
+  "host": "wd12",
+  "site": "External_Career_Site",
+  "group": "tech",
+  "us_only": true,
+  "terms": [
+   "strategy",
+   "strategic",
+   "business operations",
+   "operations",
+   "chief of staff",
+   "corporate development",
+   "product manager",
+   "partnerships",
+   "business development",
+   "growth",
+   "general manager",
+   "program management",
+   "transformation"
+  ],
+  "max_per_term": 300
+ },
+ "Adobe": {
+  "platform": "workday",
+  "tenant": "adobe",
+  "host": "wd5",
+  "site": "external_experienced",
+  "group": "tech",
+  "us_only": true,
+  "terms": [
+   "strategy",
+   "strategic",
+   "business operations",
+   "operations",
+   "chief of staff",
+   "corporate development",
+   "product manager",
+   "partnerships",
+   "business development",
+   "growth",
+   "general manager",
+   "program management",
+   "transformation"
+  ],
+  "max_per_term": 300
+ },
+ "Intel": {
+  "platform": "workday",
+  "tenant": "intel",
+  "host": "wd1",
+  "site": "External",
+  "group": "tech",
+  "us_only": true,
+  "terms": [
+   "strategy",
+   "strategic",
+   "business operations",
+   "operations",
+   "chief of staff",
+   "corporate development",
+   "product manager",
+   "partnerships",
+   "business development",
+   "growth",
+   "general manager",
+   "program management",
+   "transformation"
+  ],
+  "max_per_term": 300
+ },
+ "Cisco": {
+  "platform": "workday",
+  "tenant": "cisco",
+  "host": "wd5",
+  "site": "Cisco_Careers",
+  "group": "tech",
+  "us_only": true,
+  "terms": [
+   "strategy",
+   "strategic",
+   "business operations",
+   "operations",
+   "chief of staff",
+   "corporate development",
+   "product manager",
+   "partnerships",
+   "business development",
+   "growth",
+   "general manager",
+   "program management",
+   "transformation"
+  ],
+  "max_per_term": 300
+ },
+ "AMD": {
+  "platform": "jibe",
+  "host": "careers.amd.com",
+  "group": "tech",
+  "country": "United States"
  }
 }

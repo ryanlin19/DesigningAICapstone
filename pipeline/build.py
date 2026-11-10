@@ -20,7 +20,7 @@ import ats
 import deadline
 import places
 import salary as salary_text
-from classify import advanced_degree_mentioned, classify, location_ok, stronger_mba
+from classify import NON_US, advanced_degree_mentioned, classify, location_ok, stronger_mba
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA, SITE, PUBLIC = ROOT / "data", ROOT / "site", ROOT / "public"
@@ -44,6 +44,41 @@ CAREERS_URL = {
     "L.E.K. Consulting": "https://www.lek.com/careers",
     "ZS Associates": "https://www.zs.com/careers",
 }
+
+
+# Account executive postings are usually one job posted once per territory ("Territory Account Executive, Atlanta", "..., Boston"). They are
+# folded into one role with several locations (user decision 2026-11-09): the territory, state, country and language are taken out of the title.
+_US_STATES = (r"alabama|alaska|arizona|arkansas|california|colorado|connecticut|delaware|florida|georgia|hawaii|idaho|illinois|indiana|iowa|"
+              r"kansas|kentucky|louisiana|maine|maryland|massachusetts|michigan|minnesota|mississippi|missouri|montana|nebraska|nevada|"
+              r"new hampshire|new jersey|new mexico|new york|north carolina|north dakota|ohio|oklahoma|oregon|pennsylvania|rhode island|"
+              r"south carolina|south dakota|tennessee|texas|utah|vermont|virginia|washington|west virginia|wisconsin|wyoming")
+_AE_GEO = re.compile(r"\b(" + _US_STATES + r"|east|west|north|south|central|northeast|southeast|northwest|southwest|midwest|coast|pacific|"
+                     r"bay area|metro|remote|hybrid|nyc|usa|us|americas|dach|nordics|benelux|anz)\b", re.I)
+_AE_WORD = re.compile(r"account executive|sales executive", re.I)
+_AE_LANG = re.compile(r"^(spanish|mandarin|cantonese|korean|french|german|japanese|portuguese|vietnamese|arabic|hindi|russian|italian)$", re.I)
+
+
+def fold_ae_title(title, location):
+    """'Territory Account Executive, Atlanta' -> 'Territory Account Executive'. Falls back to the title when nothing is left."""
+    t = re.sub(r"\([^)]*\)", " ", title)
+    for place in re.split(r"[·;|]", location or ""):          # a territory title usually repeats a place in the posting's own location
+        for part in {place.strip(), *(x.strip() for x in place.split(","))}:
+            if len(part) >= 3 and part.lower() not in ("remote", "hybrid", "united states", "usa", "anywhere"):
+                t = re.sub(r"\b" + re.escape(part) + r"\b", " ", t, flags=re.I)
+    segs = [x.strip(" ,-–—/") for x in re.split(r"\s[-–—]\s|,", t)]
+    segs = [x for x in segs if x]
+    k = next((i for i, x in enumerate(segs) if _AE_WORD.search(x)), 0)
+    keep = []
+    for i, x in enumerate(segs):
+        if i < k and len(x.split()) <= 2:
+            continue                                                   # a leftover place before the role name
+        if i != k and (_AE_LANG.match(x) or _AE_GEO.search(x) or NON_US.search(x) or re.fullmatch(r"[A-Za-z]{2}(\s*/\s*[A-Za-z]{2})*", x)):
+            continue
+        keep.append(x)
+    out = re.sub(r"^[A-Z]{2}\s+(?=[A-Z])", "", ", ".join(keep))                                        # a stray state code before the role name
+    out = re.sub(r"(account executive)\s+(?:" + NON_US.pattern + r")\s*$", r"\1", out, flags=re.I)   # "... Account Executive Mexico"
+    out = re.sub(r"\s+", " ", out).strip(" ,-–—")
+    return out or title.strip()
 
 
 def read_seed():
@@ -327,7 +362,11 @@ def main():
                     and (company not in MBA_BIG4 or MBA_BIG4_TITLE.search(j["title"]))):
                 tags["mba_kind"] = "firm"
             stance = stance_over.get(company) or (sheet[company]["visa_stance"] if company in sheet else (sheet[name]["visa_stance"] if name in sheet else None))
-            gkey = (company, re.sub(r"\s+", " ", j["title"].strip().lower()), tags["category"], tags["seniority"])
+            shown_title = j["title"].strip()
+            if tags["category"] == "Account Executive":
+                shown_title = fold_ae_title(shown_title, j.get("location") or "")
+            gkey = (company, re.sub(r"\s+", " ", shown_title.lower()), tags["category"],
+                    None if tags["category"] == "Account Executive" else tags["seniority"])
             places_here, remote_here = split_locations(j["location"])
             # a pay range written in the posting text fills in when the job feed has no structured one
             sal, sal_several = (j["salary"], False) if j["salary"] else salary_text.from_text(j.get("description"))
@@ -353,7 +392,7 @@ def main():
                 "visa_reasons_public": public_reasons,
                 "company": company,
                 "group": group,
-                "title": j["title"].strip(),
+                "title": shown_title,
                 "locations": entries,
                 "category": tags["category"],
                 "seniority": tags["seniority"],
@@ -458,9 +497,9 @@ def main():
         "firms": firms_out,
     }
     SITE.mkdir(exist_ok=True)
-    # Full version (local use): includes the firm directory and the firm database's visa stance.
+    # Full version (local use): keeps the per-role visa details. The firm directory has been removed from the page, so no firm records are written.
     full_jobs = [{k: v for k, v in j.items() if k != "visa_reasons_public"} for j in payload["jobs"]]
-    (SITE / "data.js").write_text("window.BOARD_DATA = " + json.dumps({**payload, "jobs": full_jobs}, ensure_ascii=False) + ";",
+    (SITE / "data.js").write_text("window.BOARD_DATA = " + json.dumps({**payload, "jobs": full_jobs, "firms": []}, ensure_ascii=False) + ";",
                                   encoding="utf-8")
 
     # Public version: job listings only. No firm directory. The visa label is the same as the full version's, but
