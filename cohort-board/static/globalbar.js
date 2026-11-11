@@ -349,17 +349,7 @@
     var b = bar.querySelector(".gb-revert"); b.classList.add("done"); setTimeout(function () { b.classList.remove("done"); }, 700);
   }
 
-  // "Upload your data" in the top bar: opens LinkedIn's data request in a new tab and brings the board to the upload page.
-  var LINKEDIN_EXPORT = "https://www.linkedin.com/mypreferences/d/download-my-data";
-  function wireUpload() {
-    var a = document.querySelector(".cb-upload");
-    if (!a || a._wired) return;
-    a._wired = true;
-    a.addEventListener("click", function () { window.open(LINKEDIN_EXPORT, "_blank", "noopener"); });   // the link itself goes to Upload
-  }
-
   function mount() {
-    wireUpload();
     if (bar) return;
     var toggle = el("button", { type: "button", class: "gb-toggle", "aria-expanded": "false", "aria-controls": "globalBar" }, ["Your search"]);
     toggle.addEventListener("click", function () { open = !open; bar.classList.toggle("open", open); toggle.setAttribute("aria-expanded", String(open)); });

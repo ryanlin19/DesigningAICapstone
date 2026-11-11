@@ -40,8 +40,119 @@
       .then(function (res) {
         counts = res.counts.regions || {}; total = res.total;
         window.Global.setFitCounts(profile ? res.counts.buckets : null);
-        draw(); drawSide();
+        draw(); drawSide(); drawWho();
       }).catch(function (e) { $("mapSub").textContent = e.message; });
+  }
+
+  // ---------- who's there: people your cohort knows at companies in the picked regions ----------
+  var whoKey = null, whoSeq = 0, WHO_TOP = 8;
+  function drawWho() {
+    var box = $("who"), picked = filters.regions.slice();
+    var want = window.Global.want ? window.Global.want() : {};
+    var key = JSON.stringify([picked, (want.categories || [])[0] || ""]);
+    if (key === whoKey) return;
+    whoKey = key;
+    box.textContent = "";
+    if (!picked.length) {
+      $("whoWorked").hidden = true;
+      box.appendChild(el("h2", { id: "whoTitle", text: "Who's there" }));
+      box.appendChild(el("p", { class: "muted", text: "Click a bubble to see the companies your cohort is tied to there and the people worth knowing." }));
+      return;
+    }
+    box.appendChild(el("p", { class: "muted", text: "Finding who's there…" }));
+    var q = new URLSearchParams();
+    picked.forEach(function (r) { q.append("region", r); });
+    if ((want.categories || [])[0]) q.set("field", want.categories[0]);
+    var seq = ++whoSeq;
+    fetch("/api/region-people?" + q.toString()).then(function (r) { return r.json(); }).then(function (d) {
+      if (seq === whoSeq) renderWho(box, d);
+    }).catch(function (e) { box.textContent = ""; box.appendChild(el("p", { class: "muted", text: "Couldn't load who's there (" + e.message + ")." })); });
+  }
+  function renderWho(box, d) {
+    box.textContent = "";
+    var where = d.regions.map(short).join(" + ");
+    box.appendChild(el("div", { class: "who-head" }, [
+      el("div", {}, [el("h2", { id: "whoTitle", text: "Who's there: " + where }),
+        el("p", { class: "muted tiny", text: "People your cohort knows at companies with an office, HQ or open roles here, ranked like the shared connections " +
+          "(contacts' own cities aren't in LinkedIn exports). Classmates' cities come from their own LinkedIn jobs and profile." })]),
+      el("a", { class: "btn primary", href: "/", text: "See the " + fmtN(d.jobs) + " jobs here →" })]));
+    var me = function (n) { return n === d.me ? "You" : n; };
+    if (d.classmates.length) box.appendChild(el("p", { class: "who-based" }, [el("b", { text: "Classmates based here: " }), d.classmates.map(me).join(", ")]));
+    drawWorked(d, me);
+    if (!d.people.length && !d.companies.length) {
+      box.appendChild(el("p", { class: "muted", text: "No one in your cohort is tied to a company here yet." }));
+      return;
+    }
+    var cols = el("div", { class: "who-cols" });
+    cols.appendChild(listBlock("People to know", d.people, d.people_total, personRow, "person", "people"));
+    cols.appendChild(listBlock("Companies with cohort ties", d.companies, d.companies_total, companyRow, "company", "companies"));
+    box.appendChild(cols);
+    function personRow(x, i) {
+      var who = x.known_by.map(function (k) { return (k.name === d.me ? "you" : k.name) + (k.since ? " (" + k.since + ")" : ""); }).join(", ");
+      return el("li", { class: "who-row" }, [
+        el("span", { class: "who-rank", text: String(i + 1) }),
+        el("div", {}, [
+          el("div", { class: "who-top" }, [x.url ? el("a", { class: "who-name", href: x.url, target: "_blank", rel: "noopener", text: x.name + " ↗" }) : el("span", { class: "who-name", text: x.name })]),
+          el("div", { class: "who-pos" }, [(x.position ? x.position + " · " : ""), el("a", { href: "/companies?id=" + encodeURIComponent(x.company_id) + "#graph", text: x.company })]),
+          x.why.length ? el("div", { class: "who-why" }, x.why.map(function (w) {
+            return el("span", { class: "tag" + (/^Known by \d/.test(w) ? " shared" : /who work/.test(w) ? " works" : ""), text: w }); })) : null,
+          el("div", { class: "who-by", text: "Known by " + who })])]);
+    }
+    function companyRow(c, i) {
+      var al = c.alumni.map(function (a) {
+        return (a.name === d.me ? (a.current ? "You work here" : "You worked here") : a.name + (a.current ? " works here" : " worked here")) +
+               (a.here ? ", in " + d.regions.map(short).join(" / ") : "");
+      });
+      var bits = [c.contacts ? plural(c.contacts, "contact", "contacts") : null, c.jobs ? plural(c.jobs, "open role", "open roles") + " here" : null].filter(Boolean);
+      return el("li", { class: "who-row" }, [
+        el("span", { class: "who-rank", text: String(i + 1) }),
+        el("div", {}, [
+          el("div", { class: "who-top" }, [el("a", { class: "who-name", href: "/companies?id=" + encodeURIComponent(c.id) + "#graph", text: c.name }),
+                                           el("span", { class: "tag", text: c.vertical })]),
+          al.length ? el("div", { class: "who-why" }, al.map(function (t) { return el("span", { class: "tag works", text: t }); })) : null,
+          el("div", { class: "who-by", text: bits.join(" · ") + (c.office ? "" : " · no office listed here, but hiring here") })])]);
+    }
+  }
+  // Classmates who've worked in the picked regions: right under the map, one line per classmate with all their jobs here.
+  function drawWorked(d, me) {
+    var box = $("whoWorked"); box.textContent = "";
+    var byPerson = [], seen = {};
+    (d.worked_here || []).forEach(function (w) {          // already ordered: current jobs first, then most recent
+      if (!(w.name in seen)) { seen[w.name] = byPerson.length; byPerson.push({ name: w.name, jobs: [] }); }
+      byPerson[seen[w.name]].jobs.push(w);
+    });
+    box.hidden = !byPerson.length;
+    if (!byPerson.length) return;
+    box.appendChild(el("h3", { text: "Classmates who've worked here (" + byPerson.length + ")" }));
+    function when(w) { return w.current ? "now" + (w.years ? ", since " + w.years.split("–")[0] : "") : w.years || "dates not listed"; }
+    box.appendChild(el("ul", {}, byPerson.map(function (p) {
+      var parts = [el("b", { text: me(p.name) }), " · "], companies = [], at = {};
+      p.jobs.forEach(function (w) {                       // one company, its roles together: "Senior Analyst (…), Analyst (…) at Lyft"
+        if (!(w.company in at)) { at[w.company] = companies.length; companies.push({ w: w, roles: [] }); }
+        companies[at[w.company]].roles.push(w);
+      });
+      companies.forEach(function (c, i) {
+        if (i) parts.push("; ");
+        var roles = c.roles.map(function (w) { return (w.title || "Role") + " (" + when(w) + ")"; }).join(", ");
+        parts.push(el("span", { title: c.roles.map(function (w) { return w.location; }).filter(function (x, j, a) { return a.indexOf(x) === j; }).join(" · ") }, [
+          roles + " at ",
+          c.w.company_id ? el("a", { href: "/companies?id=" + encodeURIComponent(c.w.company_id) + "#graph", text: c.w.company }) : c.w.company]));
+      });
+      return el("li", {}, parts);
+    })));
+  }
+  function listBlock(title, items, total, row, one, many) {
+    var all = false, list = el("ol", { class: "who-list" });
+    var btn = el("button", { type: "button", class: "btn who-all" });
+    function draw() {
+      list.textContent = "";
+      (all ? items : items.slice(0, WHO_TOP)).forEach(function (x, i) { list.appendChild(row(x, i)); });
+      btn.hidden = items.length <= WHO_TOP;
+      btn.textContent = all ? "Show the top " + WHO_TOP : "See all " + fmtN(total) + " " + (total === 1 ? one : many) + (total > items.length ? " (top " + fmtN(items.length) + ")" : "");
+    }
+    btn.addEventListener("click", function () { all = !all; draw(); });
+    draw();
+    return el("div", { class: "who-block" }, [el("h3", { text: title + " (" + fmtN(total) + ")" }), list, btn]);
   }
 
   // ---------- map ----------

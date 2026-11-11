@@ -1,0 +1,24 @@
+# Keeps secrets, personal data and big downloads out of the cohort board's container image (deploy/Dockerfile).
+.git
+**/__pycache__
+**/node_modules
+**/.wrangler
+handoff.md
+public
+logs
+*.zip
+data/raw_fetch.json
+data/all_jobs.json
+data/descriptions.db
+data/descriptions.tmp
+data/companies.db
+data/company-db
+data/history.json
+linkedin-ingest/data/cohort.db
+linkedin-ingest/.contact_key
+cohort-board/.password
+cohort-board/.api
+cohort-board/data
+cohort-api/.dev.vars
+deploy/.deploy.env
+deploy/.dev.vars

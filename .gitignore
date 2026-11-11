@@ -29,3 +29,9 @@ data/company-db/
 
 # Personal handoff notes (not shared)
 handoff.md
+
+# Hosted board (deploy/): local settings and installs
+deploy/node_modules/
+deploy/.deploy.env
+deploy/.dev.vars
+deploy/.wrangler/

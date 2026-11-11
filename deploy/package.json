@@ -1,0 +1,14 @@
+{
+  "name": "cohort-board-deploy",
+  "private": true,
+  "description": "Hosts the cohort board on Cloudflare (one Worker + one container + one R2 bucket). See DEPLOY.md.",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "0.3.7"
+  },
+  "devDependencies": {
+    "wrangler": "4.151.3"
+  }
+}

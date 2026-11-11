@@ -1,0 +1,20 @@
+// The hosted cohort board. Nothing here is tied to one Cloudflare account: `wrangler` uses whoever is logged in.
+// Secrets (set by setup.sh, never in git): BOARD_PASSWORD, CONTACT_KEY, STATE_TOKEN, PUBLIC_URL, optional ANTHROPIC_API_KEY.
+{
+  "name": "cohort-board",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-19",
+  "observability": { "enabled": true },
+  "containers": [
+    {
+      "class_name": "Board",
+      "image": "./Dockerfile",
+      "image_build_context": "..",
+      "max_instances": 1,
+      "instance_type": "basic"
+    }
+  ],
+  "durable_objects": { "bindings": [{ "name": "BOARD", "class_name": "Board" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Board"] }],
+  "r2_buckets": [{ "binding": "STATE", "bucket_name": "cohort-board-state" }]
+}

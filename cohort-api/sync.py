@@ -75,8 +75,9 @@ def remove(pid, target="--remote"):
 def push(person_ids, db=LOCAL_DB, target="--remote", names=True):
     """Upload people from the local ingest database, replacing their rows in D1. Raises SyncError.
 
-    Contacts' names, titles and links go too, unless the cloud database doesn't have those columns yet
-    (migration 0008): then the push is retried without them, and the board reads names from this computer."""
+    Contacts' names, titles and links, and where classmates' jobs were, go too, unless the cloud database doesn't
+    have those columns yet (migrations 0008-0009): then the push is retried without them, and the board reads them
+    from this computer."""
     con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
     con.row_factory = sqlite3.Row
     people = con.execute("SELECT * FROM people").fetchall()
@@ -120,16 +121,19 @@ def push(person_ids, db=LOCAL_DB, target="--remote", names=True):
                        f"SELECT connector_id, company_norm, count, top_title_bucket, snapshot_date FROM derived_connections "
                        f"WHERE connector_id IN ({marks})", ids) if r["connector_id"] not in with_keys])
     # Classmates' own work history, for "Classmate worked here".
-    sql += inserts("positions", ["person_id", "company_norm", "title", "title_bucket", "started_on", "finished_on", "is_current"],
+    pcols = ["person_id", "company_norm", "title", "title_bucket", "started_on", "finished_on", "is_current"]
+    if names and "location" in {r[1] for r in con.execute("PRAGMA table_info(positions)")}:
+        pcols.append("location")                  # where each job was (migration 0009), for the map
+    sql += inserts("positions", pcols,
                    [tuple(r) for r in con.execute(
-                       f"SELECT person_id, company_norm, title, title_bucket, started_on, finished_on, is_current FROM positions "
+                       f"SELECT {', '.join(pcols)} FROM positions "
                        f"WHERE person_id IN ({marks}) AND company_norm IS NOT NULL", ids)])
     con.close()
     try:
         run_sql(sql, f"push {', '.join(ids)}", target)
     except SyncError as e:
-        if named and "full_name" in str(e):
-            print("The cloud database has no name columns yet (apply migration 0008); pushing without names.", flush=True)
+        if names and ("full_name" in str(e) or "location" in str(e)):
+            print("The cloud database lacks the newer columns (apply migrations 0008-0009); pushing without them.", flush=True)
             return push(person_ids, db, target, names=False)
         raise
 

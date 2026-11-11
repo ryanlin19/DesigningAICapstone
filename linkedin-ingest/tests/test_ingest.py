@@ -226,7 +226,8 @@ class TestSharedContacts(unittest.TestCase):
         buf = io.BytesIO()
         with zipfile.ZipFile(buf, "w") as z:
             z.writestr("Profile.csv", "First Name,Last Name,Headline,Address\nTest,Person,Student,1 Main St\n")
-            z.writestr("Positions.csv", "Company Name,Title,Description,Location,Started On,Finished On\nAcme,Engineer,,,Jan 2020,\n")
+            z.writestr("Positions.csv", "Company Name,Title,Description,Location,Started On,Finished On\nAcme,Engineer,,,Jan 2020,\n"
+                                        'Lyft,Analyst,,"Seattle, Washington, United States",Jun 2018,May 2019\n')
             z.writestr("messages.csv", "secret\n")
         path = HERE / "_tmp_export_11-09-2026.zip"
         path.write_bytes(buf.getvalue())
@@ -237,6 +238,9 @@ class TestSharedContacts(unittest.TestCase):
             self.assertEqual(s["files_left_unopened"], 1)
             self.assertEqual(s["snapshot_date"], "2026-11-09")
             self.assertNotIn("1 Main St", "\n".join(con.iterdump()))
+            # each job keeps where it was, for the map
+            locs = dict(con.execute("SELECT title, location FROM positions WHERE person_id='t2'").fetchall())
+            self.assertEqual(locs, {"Engineer": None, "Analyst": "Seattle, Washington, United States"})
         finally:
             path.unlink()
 

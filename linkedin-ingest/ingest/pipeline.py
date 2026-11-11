@@ -257,9 +257,10 @@ class Ingestor:
         comps = [self.resolve_company(p.get("Company Name")) for p in positions]
         buckets = self.bucket_titles([(p.get("Title", ""), c) for p, c in zip(positions, comps)])
         for p, c, b in zip(positions, comps, buckets):
-            con.execute("INSERT INTO positions VALUES (?,?,?,?,?,?,?,?)",
+            con.execute("INSERT INTO positions (person_id, company_raw, company_norm, title, title_bucket, started_on, "
+                        "finished_on, is_current, location) VALUES (?,?,?,?,?,?,?,?,?)",
                         (pid, p.get("Company Name"), c, p.get("Title"), b, p.get("Started On"),
-                         p.get("Finished On"), int(not (p.get("Finished On") or "").strip())))
+                         p.get("Finished On"), int(not (p.get("Finished On") or "").strip()), (p.get("Location") or "").strip() or None))
         edu = parse_csv(files.get("Education.csv", ""))
         for e in edu:
             con.execute("INSERT INTO education VALUES (?,?,?,?,?,?)",

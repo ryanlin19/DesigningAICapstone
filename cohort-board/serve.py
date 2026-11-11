@@ -27,7 +27,7 @@ import time
 import urllib.error
 import urllib.request
 import uuid
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -41,8 +41,14 @@ STATIC = HERE / "static"
 COHORT_DB = Path(os.environ.get("COHORT_INGEST_DB") or REPO / "linkedin-ingest" / "data" / "cohort.db")
 DATA = Path(os.environ.get("COHORT_BOARD_DATA") or HERE / "data")     # logins and local hand-added connections
 MANUAL = DATA / "manual_connections.json"
-HOST, PORT = "127.0.0.1", int(os.environ.get("COHORT_PORT", "8765"))
-ORIGINS = {f"http://{HOST}:{PORT}", f"http://localhost:{PORT}"}
+HOST, PORT = os.environ.get("COHORT_HOST", "127.0.0.1"), int(os.environ.get("COHORT_PORT", "8765"))
+ORIGINS = {f"http://127.0.0.1:{PORT}", f"http://localhost:{PORT}"}
+HOSTED = bool(os.environ.get("COHORT_STATE_URL"))       # running in the cloud (deploy/), behind Cloudflare's HTTPS
+
+sys.path.insert(0, str(HERE))
+import state  # noqa: E402
+if state.enabled():                                       # the hosted board: bring its files down before reading them
+    print("state: pulled " + (", ".join(state.pull_all()) or "nothing yet"), flush=True)
 
 sys.path.insert(0, str(REPO / "linkedin-ingest"))
 from ingest import contact_keys, rules  # noqa: E402
@@ -81,7 +87,12 @@ def _load_sessions():
         saved = json.loads(SESSIONS_FILE.read_text(encoding="utf-8"))
     except (FileNotFoundError, ValueError):
         return {}
-    return {h: exp for h, exp in saved.items() if exp > time.time()}
+    out = {}
+    for h, v in saved.items():                           # older files held just the expiry time
+        rec = v if isinstance(v, dict) else {"exp": v}
+        if rec.get("exp", 0) > time.time():
+            out[h] = rec
+    return out
 
 
 def _save_sessions():
@@ -90,22 +101,26 @@ def _save_sessions():
     tmp.write_text(json.dumps(SESSIONS), encoding="utf-8")
     os.chmod(tmp, 0o600)
     tmp.replace(SESSIONS_FILE)
+    state.push_later("sessions.json")
 
 
 SESSIONS = _load_sessions()
+_current = threading.local()                             # the session of the request being handled
 
 
 def new_session():
     token = secrets.token_urlsafe(32)
     with LOCK:
-        SESSIONS[_hash(token)] = time.time() + SESSION_DAYS * 86400
+        SESSIONS[_hash(token)] = {"exp": time.time() + SESSION_DAYS * 86400}
         _save_sessions()
     return token
 
 
 def session_ok(token):
-    exp = SESSIONS.get(_hash(token or ""))
-    return bool(exp and exp > time.time())
+    rec = SESSIONS.get(_hash(token or ""))
+    ok = bool(rec and rec.get("exp", 0) > time.time())
+    _current.key = _hash(token) if ok else None
+    return ok
 
 
 def end_session(token):
@@ -131,7 +146,7 @@ NAV_HTML = """<header class="cb-nav">
       <a href="/companies" data-tab="companies" aria-current="page">Companies</a>
       <a href="/companies?view=bridges" data-tab="cohort">Cohort</a>
     </nav>
-    <a class="cb-upload" href="/companies?view=upload" title="Request your LinkedIn data export, then upload the zip here">Upload your data</a>
+    <a class="cb-upload" href="/companies?view=upload" title="Add a LinkedIn export (the upload page links to LinkedIn's data request)">Upload your data</a>
     <span class="cb-private">Private: this computer only</span>
     <button class="cb-logout" type="button">Log out</button>
   </div>
@@ -833,8 +848,12 @@ def meaningful_shared(shared, people, me, field=None):
             pts += 25
             now = len(colleagues) == 1 and alumni[colleagues[0]].get("current")
             why.append("Known by " + " and ".join(colleagues[:2]) + (", who works here" if now else ", who worked here"))
-        if _SENIOR.search(title) or x.get("bucket") == "leadership":
+        tier = seniority(title) if title else ("Leadership" if x.get("bucket") == "leadership" else "Mid")
+        if tier == "Leadership":
             pts += 15
+            why.append("Leadership")
+        elif tier == "Senior":
+            pts += 7
             why.append("Senior")
         if _RECRUIT.search(title) or x.get("bucket") == "recruiting":
             pts += 12
@@ -971,6 +990,182 @@ def company_detail(cid=None, name=None, field=None):
     return row
 
 
+# ---------- the map: who's there in a region ----------
+
+_named_rows = {"key": None, "rows": []}
+
+
+def all_named_rows():
+    """Every named contact in this computer's cohort.db (cached until the file changes)."""
+    if not COHORT_DB.exists():
+        return []
+    key = COHORT_DB.stat().st_mtime
+    if _named_rows["key"] != key:
+        con = sqlite3.connect(f"file:{COHORT_DB}?mode=ro", uri=True)
+        con.row_factory = sqlite3.Row
+        try:
+            if "full_name" not in {r[1] for r in con.execute("PRAGMA table_info(contacts)")}:
+                rows = []
+            else:
+                selves = {r[0] for r in con.execute("SELECT self_key FROM people WHERE self_key IS NOT NULL")}
+                rows = [dict(r) for r in con.execute("""SELECT contact_key, connector_id, company_norm, title_bucket, connected_year,
+                                                         full_name, position, profile_url FROM contacts WHERE full_name IS NOT NULL""")
+                        if r["contact_key"] not in selves]
+        finally:
+            con.close()
+        _named_rows.update(key=key, rows=rows)
+    return _named_rows["rows"]
+
+
+_pos_rows = {"key": None, "rows": None}
+
+
+def local_positions():
+    """Classmates' own jobs from this computer's cohort.db, with where each was (cached until the file changes)."""
+    if not COHORT_DB.exists():
+        return None
+    key = COHORT_DB.stat().st_mtime
+    if _pos_rows["key"] != key:
+        con = sqlite3.connect(f"file:{COHORT_DB}?mode=ro", uri=True)
+        con.row_factory = sqlite3.Row
+        try:
+            has_loc = "location" in {r[1] for r in con.execute("PRAGMA table_info(positions)")}
+            rows = [dict(r) for r in con.execute(
+                "SELECT person_id, company_norm, title, started_on, finished_on, is_current" + (", location" if has_loc else ", NULL AS location") +
+                " FROM positions WHERE company_norm IS NOT NULL")]
+            geo = dict(con.execute("SELECT person_id, geo_location FROM people").fetchall())
+        finally:
+            con.close()
+        _pos_rows.update(key=key, rows={"positions": rows, "geo": geo})
+    return _pos_rows["rows"]
+
+
+def _years(r):
+    a, b = _year(r.get("started_on")), _year(r.get("finished_on"))
+    return f"{a}–present" if r.get("is_current") and a else f"{a}–{b}" if a and b and a != b else str(a or b or "")
+
+
+def region_people(picked, field=None):
+    """Who's there in some map regions: companies with an office, HQ or open roles there that your cohort is tied to,
+    the people your cohort knows at them (ranked like the shared connections), and classmates based there.
+
+    Contacts' own locations aren't in LinkedIn exports, so "there" means "at a company that's there"."""
+    picked = set(picked)
+    d = directory.load()
+    if not d or not picked:
+        return {"regions": sorted(picked), "people": [], "companies": [], "classmates": [], "jobs": 0}
+    names_ix = d["names"]
+    in_region = {c["id"] for c in d["companies"] if picked.intersection(c["regions"])}
+    jobs_here, jobs_total, memo = Counter(), 0, {}
+    data = all_jobs()[0]
+    if data:
+        regs = find.job_regions(data)
+        for j in data["jobs"]:
+            if picked.intersection(regs[j["id"]]):
+                jobs_total += 1
+                co = j["company"]
+                if co not in memo:
+                    memo[co] = directory.company_id(co, names_ix)
+                if memo[co]:
+                    jobs_here[memo[co]] += 1
+    by_co = {c["id"]: c for c in d["companies"]}
+    in_region = (in_region | set(jobs_here)) & set(by_co)       # employers only (recruiters, schools stay out)
+    try:
+        snap = get_snapshot()
+    except (RuntimeError, OSError):
+        snap = LocalStore().snapshot()
+    people_names = {p["person_id"]: p["display_name"] for p in snap["people"]}
+    me = people_names.get(settings().get("me") or "")
+    # classmates' own jobs: at each company here (a contact known by one of them is likely a colleague), and the
+    # jobs that were in this region (where each job was comes from their Positions.csv)
+    local = local_positions()
+    positions = local["positions"] if local else snap.get("positions", [])
+    alumni, alumni_here, worked_in_region, based = defaultdict(dict), defaultdict(set), [], set()
+    for r in positions:
+        name = people_names.get(r["person_id"], r["person_id"])
+        cid = directory.company_id(r["company_norm"], names_ix)
+        here = bool(r.get("location")) and bool(picked.intersection(regions.regions_for([r["location"]])))
+        if here:
+            worked_in_region.append({"name": name, "title": r.get("title") or "", "company": (by_co.get(cid) or {}).get("name") or r["company_norm"].title(),
+                                     "company_id": cid if cid in by_co else None, "years": _years(r), "current": bool(r.get("is_current")),
+                                     "location": r["location"]})
+            if r.get("is_current"):
+                based.add(name)
+        if cid in in_region:
+            alumni[cid][name] = alumni[cid].get(name) or bool(r["is_current"])
+            if here:
+                alumni_here[cid].add(name)
+    norm_cid = {}
+    people = {}
+    for r in all_named_rows():
+        n = r["company_norm"]
+        if n not in norm_cid:
+            norm_cid[n] = directory.company_id(n, names_ix)
+        cid = norm_cid[n]
+        if cid not in in_region:
+            continue
+        x = people.setdefault(r["contact_key"], {"name": r["full_name"], "position": r["position"], "url": r["profile_url"],
+                                                 "bucket": r["title_bucket"], "company": by_co[cid]["name"], "company_id": cid,
+                                                 "known_by": []})
+        x["known_by"].append({"name": people_names.get(r["connector_id"], r["connector_id"]), "since": r["connected_year"]})
+    want = FIELD_BUCKETS.get(field or "", set())
+    this_year = datetime.now().year
+    ranked = []
+    for x in people.values():
+        who = [k["name"] for k in x["known_by"]]
+        title = x["position"] or ""
+        pts, why = 20.0 * len(who), [f"Known by {len(who)} classmates"] if len(who) > 1 else []
+        colleagues = [n for n in who if n in alumni.get(x["company_id"], {})]
+        if colleagues:
+            pts += 25
+            why.append("Known by " + " and ".join(colleagues[:2]) + (", who works there" if alumni[x["company_id"]][colleagues[0]] else ", who worked there"))
+        tier = seniority(title) if title else ("Leadership" if x["bucket"] == "leadership" else "Mid")
+        if tier == "Leadership":
+            pts += 15
+            why.append("Leadership")
+        elif tier == "Senior":
+            pts += 7
+            why.append("Senior")
+        if _RECRUIT.search(title) or x["bucket"] == "recruiting":
+            pts += 12
+            why.append("Recruiting")
+        if x["bucket"] in want:
+            pts += 10
+            why.append("In " + field)
+        since = min((k["since"] for k in x["known_by"] if k["since"]), default=None)
+        if since:
+            pts += min(10, max(0, this_year - since))
+            if this_year - since >= 5:
+                why.append(f"Connected since {since}")
+        x["known_by"].sort(key=lambda k: (k["since"] or 9999, k["name"]))
+        ranked.append({**x, "score": round(pts), "why": why})
+    ranked.sort(key=lambda x: (-x["score"], x["name"].lower()))
+    # companies with ties here
+    contacts_at = Counter(x["company_id"] for x in ranked)
+    knowers = defaultdict(set)
+    for x in ranked:
+        knowers[x["company_id"]].update(k["name"] for k in x["known_by"])
+    companies = []
+    for cid in in_region:
+        if not contacts_at.get(cid) and not alumni.get(cid):
+            continue
+        al = alumni.get(cid, {})
+        companies.append({"id": cid, "name": by_co[cid]["name"], "vertical": by_co[cid]["vertical"], "contacts": contacts_at.get(cid, 0),
+                          "classmates": sorted(knowers[cid] | set(al)),
+                          "alumni": [{"name": n, "current": cur, "here": n in alumni_here[cid]} for n, cur in al.items()],
+                          "jobs": jobs_here.get(cid, 0), "office": bool(picked.intersection(by_co[cid]["regions"]))})
+    # an employer where a classmate's job was in this very region first
+    companies.sort(key=lambda c: (not any(a["here"] for a in c["alumni"]), not any(a["current"] for a in c["alumni"]),
+                                  not c["alumni"], -c["contacts"], -c["jobs"], c["name"].lower()))
+    for pid, geo in (local["geo"].items() if local else []):
+        if geo and picked.intersection(regions.regions_for([geo])):
+            based.add(people_names.get(pid, pid))
+    worked_in_region.sort(key=lambda w: (not w["current"], -(_year(w["years"].split("–")[-1]) or 9999 if w["current"] else _year(w["years"].split("–")[-1]) or 0), w["name"]))
+    return {"regions": sorted(picked), "people": ranked[:300], "people_total": len(ranked), "companies": companies[:150],
+            "companies_total": len(companies), "classmates": sorted(based), "worked_here": worked_in_region, "jobs": jobs_total,
+            "me": me, "bucket_labels": BUCKET_LABEL}
+
+
 def directory_verticals():
     sys.path.insert(0, str(REPO / "company-db"))
     from companies import VERTICALS
@@ -985,15 +1180,23 @@ SETTINGS = DATA / "settings.json"     # which loaded classmate is the person usi
 
 
 def settings():
+    """{"me": the classmate the signed-in person is}. Kept per login, so several people can share the hosted board;
+    a single-user board's older choice (data/settings.json) still applies to logins that haven't picked."""
+    rec = SESSIONS.get(getattr(_current, "key", None) or "") or {}
+    if "me" in rec:
+        return {"me": rec["me"]}
     try:
-        return json.loads(SETTINGS.read_text(encoding="utf-8"))
+        return json.loads(SETTINGS.read_text(encoding="utf-8")) if not HOSTED else {}
     except (FileNotFoundError, ValueError):
         return {}
 
 
 def save_settings(s):
-    SETTINGS.parent.mkdir(exist_ok=True)
-    SETTINGS.write_text(json.dumps(s), encoding="utf-8")
+    key = getattr(_current, "key", None)
+    with LOCK:
+        if key in SESSIONS:
+            SESSIONS[key]["me"] = s.get("me")
+            _save_sessions()
 
 
 def people_summary(snap, me=None):
@@ -1039,6 +1242,7 @@ def write_manual(entries):
     tmp = MANUAL.with_suffix(".tmp")
     tmp.write_text(json.dumps(entries, indent=2, ensure_ascii=False), encoding="utf-8")
     tmp.replace(MANUAL)
+    state.push_later("manual_connections.json")
 
 
 def clean(v, limit):
@@ -1111,7 +1315,9 @@ class Handler(BaseHTTPRequestHandler):
         return session_ok(self.token())
 
     def same_origin(self):
-        return self.headers.get("Origin") in ORIGINS
+        """Writes must come from this board's own pages: the local addresses, or the hosted site's own address."""
+        origin = self.headers.get("Origin")
+        return origin in ORIGINS or (HOSTED and origin == f"https://{self.headers.get('Host', '')}")
 
     def body(self, limit=20000):
         n = int(self.headers.get("Content-Length") or 0)
@@ -1138,6 +1344,10 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200, (STATIC / "companies.html").read_bytes(), "text/html; charset=utf-8")
             if path == "/api/companies":
                 return self.send(200, json.dumps(directory_payload(), ensure_ascii=False), "application/json")
+            if path == "/api/region-people":                    # the map: who's there in the picked regions
+                qs = parse_qs(urlsplit(self.path).query)
+                return self.send(200, json.dumps(region_people(qs.get("region") or [], (qs.get("field") or [None])[0]),
+                                                 ensure_ascii=False), "application/json")
             if path == "/api/company":                          # one company: relationship graph and best ways in
                 qs = parse_qs(urlsplit(self.path).query)
                 one = company_detail(cid=(qs.get("id") or [None])[0], name=(qs.get("company") or [None])[0],
@@ -1181,7 +1391,7 @@ class Handler(BaseHTTPRequestHandler):
             pw = parse_qs(self.body().decode("utf-8", "replace")).get("password", [""])[0]
             if hmac.compare_digest(pw.encode(), PASSWORD.encode()):
                 return self.send(303, headers={"Location": "/", "Set-Cookie":
-                                 f"cb_session={new_session()}; HttpOnly; SameSite=Strict; Path=/; "
+                                 f"cb_session={new_session()}; HttpOnly; SameSite=Strict; Path=/; {'Secure; ' if HOSTED else ''}"
                                  f"Max-Age={SESSION_DAYS * 86400}"})
             time.sleep(1)
             page = LOGIN_PAGE.replace("%ERR%", '<p class="err">Wrong password.</p>')
@@ -1237,6 +1447,7 @@ class Handler(BaseHTTPRequestHandler):
             except SyncError as e:
                 return self.send(502, f"Saved on this computer, but not in the cloud database: {e}")
             _snap["value"] = None
+            state.push_later("cohort.db")
             return self.send(200, json.dumps({"profile_url": url}), "application/json")
         if path == "/api/connections":
             try:
@@ -1279,6 +1490,7 @@ class Handler(BaseHTTPRequestHandler):
         except SyncError as e:
             return self.send(502, f"Loaded on this computer, but the upload to the cloud database failed: {e}")
         _snap["value"] = None
+        state.push_later("cohort.db")
         return self.send(200, json.dumps(result), "application/json")
 
     def do_DELETE(self):
@@ -1291,6 +1503,7 @@ class Handler(BaseHTTPRequestHandler):
             except SyncError as e:
                 return self.send(502, f"Removed on this computer, but not from the cloud database: {e}")
             _snap["value"] = None
+            state.push_later("cohort.db")
             return self.send(204)
         m = re.fullmatch(r"/api/connections/([0-9a-f]{12})", self.path)
         if not m:
@@ -1319,7 +1532,8 @@ def main():
     print(f"Find a job uses {all_jobs()[2]}.", flush=True)
     if all_jobs()[0]:
         find.job_regions(all_jobs()[0])          # work out every job's map regions now, not on the first search
-    print(f"Private board: http://{HOST}:{PORT}  (this computer only; Ctrl+C to stop)", flush=True)
+    state.start_refresher()
+    print(f"Private board: http://{HOST}:{PORT}" + ("  (hosted)" if HOSTED else "  (this computer only; Ctrl+C to stop)"), flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
 
 

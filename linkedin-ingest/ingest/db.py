@@ -131,6 +131,9 @@ def connect(path):
     for col in ("full_name", "position", "profile_url"):
         if col not in cols:
             con.execute(f"ALTER TABLE contacts ADD COLUMN {col} TEXT")
+    # where each of a classmate's own jobs was (Positions.csv "Location"), for the map
+    if "location" not in {r["name"] for r in con.execute("PRAGMA table_info(positions)")}:
+        con.execute("ALTER TABLE positions ADD COLUMN location TEXT")
     con.executescript(SHARED_CONTACTS_VIEW)
     return con
 

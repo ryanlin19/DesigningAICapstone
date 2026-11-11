@@ -42,3 +42,28 @@
 .region-list .bar span { display: block; height: 100%; background: var(--brand); }
 .region-list .n { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12.5px; }
 
+
+/* who's there: under the map, for the picked regions */
+.who { grid-column: 1 / -1; }
+.who h2 { font-size: 18px; margin: 0; }
+.who-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px 16px; flex-wrap: wrap; }
+.who-head .tiny { margin: 4px 0 0; max-width: 70ch; }
+.who-based { margin: 10px 0 0; font-size: 14px; }
+.who-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px 24px; margin-top: 12px; }
+.who-block h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 4px; }
+.who-list { list-style: none; margin: 0; padding: 0; }
+.who-row { display: grid; grid-template-columns: 24px 1fr; gap: 8px; padding: 9px 0; border-top: 1px solid var(--border); }
+.who-rank { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--violet-bg); color: var(--violet); font-size: 12px; font-weight: 700; }
+.who-name { font-weight: 700; color: var(--text); text-decoration: none; }
+a.who-name:hover { color: var(--brand); text-decoration: underline; }
+.who-pos { font-size: 13.5px; color: var(--text-2); margin-top: 1px; }
+.who-why { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.who-by { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.who-all { margin-top: 8px; }
+.tag.shared { background: var(--violet-bg); color: var(--violet); }
+.tag.works { background: var(--good-bg); color: var(--good); }
+.who-worked { margin-top: 12px; background: var(--good-bg); border-radius: 12px; padding: 10px 14px; }
+.who-worked li { line-height: 1.5; }
+.who-worked h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--good); margin: 0 0 6px; }
+.who-worked ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
