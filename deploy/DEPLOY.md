@@ -11,13 +11,24 @@ as the `job-board` Worker. The board deploys from `deploy/` as its own Worker, `
 - `cohort-api` with its D1 database `cohort`: the cohort database (classmates, their contacts and jobs, Muse's
   deliveries, the activity log). It is the only copy of that data. Code and schema: `cohort-api/`.
 - `cohort-board`: one container running the board, and one R2 bucket (`cohort-board-state`) for its other files (the
-  company directory, the job lists, logins). The container stops after 20 idle minutes and starts again on the next
-  visit (a few seconds).
+  company directory and its build files, the job lists and descriptions, the job pipeline's history, logins). The
+  container stops after 10 idle minutes and starts again on the next visit (several seconds while it loads its files).
+
+**What runs on its own** (Cloudflare's schedule, `deploy/wrangler.jsonc`; the work is `cohort-board/tasks.py`):
+- **Every 15 minutes:** if Muse has delivered connection changes or finished company research, the container is woken
+  to merge them (Log tab). If nothing is waiting, it stays asleep.
+- **Daily, 09:00 UTC:** the job refresh: every job feed is downloaded and rebuilt, checked (no collapse in roles), the
+  full job set and descriptions are built, and both are loaded into the cohort database. A failed check keeps
+  yesterday's jobs. The result is on the Log tab. Ryan's public site is never touched.
+
+No computer needs to be on. A board running on a computer as well should run with `COHORT_BACKGROUND=0`, so the two
+don't merge the same deliveries.
 
 ## You need
 
 - The Cloudflare **Workers Paid** plan ($5/month) on your account: containers need it.
-- **Docker Desktop**, running: <https://www.docker.com/products/docker-desktop/> (it builds the board's container).
+- **Docker**, running: Docker Desktop (<https://www.docker.com/products/docker-desktop/>), or on a Mac without it,
+  colima (`colima start --vm-type vz --vz-rosetta`). It builds the board's container (Linux, amd64).
 - Node.js and Python 3 (you already use both for the job board).
 - From whoever ran the cohort until now, sent privately (not in git or chat history you keep):
   the **contact key** (`linkedin-ingest/.contact_key`) and a **backup of the cohort database** (`cohort.sql`, step 1).
@@ -85,16 +96,19 @@ then run:
 python3 deploy/push_state.py
 ```
 
-It uploads the company directory, the job lists and descriptions. Restart the container to see them right away
-(redeploy, or wait for it to sleep); they're also picked up on their own within 10 minutes.
+It uploads the company directory and its build files, the job lists and descriptions, and the job pipeline's history.
+Restart the container to see them right away (redeploy, or wait for it to sleep). This is a one-time move: from then
+on the site refreshes jobs daily and merges Muse's work itself.
 
 ## Day to day
 
 - **Friends:** open the address, sign in, use "Upload your data" (top right) to add their LinkedIn export. It goes
   straight into the cohort database.
-- **New job download:** run the job pipeline as usual (`pipeline/build.py`, `expand.py`, `descriptions.py`), then
-  `python3 deploy/push_state.py all_jobs.json data.js descriptions.db`.
-- **Company directory updated** (`company-db/companies.py merge`): `python3 deploy/push_state.py companies.db`.
+- **Jobs and Muse:** nothing to do (see "What runs on its own"). The Log tab shows each refresh and merge.
+- **Run a refresh now:** Cloudflare dashboard → Workers → cohort-board → Settings → Triggers, or wait for 09:00 UTC.
+- **Rebuild the company directory from scratch** (new companies after many uploads): on a computer,
+  `company-db/companies.py targets`, `wikidata`, `wikipedia`, `offices`, `merge`, `muse-push`, then
+  `python3 deploy/push_state.py companies.db company-db.tar.gz`.
 - **Back up the cohort database:** `python3 cohort-api/sync.py backup` (logged in to the account that has it).
 - **Back up the site's other files:** `python3 deploy/push_state.py --pull` (writes to this repo's usual paths).
 - **Change the password:** edit `BOARD_PASSWORD` in `deploy/.deploy.env`, run `deploy/setup.sh`.
@@ -113,7 +127,9 @@ password still applies after that.
   `deploy/setup.sh` again. "Couldn't reach the cohort database": check step 1 (deployed, `API_TOKEN` set, same token).
 
 - `setup.sh` says Docker isn't running: open Docker Desktop, wait for it to start, run again.
-- Deploy rejects `instance_type`: set it in `deploy/wrangler.jsonc` to one of the types the error lists (the board
-  needs about 400 MB of memory).
+- Deploy rejects `instance_type`: set it in `deploy/wrangler.jsonc` to one of the types the error lists. The board
+  alone needs about 1 GB; the daily refresh about 2.5 GB more (it loads a ~370 MB job download).
+- The Log tab says the daily refresh failed: the message says why; yesterday's jobs stay up. A firm whose feed broke
+  shows up as "lost most of their roles".
 - The site shows "Set a password": the secrets weren't saved; run `deploy/setup.sh` again.
 - Uploads fail with "No contact key": the `CONTACT_KEY` secret is missing; run `deploy/setup.sh` again.

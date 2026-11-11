@@ -12,10 +12,12 @@
       "image": "./Dockerfile",
       "image_build_context": "..",
       "max_instances": 1,
-      "instance_type": "basic"
+      "instance_type": "standard-2"         // 6 GB: the daily refresh loads a ~370 MB job download
     }
   ],
   "durable_objects": { "bindings": [{ "name": "BOARD", "class_name": "Board" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Board"] }],
-  "r2_buckets": [{ "binding": "STATE", "bucket_name": "cohort-board-state" }]
+  "r2_buckets": [{ "binding": "STATE", "bucket_name": "cohort-board-state" }],
+  // every 15 minutes: merge Muse's findings if any are waiting; daily 09:00 UTC: the job refresh (src/index.js DAILY)
+  "triggers": { "crons": ["*/15 * * * *", "0 9 * * *"] }
 }

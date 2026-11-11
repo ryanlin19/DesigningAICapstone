@@ -19,6 +19,11 @@
 //   POST   /v1/inbox/apply       -> the board's merge of them, in one transaction {upsert, delete, log, clear_inbox, clear_manual}
 //   GET    /v1/research/done     -> company research Muse finished {rows: [{id, name, result}]} (muse/COMPANY_RESEARCH.md)
 //   POST   /v1/research/mark     -> after merging them {merged: [ids], needs_fix: [{id, error}], log: [rows]}, one transaction
+//   GET    /v1/pending           -> counts of work waiting for the board {muse_inbox, muse_manual, research_done} (cheap; for schedules)
+//   POST   /v1/jobs/builds       -> start loading a jobs build {kind, generated, jobs} -> {build_id} (cohort-api/push_jobs.py --api)
+//   POST   /v1/jobs/builds/:id/rows    -> add roles {rows: [{id, seq, company, grp, title, category, seniority, mba, review, visa, posted, url, data}]}
+//   POST   /v1/jobs/builds/:id/meta    -> add one part of a build's other keys {key, part, value}
+//   POST   /v1/jobs/builds/:id/finish  -> switch the board to this build and delete older ones of its kind
 //   GET    /v1/jobs/version      -> the current jobs build {build_id, generated, pushed_at, jobs}; ?kind=all for every posting
 //   GET    /v1/jobs              -> the current build's roles, shaped like the page's window.BOARD_DATA; ?kind=all likewise
 //   POST   /v1/manual            -> add a hand-entered connection {company, classmate, contact, title, note}
@@ -103,6 +108,13 @@ export default {
         return json({ inbox: inbox.results, manual: manual.results });
       }
       if (method === "POST" && path === "/v1/inbox/apply") return applyInbox(request, db);
+      if (method === "GET" && path === "/v1/pending") {
+        const r = await db.prepare(`SELECT (SELECT COUNT(*) FROM muse_inbox) AS muse_inbox,
+                                           (SELECT COUNT(*) FROM manual_connections WHERE note LIKE 'Muse%') AS muse_manual,
+                                           (SELECT COUNT(*) FROM company_research WHERE status = 'done') AS research_done`).first();
+        return json(r);
+      }
+      if (method === "POST" && path.startsWith("/v1/jobs/builds")) return jobsBuild(request, db, path);
       if (method === "GET" && path === "/v1/research/done") {
         return json({ rows: (await db.prepare("SELECT id, name, result FROM company_research WHERE status = 'done' ORDER BY researched_at, id LIMIT 2000").all()).results });
       }
@@ -255,6 +267,62 @@ async function applyInbox(request, db) {
   ];
   if (stmts.length) await db.batch(stmts);
   return json({ upserted: upsert.length, deleted: del.length, logged: log.length, cleared: inbox.length + manual.length });
+}
+
+// Loading a jobs build in parts (the same steps as cohort-api/push_jobs.py's SQL): the board keeps reading the current
+// complete build until /finish switches it, so a failed load never leaves the board half-empty.
+const JOB_COLS = ["build_id", "id", "seq", "company", "grp", "title", "category", "seniority", "mba", "review", "visa", "posted", "url", "data"];
+async function jobsBuild(request, db, path) {
+  const b = (await body(request)) || {};
+  if (path === "/v1/jobs/builds") {
+    const kind = b.kind === "all" ? "all" : b.kind === "board" ? "board" : null;
+    if (!kind || !Number.isInteger(b.jobs)) return json({ error: "kind (board|all) and jobs (count) required" }, 400);
+    const now = new Date().toISOString().slice(0, 19) + "+00:00";
+    const id = `${kind}-${now.replace(/[-:]/g, "").slice(0, 15)}Z-${crypto.randomUUID().slice(0, 6)}`;
+    await db.batch([
+      db.prepare("DELETE FROM jobs WHERE build_id IN (SELECT build_id FROM job_builds WHERE complete = 0 AND kind = ?)").bind(kind),
+      db.prepare("DELETE FROM job_build_meta WHERE build_id IN (SELECT build_id FROM job_builds WHERE complete = 0 AND kind = ?)").bind(kind),
+      db.prepare("DELETE FROM job_builds WHERE complete = 0 AND kind = ?").bind(kind),
+      db.prepare("INSERT INTO job_builds (build_id, generated, pushed_at, jobs, complete, kind) VALUES (?,?,?,?,0,?)")
+        .bind(id, b.generated == null ? null : String(b.generated), now, b.jobs, kind),
+    ]);
+    return json({ build_id: id }, 201);
+  }
+  const m = path.match(/^\/v1\/jobs\/builds\/([A-Za-z0-9-]{1,80})\/(rows|meta|finish)$/);
+  if (!m) return json({ error: "not found" }, 404);
+  const build = await db.prepare("SELECT build_id, kind, complete FROM job_builds WHERE build_id = ?").bind(m[1]).first();
+  if (!build) return json({ error: "no such build" }, 404);
+  if (build.complete) return json({ error: "build already finished" }, 409);
+  if (m[2] === "rows") {
+    const rows = Array.isArray(b.rows) ? b.rows : null;
+    if (!rows || rows.length > 1000 || rows.some((r) => !r || !Number.isInteger(r.id) || !Number.isInteger(r.seq) || typeof r.data !== "string")) {
+      return json({ error: "rows: up to 1000 [{id, seq, ..., data (JSON text)}]" }, 400);
+    }
+    const pick = JOB_COLS.map((c) => (c === "build_id" ? "?" : `json_extract(value, '$.${c}')`)).join(", ");
+    const stmts = [];
+    for (let i = 0; i < rows.length; i += 100) {
+      stmts.push(db.prepare(`INSERT OR REPLACE INTO jobs (${JOB_COLS.join(", ")}) SELECT ${pick} FROM json_each(?)`)
+        .bind(build.build_id, JSON.stringify(rows.slice(i, i + 100))));
+    }
+    await db.batch(stmts);
+    return json({ added: rows.length });
+  }
+  if (m[2] === "meta") {
+    if (!b.key || !Number.isInteger(b.part) || typeof b.value !== "string") return json({ error: "key, part, value required" }, 400);
+    await db.prepare("INSERT OR REPLACE INTO job_build_meta (build_id, key, part, value) VALUES (?,?,?,?)").bind(build.build_id, String(b.key), b.part, b.value).run();
+    return json({ ok: true });
+  }
+  const n = (await db.prepare("SELECT COUNT(*) AS n FROM jobs WHERE build_id = ?").bind(build.build_id).first()).n;
+  const want = (await db.prepare("SELECT jobs FROM job_builds WHERE build_id = ?").bind(build.build_id).first()).jobs;
+  if (n !== want) return json({ error: `build has ${n} of ${want} roles; not switching` }, 409);
+  const old = "SELECT build_id FROM job_builds WHERE kind = ? AND build_id <> ?";
+  await db.batch([
+    db.prepare("UPDATE job_builds SET complete = 1 WHERE build_id = ?").bind(build.build_id),
+    db.prepare(`DELETE FROM jobs WHERE build_id IN (${old})`).bind(build.kind, build.build_id),
+    db.prepare(`DELETE FROM job_build_meta WHERE build_id IN (${old})`).bind(build.kind, build.build_id),
+    db.prepare("DELETE FROM job_builds WHERE kind = ? AND build_id <> ?").bind(build.kind, build.build_id),
+  ]);
+  return json({ build_id: build.build_id, jobs: n });
 }
 
 // Company research merged into the directory ('merged') or sent back to Muse ('needs_fix' with the reason), plus log rows.

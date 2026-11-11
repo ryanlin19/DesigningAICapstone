@@ -4,6 +4,8 @@
     python cohort-api/push_jobs.py               # load that build into D1; the board switches to it
     python cohort-api/push_jobs.py --local       # into the `wrangler dev` copy instead (testing)
     python cohort-api/push_jobs.py --file X.js   # load another data.js
+    python cohort-api/push_jobs.py --api         # through the cohort API (cohort-board/.api) instead of wrangler: no login
+                                                 # needed; the hosted board's daily refresh uses this
 
 Each push is a new version: rows go in next to the current build, the build is marked complete last,
 and only then are older builds deleted. Reads always use the newest complete build.
@@ -88,14 +90,45 @@ def push(path=DEFAULT_FILE, target="--remote", kind="board"):
     return build_id, len(jobs)
 
 
+def push_api(store, path=DEFAULT_FILE, kind="board", chunk=500):
+    """The same build, loaded through the cohort API (POST /v1/jobs/builds...) with a cohort-board store. Returns
+    (build_id, roles). The board keeps the current build until the last step switches it."""
+    board = read_board(path)
+    jobs = board.get("jobs") or []
+    if not jobs:
+        raise SyncError(f"No jobs in {path}.")
+    call = lambda p, b, want=(200,): store._ok("POST", p, b, want=want, timeout=120)       # noqa: E731
+    build_id = call("/v1/jobs/builds", {"kind": kind, "generated": board.get("generated"), "jobs": len(jobs)}, (201,))["build_id"]
+    rows = [{"id": int(j["id"]), "seq": seq, "company": j.get("company") or "", "grp": j.get("group"), "title": j.get("title") or "",
+             "category": j.get("category"), "seniority": j.get("seniority"), "mba": j.get("mba"), "review": 1 if j.get("review") else 0,
+             "visa": j.get("visa"), "posted": j.get("posted"), "url": j.get("url"),
+             "data": json.dumps(j, ensure_ascii=False, separators=(",", ":"))} for seq, j in enumerate(jobs)]
+    for i in range(0, len(rows), chunk):
+        call(f"/v1/jobs/builds/{build_id}/rows", {"rows": rows[i:i + chunk]})
+    for key, value in board.items():
+        if key == "jobs":
+            continue
+        text = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+        for part, i in enumerate(range(0, max(len(text), 1), META_PART)):
+            call(f"/v1/jobs/builds/{build_id}/meta", {"key": key, "part": part, "value": text[i:i + META_PART]})
+    call(f"/v1/jobs/builds/{build_id}/finish", {})
+    return build_id, len(jobs)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--file", type=Path, default=DEFAULT_FILE)
     ap.add_argument("--local", action="store_true")
     ap.add_argument("--kind", choices=["board", "all"], default="board")
+    ap.add_argument("--api", action="store_true")
     a = ap.parse_args()
     try:
-        build_id, n = push(a.file, "--local" if a.local else "--remote", a.kind)
+        if a.api:
+            sys.path.insert(0, str(HERE.parent / "cohort-board"))
+            import store
+            build_id, n = push_api(store.make_store(), a.file, a.kind)
+        else:
+            build_id, n = push(a.file, "--local" if a.local else "--remote", a.kind)
     except SyncError as e:
         sys.exit(str(e))
     print(f"Loaded {n} roles as build {build_id}.")

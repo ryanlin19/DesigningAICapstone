@@ -37,7 +37,38 @@ def files():
         "data.js": REPO / "site" / "data.js",
         "sessions.json": DATA / "sessions.json",
         "settings.json": DATA / "settings.json",
+        # the daily job refresh's own memory (what's new since yesterday, feeds already found)
+        "history.json": REPO / "data" / "history.json",
+        "boards.json": REPO / "data" / "boards.json",
+        # the company directory's build files (Wikidata/Wikipedia caches, research results), one archive of data/company-db
+        "company-db.tar.gz": DATA / "company-db.tar.gz",
     }
+
+
+FOLDERS = {"company-db.tar.gz": REPO / "data" / "company-db"}       # archive name -> the folder it holds
+
+
+def _pack(name):
+    import tarfile
+    folder = FOLDERS[name]
+    if not folder.exists():
+        return
+    path = files()[name]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    with tarfile.open(tmp, "w:gz") as t:
+        for f in sorted(folder.rglob("*")):
+            if f.is_file() and "batches" not in f.relative_to(folder).parts:
+                t.add(f, arcname=str(f.relative_to(folder)))
+    tmp.replace(path)
+
+
+def _unpack(name):
+    import tarfile
+    folder = FOLDERS[name]
+    folder.mkdir(parents=True, exist_ok=True)
+    with tarfile.open(files()[name], "r:gz") as t:
+        t.extractall(folder, filter="data")
 
 
 _etags = {}
@@ -50,7 +81,7 @@ def enabled():
 
 def _req(method, name, data=None, headers=None):
     req = urllib.request.Request(f"{URL}/__state/{name}", data=data, method=method,
-                                 headers={"Authorization": f"Bearer {TOKEN}", **(headers or {})})
+                                 headers={"Authorization": f"Bearer {TOKEN}", "User-Agent": "cohort-board", **(headers or {})})
     return urllib.request.urlopen(req, timeout=300)
 
 
@@ -84,6 +115,8 @@ def pull(name, force=False):
                     out.write(chunk)
     tmp.replace(path)
     _etags[name] = meta[0]
+    if name in FOLDERS:
+        _unpack(name)
     return True
 
 
@@ -91,6 +124,8 @@ def push(name):
     """Upload one file (in parts when big), then its manifest. Quietly skipped when the file doesn't exist."""
     if not enabled():
         return
+    if name in FOLDERS:
+        _pack(name)
     path = files()[name]
     if not path.exists():
         return

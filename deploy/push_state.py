@@ -4,7 +4,7 @@
     python3 deploy/push_state.py all_jobs.json data.js descriptions.db companies.db    # after a new job download
     python3 deploy/push_state.py --pull                # back up everything the site holds into this repo's paths
 
-Files: companies.db (the company directory), all_jobs.json and data.js (the job lists), descriptions.db (full job
+Files: companies.db (the company directory), company-db.tar.gz (its build files: data/company-db), all_jobs.json and data.js (the job lists), descriptions.db (full job
 descriptions), sessions.json, settings.json. The site picks up new job files and company directories within 10 minutes.
 Classmates and contacts aren't files: they live in the cohort database (cohort-api + D1), not here.
 """
@@ -42,6 +42,8 @@ def main():
     for name in names:
         if name not in state.files():
             sys.exit(f"Unknown file {name}. Files: {', '.join(state.files())}")
+        if name in state.FOLDERS:                         # a folder, kept as one archive: build it now
+            state._pack(name)
         path = state.files()[name]
         if not path.exists():
             print(f"{name}: not on this computer, skipped")

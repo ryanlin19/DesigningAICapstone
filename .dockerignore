@@ -13,7 +13,6 @@ data/descriptions.db
 data/descriptions.tmp
 data/companies.db
 data/company-db
-data/history.json
 linkedin-ingest/data/cohort.db
 linkedin-ingest/.contact_key
 cohort-board/.password
@@ -22,3 +21,9 @@ cohort-board/data
 cohort-api/.dev.vars
 deploy/.deploy.env
 deploy/.dev.vars
+# the confidential firm database and anything else private in data/
+data/firm_database.csv
+**/*Firm Database*.csv
+data/*.tmp
+data/*.backup-*
+data/raw_fetch.json

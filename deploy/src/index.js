@@ -3,11 +3,19 @@
 // with COHORT_API_URL and COHORT_API_TOKEN. Its other files (job lists, company directory, logins) stay on the
 // container's disk; this Worker stores them in R2 (/__state/<name>) so they survive restarts and redeploys
 // (cohort-board/state.py pulls them at start and pushes after every change).
+//
+// Scheduled work (wrangler.jsonc "triggers"), what the board did on a computer with its own timers:
+//   every 15 minutes  if the cohort database has Muse findings or finished company research waiting (GET /v1/pending),
+//                     wake the container and merge them (POST /__task/merge). Nothing waiting: the container stays asleep.
+//   daily             the job refresh that used to run on Ryan's PC (POST /__task/refresh; cohort-board/tasks.py).
+// The container sleeps after 10 idle minutes, but not while a task is running (onActivityExpired asks it).
 import { Container, getContainer } from "@cloudflare/containers";
+
+const DAILY = "0 9 * * *";      // 09:00 UTC = early morning in the US; must match wrangler.jsonc
 
 export class Board extends Container {
   defaultPort = 8765;
-  sleepAfter = "20m";           // stops when nobody has used it for 20 minutes; the next visit starts it again
+  sleepAfter = "10m";           // stops when nobody has used it for 10 minutes; the next visit starts it again
 
   constructor(ctx, env) {
     super(ctx, env);
@@ -23,6 +31,21 @@ export class Board extends Container {
       COHORT_API_TOKEN: env.COHORT_API_TOKEN || "",
     };
   }
+
+  // Idle: sleep, unless the daily refresh (or another task) is still running.
+  async onActivityExpired() {
+    try {
+      const r = await this.containerFetch(new Request("http://board/__task/busy", {
+        method: "POST", headers: { "X-Task-Token": this.env.STATE_TOKEN || "" } }), this.defaultPort);
+      if (r.ok && (await r.json()).busy) {
+        this.renewActivityTimeout();
+        return;
+      }
+    } catch (e) {
+      console.error("busy check failed", e);
+    }
+    await this.stop();
+  }
 }
 
 const NAME = /^[A-Za-z0-9_.-]{1,100}$/;
@@ -31,9 +54,31 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/__state/")) return state(request, env, url.pathname.slice("/__state/".length));
+    if (url.pathname.startsWith("/__task/")) return new Response("not found", { status: 404 });   // only the schedule runs tasks
     return getContainer(env.BOARD).fetch(request);          // a single instance: one board, one set of files
   },
+
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(event.cron === DAILY ? task(env, "refresh") : mergeIfWaiting(env));
+  },
 };
+
+async function task(env, name) {
+  const r = await getContainer(env.BOARD).fetch(new Request(`https://board/__task/${name}`, {
+    method: "POST", headers: { "X-Task-Token": env.STATE_TOKEN || "" } }));
+  const text = await r.text();
+  console.log(`task ${name}: ${r.status} ${text.slice(0, 500)}`);
+}
+
+async function mergeIfWaiting(env) {
+  const r = await fetch(`${env.COHORT_API_URL}/v1/pending`, { headers: { Authorization: `Bearer ${env.COHORT_API_TOKEN}` } });
+  if (!r.ok) {
+    console.error(`pending check failed: ${r.status}`);
+    return;
+  }
+  const p = await r.json();
+  if (p.muse_inbox + p.muse_manual + p.research_done > 0) await task(env, "merge");
+}
 
 async function state(request, env, name) {
   if (!(await authorized(request, env))) return new Response("unauthorized", { status: 401 });

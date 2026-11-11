@@ -54,6 +54,7 @@ import inbox  # noqa: E402
 import find  # noqa: E402
 import regions  # noqa: E402
 import uploads  # noqa: E402
+import tasks  # noqa: E402
 from store import RemoteStore, StoreError, make_store  # noqa: E402
 
 
@@ -1368,8 +1369,32 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(500, str(e))
         self.send(404, "Not found")
 
+    def task(self, path):
+        """POST /__task/<merge|refresh|busy> from the hosted board's scheduler (deploy/src/index.js), with the state token.
+        The deploy Worker never forwards /__task/ from the internet; the token is checked anyway."""
+        token = os.environ.get("COHORT_STATE_TOKEN") or ""
+        if not token or not hmac.compare_digest(self.headers.get("X-Task-Token") or "", token):
+            return self.send(403, "Forbidden")
+        name = path[len("/__task/"):]
+        try:
+            if name == "busy":
+                out = {"busy": tasks.busy(), "task": tasks.status["task"], "started": tasks.status["started"]}
+            elif name == "merge":
+                out = tasks.merge(STORE)
+            elif name == "refresh":
+                out = tasks.refresh_later(STORE)
+            elif name == "status":
+                out = tasks.status
+            else:
+                return self.send(404, "Not found")
+        except Exception as e:
+            return self.send(500, json.dumps({"error": str(e)}), "application/json")
+        return self.send(200, json.dumps(out, default=str), "application/json")
+
     def do_POST(self):
         path = self.path.split("?")[0]
+        if path.startswith("/__task/"):
+            return self.task(path)
         if path == "/login":
             pw = parse_qs(self.body().decode("utf-8", "replace")).get("password", [""])[0]
             if hmac.compare_digest(pw.encode(), PASSWORD.encode()):
@@ -1509,29 +1534,6 @@ class Handler(BaseHTTPRequestHandler):
         self.send(204 if found else 404)
 
 
-research_check = {"at": None, "result": None, "error": None}
-
-
-def start_research_merge(every=900):
-    """Muse's company research (muse/COMPANY_RESEARCH.md): merged into the company directory now and every 15 minutes.
-    The directory (data/companies.db) is rebuilt only when Muse has finished something; the Companies tab picks it up
-    on the next page load."""
-    def loop():
-        sys.path.insert(0, str(REPO / "company-db"))
-        import companies
-        while True:
-            try:
-                res = companies.pull_research(STORE)
-                research_check.update(at=datetime.now(timezone.utc).isoformat(timespec="seconds"), result=res, error=None)
-                if res["merged"] or res["needs_fix"]:
-                    print(f"research: merged {res['merged']} companies from Muse, {res['needs_fix']} sent back", flush=True)
-            except Exception as e:                       # network, Wikidata, a bad row: try again next time
-                research_check.update(at=datetime.now(timezone.utc).isoformat(timespec="seconds"), error=str(e))
-                print(f"research: couldn't merge Muse's company research: {e}", flush=True)
-            time.sleep(every)
-    threading.Thread(target=loop, daemon=True).start()
-
-
 def cohort_payload_names():
     if _cache["value"] is None:
         _cache.update(key=None, value={"names": board_companies()})
@@ -1549,9 +1551,12 @@ def main():
     if all_jobs()[0]:
         find.job_regions(all_jobs()[0])          # work out every job's map regions now, not on the first search
     state.start_refresher()
-    inbox.start(STORE)                                  # Muse's findings: merged now and every 15 minutes
-    if (REPO / "data" / "companies.db").exists():       # Muse's company research, likewise (needs the directory's build files)
-        start_research_merge()
+    # Scheduled work (tasks.py): Muse's findings and company research every 15 minutes. The hosted board leaves it to
+    # Cloudflare's schedule (deploy/src/index.js); COHORT_BACKGROUND=0 turns it off on a computer that isn't in charge.
+    if not HOSTED and os.environ.get("COHORT_BACKGROUND", "1") != "0":
+        tasks.start_timer(STORE)
+    else:
+        print("Scheduled work: " + ("Cloudflare's schedule" if HOSTED else "off (COHORT_BACKGROUND=0)"), flush=True)
     print(f"Private board: http://{HOST}:{PORT}" + ("  (hosted)" if HOSTED else "  (this computer only; Ctrl+C to stop)"), flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
 

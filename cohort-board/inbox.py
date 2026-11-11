@@ -15,10 +15,7 @@ record() adds one log entry (used for uploads and removals too). Every function 
 """
 import json
 import re
-import sqlite3
 import sys
-import threading
-import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -259,20 +256,3 @@ def _apply_structured(con, rows, people, secret, new_log, touched):
         else:
             new_log.append(_entry("board", "skip", f"Unknown Muse change '{change}' for {name}"))
     return handled
-
-
-def start(store, every=900, on_change=None):
-    """Check now (in the background) and every 15 minutes."""
-    def loop():
-        while True:
-            try:
-                res = check(store)
-                if res["found"] and on_change:
-                    on_change()
-                if res["found"]:
-                    print(f"inbox: merged {res['merged']} of {res['found']} Muse finding(s)", flush=True)
-            except (StoreError, OSError, sqlite3.Error) as e:
-                last_check.update(at=_now(), error=str(e))
-                print(f"inbox: couldn't check the cloud: {e}", flush=True)
-            time.sleep(every)
-    threading.Thread(target=loop, daemon=True).start()
