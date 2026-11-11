@@ -882,14 +882,18 @@
   }
   function estimateYears(text) {
     var MON = "jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec";
-    var re = new RegExp("(?:(" + MON + ")[a-z]*\\.?\\s+)?((?:19|20)\\d\\d)\\s*(?:-|to)\\s*(?:(present|current|now)|(?:(" + MON + ")[a-z]*\\.?\\s+)?((?:19|20)\\d\\d))", "gi");
+    // a start like "Jun 2019", "06/2019" or "2019", a dash or "to", then an end in the same styles or "present"
+    var M1 = "(?:(" + MON + ")[a-z]*\\.?\\s+|(\\d{1,2})\\/)?", M2 = "(?:(" + MON + ")[a-z]*\\.?\\s+|(\\d{1,2})\\/)?";
+    var re = new RegExp(M1 + "((?:19|20)\\d\\d)\\s*(?:-|to)\\s*(?:(present|current|now)|" + M2 + "((?:19|20)\\d\\d))", "gi");
     var now = new Date(), nowY = now.getFullYear() + now.getMonth() / 12, spans = [];
-    function mi(m) { return m ? MON.split("|").indexOf(m.toLowerCase().slice(0, 3)) / 12 : 0; }
-    normText(text).split(/\r?\n/).forEach(function (line) {
+    function mi(m, n) { return m ? MON.split("|").indexOf(m.toLowerCase().slice(0, 3)) / 12 : n && +n >= 1 && +n <= 12 ? (+n - 1) / 12 : 0; }
+    // PDFs sometimes put the dash of a date range on its own line: join "2023 / - / 2024" back together
+    var flat = normText(text).replace(/\s*[\r\n]+\s*-\s*[\r\n]+\s*/g, " - ").replace(/(\d)\s*-\s*[\r\n]+\s*(?=\d|present|current)/gi, "$1 - ");
+    flat.split(/\r?\n/).forEach(function (line) {
       if (/universit|college|school|bachelor|\bb\.?[sa]\.?\b|\bmba\b|master|\bm\.?s\.?\b|ph\.?d|\bgpa\b|degree|diploma|expected|coursework/.test(line)) return;
       var m; re.lastIndex = 0;
       while ((m = re.exec(line))) {
-        var a = +m[2] + mi(m[1]), b = m[3] ? nowY : +m[5] + mi(m[4]);
+        var a = +m[3] + mi(m[1], m[2]), b = m[4] ? nowY : +m[7] + mi(m[5], m[6]);
         if (b >= a && a > 1980 && b - a < 40) spans.push([a, b]);
       }
     });
@@ -899,15 +903,39 @@
     if (cur) total += cur[1] - cur[0];
     var said = 0, k, kre = /(\d{1,2})\+?\s*years?\s+(?:of\s+)?(?:[a-z\- ]{0,30}\s)?experience/gi;
     while ((k = kre.exec(text))) said = Math.max(said, +k[1]);
-    return Math.min(40, Math.round(total > 0 ? total : said));
+    if (total <= 0 && !said) {            // no date ranges and no "N years" line: count from the bachelor's degree year
+      var grad = 0;
+      flat.split(/\r?\n/).forEach(function (line) {
+        if (!/\bbachelor|\bb\.?\s?[as]\.?\b|\bb\.?sc\b|\bundergrad/.test(line)) return;
+        var y = line.match(/\b(19[89]\d|20[0-2]\d)\b/);
+        if (y && (!grad || +y[1] < grad)) grad = +y[1];
+      });
+      if (grad && grad <= nowY) said = Math.round(nowY - grad);
+    }
+    return Math.min(40, Math.max(0, Math.round(total > 0 ? total : said)));
   }
   function analyzeResume(text) {
-    var t = normText(text), vs = termsIn(t, MI._sk), vi = termsIn(t, MI._in), skills = {}, inds = {}, fns = {};
+    var t = normText(text), vs = termsIn(t, MI._sk), skills = {}, inds = {}, fns = {};
+    // Industries come from the work and activities, not the school lines, and need two mentions (as on the role side).
+    var work = t.split(/\r?\n/).filter(function (l) { return !/universit|college|bachelor|\bmaster|\bmba\b|ph\.?d|\bgpa\b|degree|diploma|coursework|dean's|honors/.test(l); }).join("\n");
+    var vi = termsIn(work, MI._in);
     Object.keys(vs).forEach(function (k) { skills[k] = true; });
-    Object.keys(vi).forEach(function (k) { inds[k] = true; });
+    Object.keys(vi).forEach(function (k) { if (vi[k] >= 2) inds[k] = true; });
     FN_RULES.map(function (r) { var m = t.match(r[1]); return [r[0], m ? m.length : 0]; })
       .filter(function (x) { return x[1] >= 2; }).sort(function (a, b) { return b[1] - a[1]; }).slice(0, 4)
       .forEach(function (x) { fns[x[0]] = true; });
+    if (Object.keys(fns).length < 2) {    // few keywords for a role type: infer it from the skills found (finance skills point to Corp Strategy, and so on)
+      var BY_GROUP = { finance: "Corp Strategy", marketing: "Growth", product: "Product Management", sales: "Business Development", operations: "BizOps / Strategy & Ops" };
+      var gc = {};
+      Object.keys(skills).forEach(function (k) { var g = MI.skills[k].g; if (BY_GROUP[g]) gc[g] = (gc[g] || 0) + 1; });
+      Object.keys(gc).filter(function (g) { return gc[g] >= 2; }).sort(function (a, b) { return gc[b] - gc[a]; })
+        .forEach(function (g) { if (Object.keys(fns).length < 3) fns[BY_GROUP[g]] = true; });
+    }
+    // Hard technical skills (engineering, cloud, machine learning...) fit product and tech roles whatever else is on the resume.
+    var HARD_TECH = { "Software development": 1, "Cloud": 1, "Data engineering": 1, "Cybersecurity": 1, "Machine learning": 1 };
+    if (Object.keys(skills).filter(function (k) { return HARD_TECH[MI.skills[k].l]; }).length >= 2) {
+      fns["Product Management"] = true; fns["Tech & Digital Consulting"] = true;
+    }
     return { skills: skills, inds: inds, years: estimateYears(text), fns: fns, hideWeak: false };
   }
   // Score 0-100 for one role: skills (42%), role type (26%), years of experience (20%), industry (12%).

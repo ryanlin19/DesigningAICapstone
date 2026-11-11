@@ -6,3 +6,7 @@ node_modules/
 __pycache__/
 *Firm Database*.csv
 data/firm_database.csv
+
+# Real resumes and tuning output: never committed
+resumes_private/
+tune_out/

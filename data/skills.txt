@@ -134,7 +134,7 @@ industry | Energy and utilities | energy; oil and gas; utilities; power; renewab
 industry | Industrials | industrials; aerospace; defense; automotive; manufacturing; machinery; space; satellites
 industry | Transportation and logistics | transportation; logistics; freight; shipping; mobility; ride-hailing; trucking
 industry | Real estate and construction | real estate; proptech; construction; homebuilding; property management; commercial real estate
-industry | Education | education; edtech; higher education; k-12; learning platform; university
+industry | Education | education; edtech; higher education; k-12; learning platform; school district
 industry | Telecom and infrastructure | telecom; telecommunications; wireless; networking; semiconductors; data centers
 industry | Public sector | public sector; government; nonprofit; non-profit; philanthropy; social impact
 industry | Travel and hospitality | travel; hospitality; hotels; tourism; airlines; vacation rentals

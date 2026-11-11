@@ -231,3 +231,18 @@ few of its postings match.
 
 The resume panel and My list share one **Profile & My list** tab: "Your resume fit" on top, "My list" below it (the tab's number counts saved roles).
 The role tabs show a one-line pointer to it, and "See my best matches" jumps to the role list sorted by fit. An old remembered "My list" tab opens this one.
+
+## Tuning the resume match on real resumes
+
+`pipeline/tune/` checks the resume matcher against real resumes without keeping them. Put resume files (PDF, Word or
+text) in `resumes_private/`, then:
+
+```
+python pipeline/tune/extract.py --remove-originals   # skips edited copies, anonymizes, moves the originals to the Recycle Bin
+node pipeline/tune/run_match.js                      # scores every resume against every role -> tune_out/matches.json
+node pipeline/tune/dist.js                           # how many roles each resume scores 90+/75+/55+
+```
+
+The extractor removes names, emails, phone numbers, links and street addresses and saves the text under a random id (no
+file names are kept). Employer and school names stay. `resumes_private/` and `tune_out/` are git-ignored. The matcher
+code is read straight from `site/index.html`, so what is tuned here is what ships.

@@ -1,4 +1,4 @@
-Built 2026-11-10: 3470 jobs from 1370 of 1663 companies.
+Built 2026-11-11: 3470 jobs from 1370 of 1663 companies.
 By category: {'Account Executive': 996, 'Product Management': 730, 'Strategy Consulting': 394, 'Partnerships': 218, 'Growth': 193, 'Transformation / PMO': 179, 'Corp Strategy': 161, 'BizOps / Strategy & Ops': 160, 'Tech & Digital Consulting': 131, 'GTM / Revenue Ops': 128, 'Business Development': 98, 'Chief of Staff': 37, 'Product Ops': 29, 'General Management': 16}
 By visa label: {'Unlikely': 794, 'Likely': 168, 'Case-by-case': 86, 'Unknown': 2422}
 Review-flagged: 340
