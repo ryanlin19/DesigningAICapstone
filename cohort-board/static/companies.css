@@ -28,3 +28,112 @@
 .co-nojobs { font-size: 13px; color: var(--muted); }
 .co-flag { font-size: 12px; color: var(--muted); }
 .co-card .tie-panel { margin-top: 10px; }
+
+/* company page */
+.co-name a { color: inherit; text-decoration: none; }
+.co-name a:hover { color: var(--brand); text-decoration: underline; }
+.co-graph { font-weight: 600; font-size: 14px; color: var(--brand); text-decoration: none; }
+.co-graph:hover { text-decoration: underline; }
+.back { display: inline-block; margin-bottom: 10px; font-size: 14px; text-decoration: none; }
+.co-title { font-size: 24px; margin: 0; }
+.co-detail h2 { font-size: 17px; margin: 0 0 6px; }
+
+/* relationship graph */
+.rg-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 6px; }
+.rg-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--muted); }
+.rg-legend .lg::before { content: ""; display: inline-block; width: 18px; height: 4px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.rg-legend .now::before { background: var(--good); } .rg-legend .past::before { background: var(--orange); }
+.rg-legend .knows::before { background: var(--accent); } .rg-legend .shared::before { background: var(--violet); }
+.rg-box { overflow-x: auto; }
+.rg-svg { width: 100%; max-width: 860px; min-width: 560px; height: auto; display: block; margin: 0 auto; font-family: inherit; }
+.rg-colhead { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; fill: var(--muted); }
+.rg-company { fill: var(--panel); stroke: var(--border); }
+.rg-edge { fill: none; stroke-linecap: round; opacity: .55; transition: opacity .12s; }
+.rg-edge.rg-group { stroke: var(--accent); } .rg-edge.rg-now { stroke: var(--good); } .rg-edge.rg-past { stroke: var(--orange); }
+.rg-edge.rg-shared { stroke: var(--violet); } .rg-edge.rg-named { stroke: var(--brand); }
+.rg-knows { fill: none; stroke: var(--muted); stroke-dasharray: 3 4; opacity: .6; }
+.rg-person circle { fill: #fff; stroke: var(--accent); stroke-width: 3; }
+.rg-person.past circle { stroke: var(--orange); } .rg-person.now circle { stroke: var(--good); }
+.rg-person.you circle { fill: var(--brand-bg); stroke: var(--brand); }
+.rg-target circle { fill: var(--accent); }
+.rg-t-worked circle { fill: var(--orange); } .rg-t-shared circle { fill: var(--violet); } .rg-t-named circle { fill: var(--brand); }
+.rg-name { font-size: 13.5px; font-weight: 600; fill: var(--text); }
+.rg-sub { font-size: 11.5px; fill: var(--muted); }
+[data-node] { cursor: default; outline: none; }
+.rg-focus .rg-edge { opacity: .12; } .rg-focus .rg-edge.on { opacity: .95; }
+.rg-focus [data-node] { opacity: .35; } .rg-focus [data-node].on { opacity: 1; }
+
+/* best ways in */
+.ways { margin: 10px 0 0; padding-left: 22px; display: grid; gap: 10px; }
+.way-h { display: flex; align-items: center; gap: 8px; font-size: 15px; }
+.way-why { font-size: 13.5px; color: var(--text-2); margin-top: 2px; }
+.way.top .way-h b { color: var(--good); }
+.tag.works { background: var(--good-bg); color: var(--good); }
+.way-you { font-size: 13.5px; color: var(--brand-dark); background: var(--brand-bg); border-radius: 10px; padding: 8px 12px; margin-top: 10px; }
+
+/* people your cohort knows */
+.rg-target.pickable { cursor: pointer; }
+.rg-target.pickable:hover .rg-name { fill: var(--brand); text-decoration: underline; }
+.np-search { width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; background: var(--card); margin: 6px 0 8px; }
+.np-chips { margin-bottom: 8px; }
+.np-chips .chip[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+.np-chips .chip .n { color: var(--muted); }
+.np-chips .chip[aria-pressed="true"] .n { color: #fff; opacity: .85; }
+.np-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.np { padding: 10px 0; border-top: 1px solid var(--border); }
+.np.shared { background: linear-gradient(90deg, var(--violet-bg), transparent 60%); padding-left: 8px; border-radius: 6px; }
+.np-top { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
+.np-name { font-weight: 700; color: var(--text); text-decoration: none; }
+a.np-name:hover { color: var(--brand); text-decoration: underline; }
+.tag.shared { background: var(--violet-bg); color: var(--violet); }
+.np-pos { font-size: 13.5px; color: var(--text-2); margin-top: 2px; }
+.np-who { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+
+/* most meaningful shared connections */
+.sh-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.sh { padding: 10px 0; border-top: 1px solid var(--border); }
+.sh.top .np-name { color: var(--violet); }
+.sh-rank { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--violet-bg); color: var(--violet); font-size: 12px; font-weight: 700; }
+.sh-why { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+.sh-all { margin-top: 10px; }
+
+/* who's who: the company map */
+.cm-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 12px; }
+.cm-mate { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--card); border-radius: 999px;
+  padding: 3px 10px 3px 3px; cursor: pointer; font-size: 13px; }
+.cm-mate[aria-pressed="true"] { border-color: var(--text); box-shadow: 0 0 0 1px var(--text) inset; }
+.cm-mate-name { font-weight: 600; }
+.cm-mate-sub { color: var(--muted); font-size: 12px; }
+.cm-ini { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 4px; border-radius: 999px;
+  color: #fff; font-size: 10.5px; font-weight: 700; letter-spacing: .02em; }
+.cm-scroll { overflow-x: auto; }
+.cm-grid { display: grid; gap: 6px; min-width: min-content; }
+.cm-corner { }
+.cm-colhead { font-size: 12.5px; font-weight: 700; color: var(--text-2); padding: 4px 6px; border-bottom: 2px solid var(--border); }
+.cm-colhead.field { color: var(--brand-dark); border-bottom-color: var(--brand); }
+.cm-n { color: var(--muted); font-weight: 400; }
+.cm-rowhead { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 8px 4px 0 0; }
+.cm-cell { display: flex; flex-direction: column; gap: 5px; padding: 4px; background: var(--panel); border-radius: 10px; min-height: 30px; }
+.cm-cell.empty { background: transparent; border: 1px dashed var(--border); }
+.cm-chip { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "name who" "pos who"; gap: 0 6px; align-items: center; text-align: left;
+  background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--border); border-radius: 8px; padding: 5px 7px; cursor: pointer; font: inherit; }
+.cm-chip:hover { border-color: var(--brand); }
+.cm-chip.warm { border-left-color: var(--violet); }
+.cm-chip.sel { box-shadow: 0 0 0 2px var(--brand); }
+.cm-chip.extra { display: none; }
+.cm-cell.open .cm-chip.extra { display: grid; }
+.cm-chip-name { grid-area: name; font-size: 13px; font-weight: 600; color: var(--text); }
+.cm-chip-pos { grid-area: pos; font-size: 11.5px; color: var(--muted); }
+.cm-chip-who { grid-area: who; display: inline-flex; gap: 2px; }
+.cm-chip-who .cm-ini { min-width: 18px; height: 18px; font-size: 9px; }
+.cm-more { background: none; border: 0; color: var(--brand); font-size: 12.5px; cursor: pointer; text-align: left; padding: 2px 4px; }
+.cm-focus .cm-chip { opacity: .28; }
+.cm-focus .cm-chip.lit { opacity: 1; }
+.cm-card { margin-top: 12px; border: 1px solid var(--brand); background: var(--brand-bg); border-radius: 12px; padding: 10px 14px; font-size: 14px; }
+.cm-card-h { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.cm-card-h a, .cm-card-h b { font-weight: 700; font-size: 15px; }
+.cm-card-who { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+.cm-card-ask { margin: 8px 0 0; font-weight: 600; color: var(--brand-dark); }
+.cm-summary { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; }
+.cm-summary .cm-ini { margin-right: 6px; }

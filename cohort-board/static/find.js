@@ -19,7 +19,7 @@
 
   var meta = null;
   var profile = window.Global ? window.Global.profile() : null;
-  var DEFAULT_FILTERS = { categories: [], buckets: ["ready", "reach"], levels: [], posted: "0", q: "", mba: false,
+  var DEFAULT_FILTERS = { categories: [], buckets: ["ready", "reach"], levels: [], posted: "0", q: "", skill: "", mba: false,
                           warm: false, sort: "fit", from: "", to: "", hidden: [] };
   function loadFilters() {
     var f = Object.assign({}, DEFAULT_FILTERS, load("cohort.findFilters", {}));
@@ -59,19 +59,24 @@
   // ---------- filters ----------
   // A company opened from a link is a one-off lookup, so it isn't remembered between visits. Fit, sponsorship and
   // location come from the "Your search" panel; this page adds only the timeline period and hidden companies.
-  function saveFilters() { save("cohort.findFilters", Object.assign({}, filters, { q: "" })); }
+  function saveFilters() { save("cohort.findFilters", Object.assign({}, filters, { q: "", skill: "", categories: [] })); }
 
   function drawFacets(counts) {
     lastCounts = counts;
     if (window.Global) window.Global.setFitCounts(profile ? counts.buckets : null);     // counts in the Fit row
-    var bar = $("companyBar"); bar.textContent = ""; bar.hidden = !filters.q;
-    if (filters.q) {
-      var chip = el("button", { type: "button", class: "chip hidden-chip", title: "Show every company" },
-                    [filters.q, el("span", { class: "x", "aria-hidden": "true", text: "×" })]);
-      chip.addEventListener("click", function () { filters.q = ""; refresh(); });
-      bar.appendChild(el("span", { class: "hidden-label", text: "Company:" }));
+    var bar = $("companyBar"); bar.textContent = "";
+    var looks = [];                                   // one-off lookups from links: a company, a skill, a field
+    if (filters.q) looks.push(["Company:", filters.q, function () { filters.q = ""; }]);
+    if (filters.skill !== "" && filters.skill != null) looks.push(["Needs:", (meta && meta.skills && meta.skills[filters.skill]) || "a skill", function () { filters.skill = ""; }]);
+    (filters.categories || []).forEach(function (c) { looks.push(["Field:", c, function () { filters.categories = filters.categories.filter(function (x) { return x !== c; }); }]); });
+    bar.hidden = !looks.length;
+    looks.forEach(function (l) {
+      var chip = el("button", { type: "button", class: "chip hidden-chip", title: "Remove this filter" },
+                    [l[1], el("span", { class: "x", "aria-hidden": "true", text: "×" })]);
+      chip.addEventListener("click", function () { l[2](); refresh(); });
+      bar.appendChild(el("span", { class: "hidden-label", text: l[0] }));
       bar.appendChild(chip);
-    }
+    });
   }
   function bindInputs() {
     Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function (b) {
@@ -86,7 +91,7 @@
     saveFilters();
     var my = ++seq, offset = more ? shown.length : 0;
     var g = window.Global ? window.Global.state() : { visa: "any", regions: [], buckets: [] };
-    var body = { profile: profile, offset: offset, limit: PAGE,
+    var body = { profile: profile, want: window.Global ? window.Global.want() : {}, offset: offset, limit: PAGE,
                  filters: Object.assign({}, filters, { buckets: profile ? g.buckets : [], visa: g.visa, regions: g.regions }) };
     return fetch("/api/find", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       .then(function (r) { return r.ok ? r.json() : r.text().then(function (t) { throw new Error(t || "error " + r.status); }); })
@@ -111,10 +116,42 @@
   }
   function safe(u) { return /^https?:\/\//i.test(u || "") ? u : "#"; }
 
+  // ---------- Apply: opens the posting; when locations have their own postings, pick one from a menu ----------
+  function closeMenus(except) {
+    Array.prototype.forEach.call(document.querySelectorAll(".applymenu"), function (m) {
+      if (m === except) return;
+      m.hidden = true;
+      var b = m.previousSibling; if (b && b.setAttribute) b.setAttribute("aria-expanded", "false");
+    });
+  }
+  document.addEventListener("click", function (e) { if (!e.target.closest(".applywrap")) closeMenus(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeMenus(); });
+  function applyControl(j) {
+    if (!j.apply || j.apply.length < 2) {
+      return el("a", { class: "apply-btn", href: safe(j.url), target: "_blank", rel: "noopener noreferrer",
+                       title: "Open the posting at " + j.company + " to apply", text: "Apply ↗" });
+    }
+    var btn = el("button", { type: "button", class: "apply-btn", "aria-haspopup": "true", "aria-expanded": "false",
+                             title: "This role has a posting per location" }, ["Apply ▾"]);
+    var menu = el("ul", { class: "applymenu", hidden: "" }, [el("li", { class: "hdr", text: "Choose a location" })].concat(j.apply.map(function (l) {
+      return el("li", {}, [el("a", { href: safe(l.url), target: "_blank", rel: "noopener noreferrer", text: l.name })]);
+    })));
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var open = menu.hidden;
+      closeMenus(menu);
+      menu.hidden = !open;
+      btn.setAttribute("aria-expanded", String(open));
+      if (open) { var first = menu.querySelector("a"); if (first) first.focus(); }
+    });
+    return el("span", { class: "applywrap" }, [btn, menu]);
+  }
+
   function card(j) {
     var fit = j.bucket ? el("div", { class: "fit" }, [
       el("span", { class: "badge " + j.bucket, text: j.bucket_label }),
-      el("div", { class: "why", text: j.reason })]) : null;
+      el("div", { class: "why", text: j.reason }),
+      j.closer && j.closer.length ? el("div", { class: "closer" }, [el("b", { text: "Closer with: " }), j.closer.join(" · ")]) : null]) : null;
     var tags = [el("span", { class: "tag", text: j.category }), el("span", { class: "tag", text: j.level })];
     if (j.mba) tags.push(el("span", { class: "tag mba", text: j.mba === "title" || j.mba === "required" ? "MBA required" : "MBA preferred" }));
     if (j.visa === "Unlikely") tags.push(el("span", { class: "tag visa-bad", text: "Visa: unlikely" }));
@@ -126,19 +163,25 @@
     return art = el("article", { class: "job" }, [
       el("div", { class: "job-top" }, [
         el("div", { class: "job-main" }, [
-          el("h3", {}, [el("a", { href: safe(j.url), target: "_blank", rel: "noopener noreferrer", text: j.title })]),
+          el("h3", {}, [el("a", { href: safe(j.url), target: "_blank", rel: "noopener noreferrer", title: "Open the posting" },
+                             [j.title, el("span", { class: "ext", "aria-hidden": "true", text: " ↗" })])]),
           el("div", { class: "meta" }, [
-            el("a", { class: "co", href: "/companies?q=" + encodeURIComponent(j.company), text: j.company }),
+            el("a", { class: "co", href: "/companies?company=" + encodeURIComponent(j.company), text: j.company }),
             el("span", { text: loc }), el("span", { text: "posted " + ago(j.posted) }),
             j.min_years != null ? el("span", { text: j.min_years + "+ yrs asked" }) : null])]),
         fit]),
       el("div", { class: "tags" }, tags),
+      j.reasons && j.reasons.length ? el("div", { class: "here-why", text: "★ " + j.reasons.join(" · ") }) : null,
       j.skills_hit && j.skills_hit.length ? el("div", { class: "skills", text: "Matches your " + j.skills_hit.join(", ") }) : null,
       el("div", { class: "card-foot" }, [
         window.JobDescription ? window.JobDescription.toggle(j.url) : null,
         el("span", { class: "card-actions" }, [
-          el("a", { class: "co-page", href: "/companies?q=" + encodeURIComponent(j.company), title: "Everything at " + j.company + ", with your cohort's ties",
-                    text: j.company + " company page →" }),
+          applyControl(j),
+          j.cohort
+            ? el("a", { class: "co-page", href: "/companies?company=" + encodeURIComponent(j.company) + "&field=" + encodeURIComponent(j.category) + "#graph",
+                        title: "Who in your cohort can get you into " + j.company, text: "Go to relationship graph →" })
+            : el("a", { class: "co-page", href: "/companies?company=" + encodeURIComponent(j.company), title: "Everything at " + j.company,
+                        text: j.company + " company page →" }),
           hideButton(j.company)])])
     ]);
   }
@@ -188,7 +231,8 @@
       });
       return el("li", {}, [el("b", { text: p.name })].concat(bits));
     });
-    var foot = [el("a", { href: "/companies?q=" + encodeURIComponent(j.company), text: "Open " + j.company + " on Companies" }),
+    var foot = [el("a", { href: "/companies?company=" + encodeURIComponent(j.company) + "&field=" + encodeURIComponent(j.category) + "#graph",
+                          text: "Go to relationship graph" }),
                 el("a", { href: "/companies?view=connect", text: "Connect with these classmates on LinkedIn" })];
     if (t.shared) foot.unshift(el("span", { class: "muted", text: plural(t.shared, "person here is", "people here are") + " known by 2+ classmates" }));
     return el("div", { class: "tie-panel" }, [
@@ -346,8 +390,10 @@
       return;
     }
     if (!profile && filters.sort === "fit") filters.sort = "newest";
-    var linked = new URLSearchParams(location.search).get("company");          // from a company page link
-    if (linked) { filters.q = linked; filters.categories = []; filters.levels = []; }
+    var params = new URLSearchParams(location.search);                           // from a company page or "Closest gaps" link
+    if (params.get("company")) { filters.q = params.get("company"); filters.categories = []; filters.levels = []; }
+    if (params.get("skill")) { filters.skill = params.get("skill"); filters.sort = profile ? "fit" : filters.sort; }
+    if (params.get("cat")) { filters.categories = [params.get("cat")]; filters.sort = profile ? "fit" : filters.sort; }
     bindInputs(); drawProfile(); refresh();
   });
 })();

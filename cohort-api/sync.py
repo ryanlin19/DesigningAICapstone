@@ -72,8 +72,11 @@ def remove(pid, target="--remote"):
     run_sql(delete_person(pid), f"remove {pid}", target)
 
 
-def push(person_ids, db=LOCAL_DB, target="--remote"):
-    """Upload people from the local ingest database, replacing their rows in D1. Raises SyncError."""
+def push(person_ids, db=LOCAL_DB, target="--remote", names=True):
+    """Upload people from the local ingest database, replacing their rows in D1. Raises SyncError.
+
+    Contacts' names, titles and links go too, unless the cloud database doesn't have those columns yet
+    (migration 0008): then the push is retried without them, and the board reads names from this computer."""
     con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
     con.row_factory = sqlite3.Row
     people = con.execute("SELECT * FROM people").fetchall()
@@ -103,11 +106,14 @@ def push(person_ids, db=LOCAL_DB, target="--remote"):
                    "ON CONFLICT (alias) DO NOTHING")
     marks = ",".join("?" * len(ids))
     has_contacts = con.execute("SELECT 1 FROM sqlite_master WHERE name = 'contacts'").fetchone()
-    contacts = con.execute(f"SELECT contact_key, connector_id, company_norm, title_bucket, connected_year, snapshot_date "
-                           f"FROM contacts WHERE connector_id IN ({marks})", ids).fetchall() if has_contacts else []
+    named = names and has_contacts and "full_name" in {r[1] for r in con.execute("PRAGMA table_info(contacts)")}
+    cols = ["contact_key", "connector_id", "company_norm", "title_bucket", "connected_year", "snapshot_date"]
+    if named:                                      # names, titles and profile links, for the relationship graph
+        cols += ["full_name", "position", "profile_url"]
+    contacts = con.execute(f"SELECT {', '.join(cols)} FROM contacts WHERE connector_id IN ({marks})", ids).fetchall() \
+        if has_contacts else []
     with_keys = {r["connector_id"] for r in contacts}
-    sql += inserts("contacts", ["contact_key", "connector_id", "company_norm", "title_bucket", "connected_year", "snapshot_date"],
-                   [tuple(r) for r in contacts], "ON CONFLICT (contact_key, connector_id) DO NOTHING")
+    sql += inserts("contacts", cols, [tuple(r) for r in contacts], "ON CONFLICT (contact_key, connector_id) DO NOTHING")
     # Older loads without contact keys keep their per-company counts.
     sql += inserts("company_counts", ["connector_id", "company_norm", "count", "top_title_bucket", "snapshot_date"],
                    [tuple(r) for r in con.execute(
@@ -119,7 +125,13 @@ def push(person_ids, db=LOCAL_DB, target="--remote"):
                        f"SELECT person_id, company_norm, title, title_bucket, started_on, finished_on, is_current FROM positions "
                        f"WHERE person_id IN ({marks}) AND company_norm IS NOT NULL", ids)])
     con.close()
-    run_sql(sql, f"push {', '.join(ids)}", target)
+    try:
+        run_sql(sql, f"push {', '.join(ids)}", target)
+    except SyncError as e:
+        if named and "full_name" in str(e):
+            print("The cloud database has no name columns yet (apply migration 0008); pushing without names.", flush=True)
+            return push(person_ids, db, target, names=False)
+        raise
 
 
 def main():

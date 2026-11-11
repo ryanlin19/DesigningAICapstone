@@ -69,7 +69,7 @@ class TestPipeline(unittest.TestCase):
         for leaked in ("Fictional", "fake-ada-0001", "kai@example.com"):
             self.assertNotIn(leaked, dump)
 
-    def test_contact_rows_keyed_and_no_personal_data(self):
+    def test_contact_rows_keyed_named_and_no_email(self):
         con = fresh_db()
         s = Ingestor(con, contact_secret=SECRET).ingest(HERE / "fake_Connections.csv", "t1", "connections", "2026-11-09")
         n_contacts = con.execute("SELECT COUNT(*) FROM contacts").fetchone()[0]
@@ -78,9 +78,11 @@ class TestPipeline(unittest.TestCase):
         self.assertEqual(s["contacts_keyed"], n_contacts)
         years = {r[0] for r in con.execute("SELECT connected_year FROM contacts")}
         self.assertIn(2025, years)
+        # Contacts keep their name, title and profile link (for the relationship graph); emails are never kept.
         dump = "\n".join(con.iterdump())
-        for leaked in ("Fictional", "fake-ada-0001", "linkedin.com", "kai@example.com"):
-            self.assertNotIn(leaked, dump)
+        self.assertIn("fake-ada-0001", dump)
+        self.assertNotIn("kai@example.com", dump)
+        self.assertEqual(con.execute("SELECT COUNT(*) FROM contacts WHERE full_name IS NULL").fetchone()[0], 0)
 
 
 SECRET = b"test-secret-not-for-real-use"
@@ -208,12 +210,11 @@ class TestSharedContacts(unittest.TestCase):
         self.assertIn((gs, 2), rows)                               # Sam: newest export says Goldman, not Bain
         self.assertIn((bain, 2), rows)                             # Lee: matched by name + company, no link
         self.assertEqual(len(rows), 3)                             # not Cara (a classmate), Pat (student), Una (one classmate)
-        # Contacts' names and links are never stored; a classmate's own link (given with consent) is.
         links = {r[0]: r[1] for r in self.con.execute("SELECT person_id, profile_url FROM people")}
         self.assertEqual(links, {"a": None, "b": None, "c": "https://www.linkedin.com/in/cara-classmate/"})
-        dump = "\n".join(self.con.iterdump()).replace(links["c"], "")
-        for leaked in ("Jane", "jane-doe", "Lee", "Park", "linkedin.com", "sam-mover", "pat-student"):
-            self.assertNotIn(leaked, dump)
+        # Contacts keep their name, title and one standard profile link (for the relationship graph); never an email.
+        jane = {tuple(r) for r in self.con.execute("SELECT full_name, position, profile_url FROM contacts WHERE company_norm = ?", (mck,))}
+        self.assertIn(("Jane Doe", "Consultant", "https://www.linkedin.com/in/jane-doe-x1/"), jane)
 
     def test_reload_replaces_rows(self):
         before = self.con.execute("SELECT COUNT(*) FROM contacts WHERE connector_id='c'").fetchone()[0]

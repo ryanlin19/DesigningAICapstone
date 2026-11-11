@@ -117,3 +117,19 @@ body.has-global-bar { padding-left: 272px; }
   .cb-tabs a { padding: 0 10px; }
   .cb-private { display: none; }
 }
+
+/* What you are / What you want: word lists, skills and the path */
+.gb-words { display: grid; gap: 6px; }
+.gb-input, .gb-words select { width: 100%; border: 1px solid rgba(31,41,51,.18); border-radius: 8px; padding: 5px 8px; font: inherit; font-size: 13px; background: #fff; }
+.gb-field input[type="number"] { width: 64px; }
+.gb-pathbox { margin-top: 12px; padding: 10px 12px; background: #fff; border: 1px solid #c7dbf2; border-radius: 10px; }
+.gb-pathbox .gb-label { margin-top: 0; }
+.gb-path { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13px; }
+.gb-path a { color: #084e96; text-decoration: none; }
+.gb-path a:hover { text-decoration: underline; }
+
+/* "Upload your data": the one red button, in the top bar on every tab */
+.cb-upload { margin-left: auto; display: inline-flex; align-items: center; background: #c81e1e; color: #fff; border-radius: 999px;
+  padding: 6px 14px; font-size: 13.5px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.cb-upload:hover { background: #a61b1b; }
+.cb-upload:focus-visible { outline: 2px solid #a61b1b; outline-offset: 2px; }

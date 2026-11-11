@@ -148,13 +148,14 @@
     if (c.people.length) tags.push(tieButton(c, function () { return article; }));
     if (c.sp500) tags.push(el("span", { class: "tag", text: "S&P 500" }));
 
-    var head = [el("h2", { class: "co-name", text: c.name })];
+    var head = [el("h2", { class: "co-name" }, [el("a", { href: "/companies?id=" + encodeURIComponent(c.id), text: c.name })])];
     if (c.website) head.push(el("a", { class: "co-site", href: c.website, target: "_blank", rel: "noopener",
                                        text: c.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") + " ↗" }));
     var foot = [c.jobs
       ? el("a", { class: "co-jobs", href: "/?company=" + encodeURIComponent(c.jobs.label),
                   text: plural(c.jobs.n, "open role", "open roles") + " on Find a job →" })
       : el("span", { class: "co-nojobs", text: "No open roles in the job feeds we read" })];
+    if (c.people.length) foot.push(el("a", { class: "co-graph", href: "/companies?id=" + encodeURIComponent(c.id) + "#graph", text: "Relationship graph →" }));
     if (!c.researched || c.confidence === "low")
       foot.push(el("span", { class: "co-flag", text: c.researched ? "Low-confidence match" : "Not yet researched: details are automatic" }));
 
@@ -196,6 +197,193 @@
       window.Global.onRevert(function () { filters = Object.assign({}, DEFAULTS); query = ""; q.value = ""; persist(); limit = PAGE; render(); });
     }
   }
+
+  // ---------- one company: its page, with the relationship graph and the best ways in ----------
+  function showDetail(params) {
+    $("dirList").hidden = true;
+    var box = $("detail"); box.hidden = false;
+    box.appendChild(el("p", { class: "muted", text: "Loading…" }));
+    var q = new URLSearchParams();
+    ["id", "company", "field"].forEach(function (k) { if (params.get(k)) q.set(k, params.get(k)); });
+    fetch("/api/company?" + q.toString(), { credentials: "same-origin" })
+      .then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.error || "HTTP " + r.status); return d; }); })
+      .then(function (c) { drawDetail(box, c); })
+      .catch(function (e) {
+        box.textContent = "";
+        box.appendChild(el("a", { class: "back", href: "/companies", text: "← All companies" }));
+        box.appendChild(el("p", { class: "banner", text: e.message + (params.get("company") ? " (" + params.get("company") + ")" : "") }));
+      });
+  }
+  function drawDetail(box, c) {
+    box.textContent = "";
+    document.title = c.name + " · Companies";
+    var tags = [el("span", { class: "tag vert", text: c.vertical + (c.sub && c.sub !== c.vertical ? " · " + c.sub : "") })];
+    if (c.sp500) tags.push(el("span", { class: "tag", text: "S&P 500" }));
+    if (c.ownership) tags.push(el("span", { class: "tag", text: c.ownership.charAt(0).toUpperCase() + c.ownership.slice(1) }));
+    if (c.employees) tags.push(el("span", { class: "tag", text: "~" + fmtN(c.employees) + " employees" }));
+    var head = [el("h1", { class: "co-title", text: c.name })];
+    if (c.website) head.push(el("a", { class: "co-site", href: c.website, target: "_blank", rel: "noopener",
+                                       text: c.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") + " ↗" }));
+    box.appendChild(el("a", { class: "back", href: "/companies", text: "← All companies" }));
+    box.appendChild(el("article", { class: "co-card" }, [
+      el("div", { class: "co-head" }, head), el("div", { class: "tags" }, tags),
+      c.desc ? el("p", { class: "co-desc", text: c.desc }) : null,
+      officesLine(c),
+      el("div", { class: "co-foot" }, [c.jobs
+        ? el("a", { class: "co-jobs", href: "/?company=" + encodeURIComponent(c.jobs.label), text: plural(c.jobs.n, "open role", "open roles") + " on Find a job →" })
+        : el("span", { class: "co-nojobs", text: "No open roles in the job feeds we read" })])]));
+
+    // who is who: the company map
+    var g = el("section", { class: "co-card rg", id: "graph" }, [
+      el("div", { class: "rg-head" }, [el("h2", { text: "Who's who at " + c.name }),
+        c.named && c.named.length ? el("span", { class: "muted tiny", text: "People your cohort knows, by function and seniority" }) : null])]);
+    if (!c.people.length) {
+      g.appendChild(el("p", { class: "muted", text: "No one in your cohort is tied to " + c.name + " yet. Ties appear when classmates add their LinkedIn exports." }));
+      g.appendChild(el("a", { href: "/companies?view=upload", text: "Add classmates' exports →" }));
+    } else {
+      var holder = el("div", { class: "cm" });
+      g.appendChild(holder);
+      if (c.named && c.named.length) g.appendChild(el("p", { class: "muted tiny", text: "Coloured initials show which classmates know each person; " +
+        "purple-edged chips are known by two or more. Click a classmate above to see only the people they know, or a person for details." }));
+      box.appendChild(g);
+      var peopleList = c.named && c.named.length ? namedSection(c) : null;
+      var graph = window.CompanyGraph.render(holder, c);
+    }
+    if (!c.people.length) box.appendChild(g);
+
+    // best ways in
+    if (c.ways && c.ways.length) {
+      var list = el("ol", { class: "ways" }, c.ways.map(function (w, i) {
+        var li = el("li", { class: "way" + (i === 0 ? " top" : "") }, [
+          el("div", { class: "way-h" }, [w.url ? el("b", {}, [el("a", { href: w.url, target: "_blank", rel: "noopener", text: w.name })])
+                                                 : el("b", { text: w.kind === "classmate" ? "Ask " + w.name : w.name }),
+                                         i === 0 ? el("span", { class: "tag works", text: "Strongest" }) : null]),
+          el("div", { class: "way-why", text: w.why.join(" · ") })]);
+        if (w.kind === "classmate" && graph) {
+          li.addEventListener("mouseenter", function () { graph.highlight(w.name); });
+          li.addEventListener("mouseleave", function () { graph.highlight(null); });
+        }
+        return li;
+      }));
+      var you = c.people.filter(function (p) { return p.name === c.me; })[0];
+      var youLine = you && (you.count || you.worked) ? el("div", { class: "way-you", text: "You: " + [you.worked ? (you.worked.current ? "you work here" : "you worked here") : null,
+        you.count ? "you know " + plural(you.count, "person", "people") + " here yourself" : null].filter(Boolean).join(" · ") + "." }) : null;
+      box.appendChild(el("section", { class: "co-card" }, [
+        el("h2", { text: "Best ways in" + (c.field ? " for a " + c.field + " role" : "") }),
+        youLine,
+        el("p", { class: "muted tiny", text: "Strongest first: a classmate who works there now, then one who worked there, then who knows the most people, " +
+          "especially in the role's field, recruiting or leadership, and contacts several classmates share." }),
+        list,
+        el("div", { class: "tie-foot" }, [el("a", { href: "/companies?view=connect", text: "Connect with these classmates on LinkedIn" })])]));
+    } else if (c.people.length) {
+      box.appendChild(el("section", { class: "co-card" }, [el("h2", { text: "Best ways in" }),
+        el("p", { class: "muted", text: "Only you are tied to " + c.name + " so far." })]));
+    }
+    if (c.shared && c.shared.length) box.appendChild(sharedSection(c));
+    if (peopleList) box.appendChild(peopleList.node);
+    else if (c.people.length) box.appendChild(el("p", { class: "muted tiny", text: "Names appear once classmates' exports are uploaded again (uploads before this change kept only counts)." }));
+    if (location.hash === "#graph") { var t = document.getElementById("graph"); if (t) t.scrollIntoView({ block: "start" }); }
+  }
+
+  // The most meaningful shared connections (people 2+ classmates know): the top few, with "See all".
+  function sharedSection(c) {
+    var labels = c.bucket_labels || {}, TOP = 5, PAGE_N = 30, all = false, shownN = PAGE_N;
+    var list = el("ol", { class: "sh-list" });
+    var toggle = el("button", { type: "button", class: "btn sh-all" });
+    var more = el("button", { type: "button", class: "btn more", text: "Show more" });
+    function row(x, i) {
+      var who = x.known_by
+        ? x.known_by.map(function (k) { return (k.name === c.me ? "you" : k.name) + (k.since ? " (" + k.since + ")" : ""); }).join(", ")
+        : (x.connectors || []).join(", ") + (x.since ? " · since " + x.since : "");
+      var role = labels[x.bucket] || "someone";
+      var name = x.name
+        ? (x.url ? el("a", { class: "np-name", href: x.url, target: "_blank", rel: "noopener", text: x.name + " ↗" }) : el("span", { class: "np-name", text: x.name }))
+        : el("span", { class: "np-name", text: "A " + role + " contact" });
+      return el("li", { class: "sh" + (i === 0 ? " top" : "") }, [
+        el("div", { class: "np-top" }, [el("span", { class: "sh-rank", text: String(i + 1) }), name]),
+        x.position ? el("div", { class: "np-pos", text: x.position }) : null,
+        el("div", { class: "sh-why" }, x.why.map(function (w) { return el("span", { class: "tag" + (/^Known by \d/.test(w) ? " shared" : /who work/.test(w) ? " works" : "") , text: w }); })),
+        el("div", { class: "np-who", text: "Known by " + who })]);
+    }
+    function draw() {
+      var rows = all ? c.shared.slice(0, shownN) : c.shared.slice(0, TOP);
+      list.textContent = "";
+      rows.forEach(function (x, i) { list.appendChild(row(x, i)); });
+      toggle.hidden = c.shared.length <= TOP;
+      toggle.textContent = all ? "Show the top " + TOP : "See all " + fmtN(c.shared.length) + " shared connections";
+      more.hidden = !all || c.shared.length <= shownN;
+      more.textContent = "Show more (" + fmtN(c.shared.length - shownN) + " left)";
+    }
+    toggle.addEventListener("click", function () { all = !all; shownN = PAGE_N; draw(); if (!all) node.scrollIntoView({ block: "start" }); });
+    more.addEventListener("click", function () { shownN += PAGE_N; draw(); });
+    var node = el("section", { class: "co-card", id: "shared" }, [
+      el("h2", { text: "Most meaningful shared connections (" + fmtN(c.shared.length) + ")" }),
+      el("p", { class: "muted tiny", text: "People two or more classmates know. Ranked by how many classmates know them, whether a classmate " +
+        "who worked here knows them, seniority, recruiting" + (c.field ? ", the " + c.field + " field" : "") + ", and how long the connection goes back." }),
+      list, more, toggle]);
+    draw();
+    return node;
+  }
+
+  // People your cohort knows at the company, by name: search, filter by role, and who knows each person.
+  function namedSection(c) {
+    var labels = c.bucket_labels || {}, PAGE_N = 30, shownN = PAGE_N, bucket = "", text = "";
+    var counts = {};
+    c.named.forEach(function (x) { counts[x.bucket] = (counts[x.bucket] || 0) + 1; });
+    var input = el("input", { type: "search", class: "np-search", placeholder: "Search names and titles…", "aria-label": "Search people" });
+    var chips = el("div", { class: "chips np-chips" });
+    var list = el("ol", { class: "np-list" }), more = el("button", { type: "button", class: "btn more", text: "Show more" });
+    function cap(t) { t = labels[t] || t; return t.charAt(0).toUpperCase() + t.slice(1); }
+    function drawChips() {
+      chips.textContent = "";
+      [""].concat(Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; })).forEach(function (b) {
+        var ch = el("button", { type: "button", class: "chip", "aria-pressed": String(bucket === b) },
+                    [b ? cap(b) : "Everyone", el("span", { class: "n", text: " " + fmtN(b ? counts[b] : c.named.length) })]);
+        ch.addEventListener("click", function () { bucket = b; shownN = PAGE_N; draw(); });
+        chips.appendChild(ch);
+      });
+    }
+    function draw() {
+      drawChips();
+      var q = text.toLowerCase();
+      var rows = c.named.filter(function (x) {
+        return (!bucket || x.bucket === bucket) && (!q || (x.name + " " + (x.position || "")).toLowerCase().indexOf(q) >= 0);
+      });
+      list.textContent = "";
+      rows.slice(0, shownN).forEach(function (x) {
+        var who = x.known_by.map(function (k) { return (k.name === c.me ? "you" : k.name) + (k.since ? " (" + k.since + ")" : ""); }).join(", ");
+        list.appendChild(el("li", { class: "np" + (x.known_by.length > 1 ? " shared" : "") }, [
+          el("div", { class: "np-top" }, [
+            x.url ? el("a", { class: "np-name", href: x.url, target: "_blank", rel: "noopener", text: x.name + " ↗" }) : el("span", { class: "np-name", text: x.name }),
+            el("span", { class: "tag", text: cap(x.bucket) }),
+            x.known_by.length > 1 ? el("span", { class: "tag shared", text: "known by " + x.known_by.length }) : null]),
+          x.position ? el("div", { class: "np-pos", text: x.position }) : null,
+          el("div", { class: "np-who", text: "Known by " + who })]));
+      });
+      if (!rows.length) list.appendChild(el("li", { class: "muted", text: "No one matches." }));
+      more.hidden = rows.length <= shownN;
+      more.textContent = "Show more (" + fmtN(rows.length - shownN) + " left)";
+    }
+    input.addEventListener("input", function () { text = input.value; shownN = PAGE_N; draw(); });
+    more.addEventListener("click", function () { shownN += PAGE_N; draw(); });
+    var node = el("section", { class: "co-card", id: "people" }, [
+      el("h2", { text: "People your cohort knows at " + c.name + " (" + fmtN(c.named_total) + ")" }),
+      el("p", { class: "muted tiny", text: "Known by several classmates first, then people in the role's field, recruiters and leaders. Names link to LinkedIn." }),
+      input, chips, list, more]);
+    draw();
+    return { node: node, pick: function (b) {
+      bucket = b === "rest" ? "" : b; shownN = PAGE_N; draw();
+      node.scrollIntoView({ behavior: "smooth", block: "start" });
+    } };
+  }
+
+  var logout = document.querySelector(".cb-logout");
+  if (logout) logout.addEventListener("click", function () {
+    fetch("/logout", { method: "POST" }).then(function () { location.href = "/login"; });
+  });
+
+  var detailParams = new URLSearchParams(location.search);
+  if (detailParams.get("id") || detailParams.get("company")) { showDetail(detailParams); return; }
 
   fetch("/api/companies", { credentials: "same-origin" })
     .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })

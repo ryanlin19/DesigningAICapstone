@@ -131,6 +131,7 @@ NAV_HTML = """<header class="cb-nav">
       <a href="/companies" data-tab="companies" aria-current="page">Companies</a>
       <a href="/companies?view=bridges" data-tab="cohort">Cohort</a>
     </nav>
+    <a class="cb-upload" href="/companies?view=upload" title="Request your LinkedIn data export, then upload the zip here">Upload your data</a>
     <span class="cb-private">Private: this computer only</span>
     <button class="cb-logout" type="button">Log out</button>
   </div>
@@ -529,7 +530,8 @@ def connections_by_board_company(snap, names):
                 bucket = top if n * 2 >= sum(c["keyed"].values()) else "other"
             else:
                 bucket = c["legacy"].most_common(1)[0][0]
-            connectors.append({"name": people.get(pid, pid), "count": c["count"], "bucket": bucket})
+            connectors.append({"name": people.get(pid, pid), "count": c["count"], "bucket": bucket,
+                               "buckets": dict(c["keyed"] + c["legacy"]), "exact": not c["legacy"]})
         keyed_unique = uniq_root.get(resolved, 0) if children.get(resolved) else uniq_co.get(resolved, 0)
         legacy = sum(sum(c["legacy"].values()) for c in per.values())
         shared = [shared_item(r, links, people) for n in norms for r in shared_by_norm.get(n, [])]
@@ -588,7 +590,19 @@ def my_history_titles():
         return []
 
 
+_cohort_map = {"key": None, "value": None}
+
+
 def find_cohort_map():
+    """Cached per cohort snapshot and job set, so the same dict comes back and search's ranking cache can hold."""
+    snap = get_snapshot()
+    key = (id(snap), _cache["key"], len(read_manual()))
+    if _cohort_map["key"] != key:
+        _cohort_map.update(key=key, value=_find_cohort_map())
+    return _cohort_map["value"]
+
+
+def _find_cohort_map():
     """Everyone in the cohort database tied to each company, for the job cards' dropdown on Find a job.
 
     {company: {"people": [...], "classmates": n, "contacts": n, "alumni": [names], "shared": n}}. Each person:
@@ -618,6 +632,7 @@ def cohort_people(c, manual):
     for k in c.get("connectors") or []:
         p = person(k["name"])
         p["count"], p["bucket"] = k["count"], k["bucket"]
+        p["buckets"], p["exact"] = k.get("buckets") or {}, k.get("exact", True)
     for m in manual:
         person(m["classmate"])["added"].append({"contact": m.get("contact"), "title": m.get("title"), "note": m.get("note")})
     if not people:
@@ -674,6 +689,286 @@ def directory_payload():
         out.append(row)
     out.sort(key=directory.rank_key)
     return {"ready": True, "companies": out, "verticals": list(directory_verticals()), "warning": warning}
+
+
+_co_vert = {"key": None, "value": {}}
+
+
+def job_company_verticals():
+    """{job feed company name: vertical} for companies the company database knows (cached per database and job set)."""
+    d = directory.load()
+    data, version, _ = all_jobs()
+    if not d or not data:
+        return {}
+    if _co_vert["key"] != (d["version"], version):
+        vert = {c["id"]: c["vertical"] for c in d["companies"]}
+        out = {}
+        for co in {j["company"] for j in data["jobs"]}:
+            cid = directory.company_id(co, d["names"])
+            if cid in vert and vert[cid] != "Other":
+                out[co] = vert[cid]
+        _co_vert.update(key=(d["version"], version), value=out)
+    return _co_vert["value"]
+
+
+# ---------- one company: the relationship graph and the best ways in ----------
+
+# A job's broad category -> the contact title buckets that work in that field (for "knows N people in your field").
+FIELD_BUCKETS = {"Consulting": {"consulting"}, "Strategy & Operations": {"operations", "consulting"}, "Finance": {"finance"},
+                 "Data & Analytics": {"data_ml"}, "Product": {"product", "design"}, "Marketing & Growth": {"marketing"},
+                 "Sales & Business Development": {"sales_gtm"}, "Operations & Supply Chain": {"operations"},
+                 "Technology & Engineering": {"engineering", "data_ml"}, "People & HR": {"recruiting"}, "Legal & Policy": {"legal"}}
+BUCKET_LABEL = {"engineering": "engineering", "data_ml": "data / ML", "product": "product", "design": "design",
+                "recruiting": "recruiting", "sales_gtm": "sales / GTM", "marketing": "marketing", "finance": "finance",
+                "consulting": "consulting", "research": "research", "operations": "operations", "legal": "legal",
+                "healthcare": "healthcare", "education": "education", "student_intern": "students / interns",
+                "leadership": "leadership", "other": "other roles"}
+
+
+def company_norms(snap, name):
+    """The database's company keys for a company name: its own (through aliases) plus its units."""
+    norm = rules.normalize_company(name)
+    if not norm:
+        return []
+    aliases = {a["alias"]: a["company_norm"] for a in snap["aliases"]}
+    resolved = aliases.get(norm) or aliases.get(rules.compress(norm)) or norm
+    return [resolved] + [r["company_norm"] for r in snap["parents"] if r["parent_norm"] == resolved]
+
+
+# ---------- who is who: a contact's function and seniority, from their title ----------
+
+TIERS = ["Leadership", "Senior", "Mid", "Early career"]
+_T_EARLY = re.compile(r"\b(intern|internship|summer|student|trainee|apprentice|fellow|graduate)\b", re.I)
+_T_LEAD = re.compile(r"\b(chief|ceo|cfo|coo|cto|cmo|cio|cpo|president|founder|co-founder|partner|managing director|md|"
+                     r"vice president|vp|svp|evp|avp|head of|director|general manager|gm)\b", re.I)
+_T_SENIOR = re.compile(r"\b(senior|sr|lead|principal|manager|staff|expert|specialist lead)\b", re.I)
+_T_JUNIOR = re.compile(r"\b(analyst|coordinator|assistant|junior|jr|associate consultant)\b", re.I)
+# Titles that only say "where" by the company's line of work: an Associate at a consulting firm consults,
+# a VP at a bank does finance.
+_VERTICAL_FUNCTION = {"Consulting": "Consulting", "Financial Services": "Finance"}
+_GENERIC_TITLE = re.compile(r"\b(associate|consultant|partner|principal|analyst|vice president|vp|managing director|md|"
+                            r"director|manager|summer associate|engagement manager|fellow)\b", re.I)
+
+
+def seniority(title):
+    t = title or ""
+    if _T_EARLY.search(t):
+        return "Early career"
+    if re.search(r"talent|recruit|\bhr\b|human resources|people|business partner", t, re.I):
+        t = re.sub(r"\bpartner\b", "", t, flags=re.I)        # an HR or recruiting "partner" isn't a firm partner
+    if _T_LEAD.search(t):
+        return "Leadership"
+    if _T_SENIOR.search(t):
+        return "Senior"
+    if _T_JUNIOR.search(t):
+        return "Early career"
+    return "Mid"
+
+
+def function_of(title, vertical):
+    """The board's broad categories (same title rules as Find a job); generic titles take the company's line of work."""
+    f = find.cats.category(title or "") if title else "Other"
+    if f == "Other" and vertical in _VERTICAL_FUNCTION and _GENERIC_TITLE.search(title or ""):
+        return _VERTICAL_FUNCTION[vertical]
+    return f
+
+
+def named_contacts(norms, people_names, field=None):
+    """People your cohort knows at a company, by name: [{name, position, url, bucket, known_by: [{name, since}]}].
+
+    Read from this computer's cohort.db (every upload goes through it), so names work whatever the cloud holds.
+    Classmates themselves are left out. Order: known by the most classmates, then the job's field, recruiting and
+    leadership, then name."""
+    if not norms or not COHORT_DB.exists():
+        return []
+    con = sqlite3.connect(f"file:{COHORT_DB}?mode=ro", uri=True)
+    con.row_factory = sqlite3.Row
+    try:
+        cols = {r[1] for r in con.execute("PRAGMA table_info(contacts)")}
+        if "full_name" not in cols:
+            return []
+        selves = {r[0] for r in con.execute("SELECT self_key FROM people WHERE self_key IS NOT NULL")}
+        rows = con.execute(f"""SELECT contact_key, connector_id, title_bucket, connected_year, full_name, position, profile_url
+                               FROM contacts WHERE company_norm IN ({','.join('?' * len(norms))})""", norms).fetchall()
+    finally:
+        con.close()
+    by = {}
+    for r in rows:
+        if r["contact_key"] in selves:
+            continue
+        c = by.setdefault(r["contact_key"], {"name": None, "position": None, "url": None, "bucket": r["title_bucket"], "known_by": []})
+        c["name"] = c["name"] or r["full_name"]
+        c["position"] = c["position"] or r["position"]
+        c["url"] = c["url"] or r["profile_url"]
+        c["known_by"].append({"name": people_names.get(r["connector_id"], r["connector_id"]), "since": r["connected_year"]})
+    want = FIELD_BUCKETS.get(field or "", set())
+    out = [c for c in by.values() if c["name"]]
+    for c in out:
+        c["known_by"].sort(key=lambda k: (k["since"] or 9999, k["name"]))
+    out.sort(key=lambda c: (-len(c["known_by"]), c["bucket"] not in want, c["bucket"] != "recruiting",
+                            c["bucket"] != "leadership", c["name"].lower()))
+    return out
+
+
+_SENIOR = re.compile(r"\b(chief|c[efotmi]o|president|vp|vice president|svp|evp|head of|director|partner|principal|"
+                     r"managing director|\bmd\b|founder|general manager|gm)\b", re.I)
+_RECRUIT = re.compile(r"recruit|talent acquisition|campus|university relations|sourcer", re.I)
+
+
+def meaningful_shared(shared, people, me, field=None):
+    """Contacts known by 2+ classmates, most meaningful first, each with plain reasons. No learning, just points:
+
+    known by more classmates · known by a classmate who worked at the company (likely a colleague) · senior title ·
+    recruiter · in the job's field · a long-standing connection (earliest year)."""
+    want = FIELD_BUCKETS.get(field or "", set())
+    alumni = {p["name"]: p["worked"] for p in people if p.get("worked")}
+    this_year = datetime.now().year
+    out = []
+    for x in shared:
+        title = x.get("position") or ""
+        who = x.get("connectors") or []
+        pts, why = 20.0 * len(who), [f"Known by {len(who)} classmates"]
+        colleagues = [n for n in who if n in alumni]
+        if colleagues:
+            pts += 25
+            now = len(colleagues) == 1 and alumni[colleagues[0]].get("current")
+            why.append("Known by " + " and ".join(colleagues[:2]) + (", who works here" if now else ", who worked here"))
+        if _SENIOR.search(title) or x.get("bucket") == "leadership":
+            pts += 15
+            why.append("Senior")
+        if _RECRUIT.search(title) or x.get("bucket") == "recruiting":
+            pts += 12
+            why.append("Recruiting")
+        if x.get("bucket") in want:
+            pts += 10
+            why.append("In " + field)
+        since = x.get("since")
+        if since:
+            years = max(0, this_year - since)
+            pts += min(10, years)
+            if years >= 5:
+                why.append(f"Connected since {since}")
+        if me and me in who:
+            why.append("You know them too")
+        out.append({**x, "score": round(pts), "why": why})
+    out.sort(key=lambda x: (-x["score"], (x.get("name") or "~").lower()))
+    return out
+
+
+def best_ways_in(people, shared, knows, me, field=None, named=None):
+    """Rank the ways into a company, strongest first. No learning: points for clear signals, each one explained.
+
+    A classmate who works there now beats one who worked there, who beats one who only knows people there. Knowing
+    people in the job's field, recruiters, or leaders adds points; so does sharing contacts with other classmates and
+    already being connected to you."""
+    want = FIELD_BUCKETS.get(field or "", set())
+    ways = []
+    for p in people:
+        if p["name"] == me:
+            continue
+        pts, why = 0.0, []
+        w = p.get("worked")
+        if w:
+            pts += 100 if w.get("current") else 70
+            why.append(("works here now" if w.get("current") else "worked here") +
+                        (f" as {w['title']}" if w.get("title") else "") + (f" ({w['years']})" if w.get("years") else ""))
+        n = p.get("count") or 0
+        if n:
+            import math
+            pts += min(40.0, 8 * math.log2(1 + n))
+            why.append(f"knows {n} {'person' if n == 1 else 'people'} here")
+        b = p.get("buckets") or {}
+        in_field = sum(v for k, v in b.items() if k in want)
+        if in_field:
+            pts += 15
+            why.append(f"{in_field} in {field}")
+        if b.get("recruiting"):
+            pts += 10
+            why.append(f"{b['recruiting']} in recruiting")
+        if b.get("leadership"):
+            pts += 8
+            why.append(f"{b['leadership']} in leadership")
+        mine = [s for s in shared if p["name"] in s["connectors"]]
+        if mine:
+            pts += min(36, 12 * len(mine))
+            why.append(f"shares {len(mine)} contact{'s' if len(mine) != 1 else ''} here with other classmates")
+        for a in p.get("added") or []:
+            pts += 25
+            why.append("knows " + ", ".join(x for x in (a.get("contact"), a.get("title")) if x))
+        if me and (p["name"], me) in knows or (me, p["name"]) in knows:
+            pts += 10
+            why.append("you're connected")
+        if pts:
+            ways.append({"kind": "classmate", "name": p["name"], "score": round(pts), "why": why[:4]})
+    if named:
+        intros = 0
+        for c in named:
+            others = [k for k in c["known_by"] if k["name"] != me]
+            if not others:
+                continue
+            relevant = c["bucket"] in want or c["bucket"] in ("recruiting", "leadership")
+            if len(c["known_by"]) < 2 and not relevant:
+                continue
+            pts = (30 + 10 * len(c["known_by"]) if len(c["known_by"]) >= 2 else 22) + (8 if c["bucket"] in want else 0) + \
+                  (6 if c["bucket"] == "recruiting" else 0)
+            who = " and ".join(k["name"] for k in others[:2]) + (f" (+{len(others) - 2})" if len(others) > 2 else "")
+            since = min((k["since"] for k in others if k["since"]), default=None)
+            ways.append({"kind": "contact", "name": f"Ask {who} to introduce you to {c['name']}", "score": pts, "url": c["url"],
+                         "why": [x for x in (c["position"], f"known by {len(c['known_by'])} classmates" if len(c["known_by"]) > 1 else None,
+                                             f"connected since {since}" if since else None) if x]})
+            intros += 1
+            if intros >= 4:
+                break
+    else:
+        for s in shared:
+            pts = 30 + 10 * s["depth"] + (5 if s.get("bucket") in want else 0)
+            role = BUCKET_LABEL.get(s.get("bucket"), "someone")
+            ways.append({"kind": "shared", "name": f"A {role} contact known by {s['depth']} classmates", "score": pts,
+                         "why": [("known by " + ", ".join(s["connectors"])) + (f", since {s['since']}" if s.get("since") else "")]})
+    ways.sort(key=lambda w: -w["score"])
+    return ways[:8]
+
+
+def company_detail(cid=None, name=None, field=None):
+    """Everything the company page shows: the directory entry, its jobs, the relationship graph and the best ways in."""
+    d = directory.load()
+    if not d:
+        return None
+    if not cid and name:
+        cid = directory.company_id(name, d["names"])
+    c = next((x for x in d["companies"] if x["id"] == cid), None)
+    if not c:
+        return None
+    try:
+        snap = get_snapshot()
+    except (RuntimeError, OSError):
+        snap = LocalStore().snapshot()
+    ties, _ = connections_by_board_company(snap, [c["cohort_name"]])
+    raw = ties.get(c["cohort_name"]) or {}
+    manual = [e for e in snap["manual"] if directory.company_id(e["company"], d["names"]) == cid]
+    tie = cohort_people(raw, manual) or {"people": [], "contacts": 0}
+    names = {p["person_id"]: p["display_name"] for p in snap["people"]}
+    knows = {(names.get(r["knower"], r["knower"]), names.get(r["classmate"], r["classmate"])) for r in snap.get("knows", [])}
+    in_graph = {p["name"] for p in tie["people"]}
+    me = names.get(settings().get("me") or "")
+    jobs = (_dir_jobs["value"] or {}).get(cid) if _dir_jobs["value"] is not None else None
+    if _dir_jobs["value"] is None:
+        directory_payload()
+        jobs = (_dir_jobs["value"] or {}).get(cid)
+    named = named_contacts(company_norms(snap, c["cohort_name"]), names, field)
+    for x in named:
+        x["function"], x["tier"] = function_of(x["position"], c["vertical"]), seniority(x["position"])
+    shared = ([{"depth": len(x["known_by"]), "bucket": x["bucket"], "since": min((k["since"] for k in x["known_by"] if k["since"]), default=None),
+                "connectors": [k["name"] for k in x["known_by"]], "name": x["name"], "position": x["position"], "url": x["url"],
+                "known_by": x["known_by"]}
+               for x in named if len(x["known_by"]) > 1] if named else raw.get("shared") or [])
+    shared = meaningful_shared(shared, tie["people"], me, field)
+    row = {k: v for k, v in c.items() if k != "cohort_name"}
+    row.update(people=tie["people"], contacts=tie.get("contacts", 0), shared=shared, jobs=jobs,
+               knows=[[a, b] for a, b in knows if a in in_graph and b in in_graph], me=me, field=field,
+               ways=best_ways_in(tie["people"], shared, knows, me, field, named),
+               named=named[:800], named_total=len(named), bucket_labels=BUCKET_LABEL, tiers=TIERS)
+    return row
 
 
 def directory_verticals():
@@ -783,6 +1078,7 @@ STATIC_FILES = {
     "/globalbar.js": (STATIC / "globalbar.js", "application/javascript"),
     "/cohort.css": (STATIC / "cohort.css", "text/css"),
     "/companies.js": (STATIC / "companies.js", "application/javascript"),
+    "/companygraph.js": (STATIC / "companygraph.js", "application/javascript"),
     "/companies.css": (STATIC / "companies.css", "text/css"),
 }
 
@@ -842,6 +1138,13 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200, (STATIC / "companies.html").read_bytes(), "text/html; charset=utf-8")
             if path == "/api/companies":
                 return self.send(200, json.dumps(directory_payload(), ensure_ascii=False), "application/json")
+            if path == "/api/company":                          # one company: relationship graph and best ways in
+                qs = parse_qs(urlsplit(self.path).query)
+                one = company_detail(cid=(qs.get("id") or [None])[0], name=(qs.get("company") or [None])[0],
+                                     field=(qs.get("field") or [None])[0])
+                if not one:
+                    return self.send(404, json.dumps({"error": "Company not found in the directory."}), "application/json")
+                return self.send(200, json.dumps(one, ensure_ascii=False), "application/json")
             if path in ("/companies", "/index.html"):            # Cohort views: Ryan's page plus the cohort layer
                 return self.send(200, build_page(), "text/html; charset=utf-8")
             if path == "/api/description":                       # full job text, read from data/descriptions.db
@@ -855,6 +1158,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200, json.dumps({
                     "ready": bool(data), "source": source, "generated": (data or {}).get("generated"),
                     "total": len((data or {}).get("jobs", [])), "categories": find.cats.CATEGORIES, "levels": find.cats.LEVELS,
+                    "skills": (data or {}).get("vocab", {}).get("skills", []), "verticals": list(directory_verticals()),
                     "me": settings().get("me")}), "application/json")
             if path == "/data.js":                               # the roles: from the cohort database, else site/data.js
                 return self.send(200, board_data()[1], "application/javascript; charset=utf-8")
@@ -911,7 +1215,8 @@ class Handler(BaseHTTPRequestHandler):
                 cohort = {}
             limit = d.get("limit", 40)                 # 0: counts only (the map)
             res = find.search(data, d.get("profile") or {}, d.get("filters") or {}, cohort,
-                              offset=max(0, int(d.get("offset") or 0)), limit=max(0, min(100, int(limit if limit is not None else 40))))
+                              offset=max(0, int(d.get("offset") or 0)), limit=max(0, min(100, int(limit if limit is not None else 40))),
+                              want=d.get("want") or {}, co_vertical=job_company_verticals(), with_path=bool(d.get("path")))
             return self.send(200, json.dumps(res, ensure_ascii=False), "application/json")
         if path == "/api/me":
             try:

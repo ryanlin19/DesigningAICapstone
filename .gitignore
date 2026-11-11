@@ -26,3 +26,6 @@ data/all_jobs.json
 # Company directory database (target list comes from classmates connections)
 data/companies.db
 data/company-db/
+
+# Personal handoff notes (not shared)
+handoff.md

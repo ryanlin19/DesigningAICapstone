@@ -33,8 +33,16 @@
       el("p", { class: "cohort-sub", text: "Each export is read on this computer: only Connections, Profile, Positions, " +
         "Education and Skills are opened, plus Invitations for one thing only, the classmate's own profile link (taken " +
         "from invitations they sent, when you don't type it in). The export is deleted as soon as it's loaded, and from a " +
-        "folder only those files are sent at all. Contacts are stored as fingerprints, never names or links. Loading a " +
-        "classmate again replaces their earlier data." }),
+        "folder only those files are sent at all. Contacts' names, job titles and LinkedIn links are kept for the " +
+        "relationship graph; their emails are not. Loading a classmate again replaces their earlier data." }),
+      el("div", { class: "cohort-howto" }, [
+        el("b", { text: "Getting your LinkedIn export: " }),
+        el("a", { href: "https://www.linkedin.com/mypreferences/d/download-my-data", target: "_blank", rel: "noopener",
+                  text: "open LinkedIn's “Get a copy of your data” page ↗" }),
+        el("ol", {}, [
+          el("li", { text: "Pick the files you want: tick Connections and Profile (or take the full archive)." }),
+          el("li", { text: "Click “Request archive”. LinkedIn emails you a download link, usually within minutes for Connections and up to a day for the full archive." }),
+          el("li", { text: "Download the .zip and drop it below as it is: no need to unzip." })])]),
       D.can_upload ? null : el("p", { class: "cohort-warn", text: "Uploads are off: no contact key is set up. Run " +
         "`python -m ingest.contact_keys new` in linkedin-ingest, then restart the board." }),
       drop, note, queueBox,

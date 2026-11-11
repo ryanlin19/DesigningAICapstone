@@ -3,13 +3,19 @@
 // Pages read them through window.Global:
 //   Global.state()            -> {visa: "any"|"not_no"|"likely", regions: [...], buckets: [...]}
 //   Global.setFitCounts(c)    -> show {bucket: n} counts in the Fit row
-//   Global.profile()          -> resume profile or null
+//   Global.profile()          -> resume profile ("What you are") or null
+//   Global.want()             -> "What you want": {categories, levels, verticals, companies, avoid, salary_min}
 //   Global.passes(job)        -> sponsorship + location check, for pages that filter in the browser
 //   Global.bucket(job)        -> fit bucket for a job with {bcat, blevel, min_years}, or null without a resume
 //   Global.onChange(fn)       -> called after any change in the panel
 //   Global.onRevert(fn)       -> what "Revert to everything" also resets on this page
 (function () {
-  var KEY = "cohort.global", PROFILE = "cohort.profile", PAGE_FILTERS = "cohort.findFilters";
+  var KEY = "cohort.global", PROFILE = "cohort.profile", WANT = "cohort.want", PAGE_FILTERS = "cohort.findFilters";
+  var LEVELS = ["Internship", "Entry", "Mid", "Senior", "Executive"];
+  var EMPTY_WANT = { categories: [], levels: [], verticals: [], companies: [], avoid: [], salary_min: 0 };
+  function want() { var w = Object.assign({}, EMPTY_WANT, load(WANT, {})); return w; }
+  var meta = null;                                 // skill names and verticals, from /api/find/meta
+  var pathData = null, pathSeq = 0, pathTimer = null;
   var PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
   var PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
   var MAMMOTH = "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js";
@@ -44,7 +50,7 @@
   state.buckets = state.buckets || DEFAULT_BUCKETS.slice();
   var listeners = [], revertFn = null, regionCounts = null, fitCounts = null;
 
-  function changed() { save(KEY, state); draw(); listeners.forEach(function (fn) { fn(state); }); }
+  function changed() { save(KEY, state); draw(); listeners.forEach(function (fn) { fn(state); }); schedulePath(); }
 
   // ---------- fit (same rules as find.py, for pages that score jobs in the browser) ----------
   var ADJ = {
@@ -125,6 +131,48 @@
     }).catch(function (e) { status = e.message; draw(); });
   }
   function setProfile(fn) { var p = load(PROFILE, null); if (!p) return; fn(p); save(PROFILE, p); changed(); }
+  function setWant(fn) { var w = want(); fn(w); save(WANT, w); changed(); }
+
+  // ---------- your path: closest gaps across the roles you aim at (from /api/find) ----------
+  function schedulePath() {
+    clearTimeout(pathTimer);
+    pathTimer = setTimeout(fetchPath, 350);
+  }
+  function fetchPath() {
+    var p = load(PROFILE, null);
+    if (!p) { pathData = null; draw(); return; }
+    var seq = ++pathSeq;
+    fetch("/api/find", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profile: p, want: want(), filters: { visa: state.visa, regions: state.regions }, limit: 0, path: true }) })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (res) { if (seq === pathSeq) { pathData = res && res.path; draw(); } })
+      .catch(function () { /* the panel just shows no path */ });
+  }
+
+  // ---------- small editors: chips you toggle, and a list you add words to ----------
+  function chipPicker(options, picked, onToggle) {
+    return el("div", { class: "gb-chips" }, options.map(function (o) {
+      var on = picked.indexOf(o) >= 0;
+      var b = el("button", { type: "button", class: "gb-chip", "aria-pressed": String(on), text: o });
+      b.addEventListener("click", function () { onToggle(o); });
+      return b;
+    }));
+  }
+  function toggleIn(list, x) { var i = list.indexOf(x); if (i >= 0) list.splice(i, 1); else list.push(x); }
+  function wordList(items, placeholder, label, onAdd, onRemove) {
+    var input = el("input", { type: "text", class: "gb-input", placeholder: placeholder, "aria-label": label });
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && input.value.trim()) { e.preventDefault(); onAdd(input.value.trim()); }
+    });
+    var chips = items.map(function (x) {
+      var b = el("button", { type: "button", class: "gb-chip", "aria-pressed": "true", title: "Remove " + x }, [x, el("span", { "aria-hidden": "true", text: " ×" })]);
+      b.addEventListener("click", function () { onRemove(x); });
+      return b;
+    });
+    return el("div", { class: "gb-words" }, [chips.length ? el("div", { class: "gb-chips" }, chips) : null, input]);
+  }
+  function short(c) { return c.replace("Strategy & Operations", "Strategy & Ops").replace("Sales & Business Development", "Sales & BD")
+                              .replace("Operations & Supply Chain", "Ops & Supply Chain").replace("Technology & Engineering", "Tech & Eng"); }
 
   // ---------- the panel ----------
   var bar = null, editing = false, open = false;
@@ -145,7 +193,8 @@
                 el("label", { class: "gb-btn primary", for: "gbResumeFile", text: "Upload resume" }), file];
     } else {
       var summary = "About " + p.years + " yr" + (p.years === 1 ? "" : "s") + (p.mba ? " + MBA" : "") +
-        (p.categories.length ? " · " + p.categories.join(", ") : " · no fields picked");
+        (p.categories.length ? " · " + p.categories.map(short).join(", ") : " · no fields picked") +
+        ((p.skills || []).length ? " · " + p.skills.length + " skill" + (p.skills.length === 1 ? "" : "s") : "");
       var editBtn = el("button", { type: "button", class: "gb-link", "aria-expanded": String(editing), text: editing ? "Done" : "Edit" });
       editBtn.addEventListener("click", function () { editing = !editing; draw(); });
       resume = [el("p", { class: "gb-summary", text: summary }), el("div", { class: "gb-row" }, [
@@ -158,18 +207,29 @@
         resume.push(el("label", { class: "gb-field" }, ["About ", yrs, " years of experience"]));
         resume.push(el("label", { class: "gb-check" }, [mba, " MBA (graduating or done)"]));
         resume.push(el("div", { class: "gb-label", text: "Your fields (pick 1 to 3)" }));
-        resume.push(el("div", { class: "gb-chips" }, CATEGORIES.map(function (c) {
-          var on = p.categories.indexOf(c) >= 0;
-          var b = el("button", { type: "button", class: "gb-chip", "aria-pressed": String(on), text: c });
-          b.addEventListener("click", function () {
-            setProfile(function (q) { var i = q.categories.indexOf(c); if (i >= 0) q.categories.splice(i, 1); else q.categories.push(c); });
+        resume.push(chipPicker(CATEGORIES, p.categories, function (c) { setProfile(function (q) { toggleIn(q.categories, c); }); }));
+        if (meta && meta.skills) {
+          var names = (p.skills || []).map(function (k) { return meta.skills[k]; }).filter(Boolean);
+          resume.push(el("div", { class: "gb-label", text: "Your skills" }));
+          var addSkill = el("select", { "aria-label": "Add a skill" }, [el("option", { value: "", text: "+ Add a skill…" })]);
+          meta.skills.map(function (n, i) { return [n, i]; }).filter(function (x) { return (p.skills || []).indexOf(x[1]) < 0; })
+            .sort(function (a, b) { return a[0].localeCompare(b[0]); })
+            .forEach(function (x) { addSkill.appendChild(el("option", { value: String(x[1]), text: x[0] })); });
+          addSkill.addEventListener("change", function () {
+            if (addSkill.value !== "") setProfile(function (q) { q.skills = (q.skills || []).concat([+addSkill.value]); });
           });
-          return b;
-        })));
+          resume.push(el("div", { class: "gb-words" }, [names.length ? el("div", { class: "gb-chips" }, (p.skills || []).filter(function (k) { return meta.skills[k]; }).map(function (k) {
+            var b = el("button", { type: "button", class: "gb-chip", "aria-pressed": "true", title: "Remove " + meta.skills[k] },
+                       [meta.skills[k], el("span", { "aria-hidden": "true", text: " ×" })]);
+            b.addEventListener("click", function () { setProfile(function (q) { q.skills = q.skills.filter(function (x) { return x !== k; }); }); });
+            return b;
+          })) : el("p", { class: "gb-note", text: "None found yet." }), addSkill]));
+        }
       }
     }
     if (status) resume.push(el("p", { class: "gb-status", role: "status", text: status }));
-    body.appendChild(section("Your resume", resume));
+    body.appendChild(section("What you are", resume));
+    if (p) body.appendChild(wantSection(p));
 
     // sponsorship
     body.appendChild(section("Visa sponsorship", [el("div", { class: "gb-seg", role: "group", "aria-label": "Visa sponsorship" }, VISA.map(function (v) {
@@ -198,6 +258,56 @@
     loc.push(el("a", { class: "gb-link", href: "/map", text: "Pick on the map →" }));
     body.appendChild(section("Location", loc));
   }
+  var editingWant = false;
+  function wantSection(p) {
+    var w = want(), kids = [];
+    var bits = [];
+    if (w.categories.length) bits.push(w.categories.map(short).join(", "));
+    if (w.levels.length) bits.push(w.levels.join(", "));
+    if (w.verticals.length) bits.push(w.verticals.join(", "));
+    if (w.companies.length) bits.push(w.companies.join(", "));
+    var editBtn = el("button", { type: "button", class: "gb-link", "aria-expanded": String(editingWant), text: editingWant ? "Done" : (bits.length ? "Edit" : "Set your targets") });
+    editBtn.addEventListener("click", function () { editingWant = !editingWant; draw(); });
+    kids.push(bits.length ? el("p", { class: "gb-summary", text: bits.join(" · ") })
+                          : el("p", { class: "gb-note", text: "Where you're aiming. It ranks jobs and shows what would get you closer." }));
+    kids.push(el("div", { class: "gb-row" }, [editBtn]));
+    if (editingWant) {
+      kids.push(el("div", { class: "gb-label", text: "Target fields" }));
+      kids.push(chipPicker(CATEGORIES, w.categories, function (c) { setWant(function (q) { toggleIn(q.categories, c); }); }));
+      kids.push(el("div", { class: "gb-label", text: "Level" }));
+      kids.push(chipPicker(LEVELS, w.levels, function (c) { setWant(function (q) { toggleIn(q.levels, c); }); }));
+      if (meta && meta.verticals) {
+        kids.push(el("div", { class: "gb-label", text: "Verticals" }));
+        kids.push(chipPicker(meta.verticals.filter(function (v) { return v !== "Other"; }), w.verticals,
+                             function (c) { setWant(function (q) { toggleIn(q.verticals, c); }); }));
+      }
+      kids.push(el("div", { class: "gb-label", text: "Companies to aim for" }));
+      kids.push(wordList(w.companies, "Type a company, press Enter", "Add a target company",
+        function (x) { setWant(function (q) { if (q.companies.indexOf(x) < 0) q.companies.push(x); }); },
+        function (x) { setWant(function (q) { toggleIn(q.companies, x); }); }));
+      kids.push(el("div", { class: "gb-label", text: "Avoid (companies or title words)" }));
+      kids.push(wordList(w.avoid, "e.g. recruiter, Amazon", "Add something to avoid",
+        function (x) { setWant(function (q) { if (q.avoid.indexOf(x) < 0) q.avoid.push(x); }); },
+        function (x) { setWant(function (q) { toggleIn(q.avoid, x); }); }));
+      var pay = el("input", { type: "number", min: "0", max: "1000", step: "5", value: w.salary_min ? String(w.salary_min) : "", placeholder: "none",
+                              "aria-label": "Lowest salary, in thousands of dollars" });
+      pay.addEventListener("change", function () { setWant(function (q) { q.salary_min = Math.max(0, +pay.value || 0); }); });
+      kids.push(el("label", { class: "gb-field" }, ["Pay at least $", pay, "K (when listed)"]));
+    }
+    kids.push(pathBox());
+    return section("What you want", kids);
+  }
+  function pathBox() {
+    if (!pathData || !pathData.items || !pathData.items.length) return null;
+    var list = el("ol", { class: "gb-path" }, pathData.items.map(function (it) {
+      var href = it.kind === "bridge" ? "/?cat=" + encodeURIComponent(it.category) : it.kind === "skill" ? "/?skill=" + it.skill : null;
+      return el("li", {}, [href ? el("a", { href: href, text: it.text }) : el("span", { text: it.text })]);
+    }));
+    return el("div", { class: "gb-pathbox" }, [
+      el("div", { class: "gb-label", text: "Closest gaps" }), list,
+      el("p", { class: "gb-note", text: "Across " + fmtN(pathData.n) + " of " + pathData.basis + "." })]);
+  }
+
   function removeBtn() {
     var b = el("button", { type: "button", class: "gb-link", text: "Remove" });
     b.addEventListener("click", function () {
@@ -239,7 +349,17 @@
     var b = bar.querySelector(".gb-revert"); b.classList.add("done"); setTimeout(function () { b.classList.remove("done"); }, 700);
   }
 
+  // "Upload your data" in the top bar: opens LinkedIn's data request in a new tab and brings the board to the upload page.
+  var LINKEDIN_EXPORT = "https://www.linkedin.com/mypreferences/d/download-my-data";
+  function wireUpload() {
+    var a = document.querySelector(".cb-upload");
+    if (!a || a._wired) return;
+    a._wired = true;
+    a.addEventListener("click", function () { window.open(LINKEDIN_EXPORT, "_blank", "noopener"); });   // the link itself goes to Upload
+  }
+
   function mount() {
+    wireUpload();
     if (bar) return;
     var toggle = el("button", { type: "button", class: "gb-toggle", "aria-expanded": "false", "aria-controls": "globalBar" }, ["Your search"]);
     toggle.addEventListener("click", function () { open = !open; bar.classList.toggle("open", open); toggle.setAttribute("aria-expanded", String(open)); });
@@ -258,6 +378,9 @@
         el("div", { class: "cb-fit", role: "group", "aria-label": "Fit to your resume, on every tab" })])]));
     }
     draw();
+    fetch("/api/find/meta").then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (m) { if (m) { meta = m; draw(); } }).catch(function () { /* editors just lack skills and verticals */ });
+    schedulePath();
     // regions with job counts, for the "Add a region" picker
     fetch("/api/find", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ filters: {}, limit: 0 }) })
       .then(function (r) { return r.ok ? r.json() : null; }).then(function (res) {
@@ -274,6 +397,7 @@
     state: function () { return { visa: state.visa, regions: state.regions.slice(), buckets: state.buckets.slice() }; },
     setFitCounts: function (c) { fitCounts = c || null; drawFit(); },
     profile: function () { return load(PROFILE, null); },
+    want: want,
     setRegions: function (list) { state.regions = list.slice(); changed(); },
     toggleRegion: function (r) { var i = state.regions.indexOf(r); if (i >= 0) state.regions.splice(i, 1); else state.regions.push(r); changed(); },
     passes: passes, bucket: bucket,

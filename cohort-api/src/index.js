@@ -6,6 +6,7 @@
 //   GET    /v1/snapshot        -> everything the board needs, in one call, including shared contacts
 //   GET    /v1/jobs/version    -> the current jobs build {build_id, generated, pushed_at, jobs}; ?kind=all for every posting
 //   GET    /v1/jobs            -> the current build's roles, shaped like the page's window.BOARD_DATA; ?kind=all likewise
+//   GET    /v1/contacts        -> named contacts at some companies (?company=norm, repeatable, up to 30), for the relationship graph
 //   POST   /v1/manual          -> add a hand-entered connection {company, classmate, contact, title, note}
 //   DELETE /v1/manual/:id      -> remove one
 
@@ -19,6 +20,14 @@ export default {
       if (!(await authorized(request, env))) return json({ error: "unauthorized" }, 401);
 
       if (request.method === "GET" && url.pathname === "/v1/snapshot") return json(await snapshot(env.DB));
+      if (request.method === "GET" && url.pathname === "/v1/contacts") {
+        const norms = url.searchParams.getAll("company").map((c) => c.slice(0, 200)).filter(Boolean).slice(0, 30);
+        if (!norms.length) return json({ error: "company required" }, 400);
+        const rows = await env.DB.prepare(
+          `SELECT contact_key, connector_id, company_norm, title_bucket, connected_year, full_name, position, profile_url
+           FROM contacts WHERE company_norm IN (${norms.map(() => "?").join(",")}) LIMIT 5000`).bind(...norms).all();
+        return json({ contacts: rows.results });
+      }
       const kind = url.searchParams.get("kind") === "all" ? "all" : "board";
       if (request.method === "GET" && url.pathname === "/v1/jobs/version") {
         const b = await currentBuild(env.DB, kind);

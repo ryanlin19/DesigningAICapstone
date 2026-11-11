@@ -18,13 +18,14 @@
       <a href="/companies" data-tab="companies" aria-current="page">Companies</a>
       <a href="/companies?view=bridges" data-tab="cohort">Cohort</a>
     </nav>
+    <a class="cb-upload" href="/companies?view=upload" title="Request your LinkedIn data export, then upload the zip here">Upload your data</a>
     <span class="cb-private">Private: this computer only</span>
     <button class="cb-logout" type="button">Log out</button>
   </div>
 </header>
 
 <main class="wrap layout">
-  <section class="results" aria-label="Companies">
+  <section class="results" id="dirList" aria-label="Companies">
     <div class="banner" id="banner" hidden></div>
     <div class="results-head">
       <div>
@@ -45,8 +46,10 @@
     <div id="list"></div>
     <button class="btn more" id="more" type="button" hidden>Show more</button>
   </section>
+  <section class="results co-detail" id="detail" aria-label="Company" hidden></section>
 </main>
 <script src="globalbar.js"></script>
+<script src="companygraph.js"></script>
 <script src="companies.js"></script>
 </body>
 </html>

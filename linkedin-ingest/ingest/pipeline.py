@@ -5,8 +5,8 @@ Steps (D = deterministic code, AI = model judgment):
      the owner's own profile link)
   D  check consent scopes
   D  parse the person's own profile, positions, education, skills
-  D  read connections keeping only (company, title); names are never kept
-  D  turn each contact's profile link into a keyed fingerprint (contact_keys.py); the link is not kept
+  D  read connections: company, title, name and profile link (emails are never kept)
+  D  turn each contact's profile link into a keyed fingerprint (contact_keys.py) that matches them across exports
   D  normalize company names; exact, alias and compressed-key lookup in the registry
   D  retrieve registry candidates for names with no exact match
   AI decide same / subsidiary / different, only when candidates exist
@@ -86,8 +86,8 @@ def parse_csv(text, header_start=None):
 
 
 def connection_rows(text):
-    """One dict per connection, held in memory only. Names and URLs are used for nothing except
-    computing a contact key; email is never read. Nothing here is written as-is."""
+    """One dict per connection: company, title, name, profile link and date (for the contact key and the
+    cohort's relationship graph). Email is never read."""
     return [{"company": (r.get("Company") or "").strip(), "title": (r.get("Position") or "").strip(),
              "url": r.get("URL"), "first": r.get("First Name"), "last": r.get("Last Name"),
              "connected_on": r.get("Connected On")}
@@ -292,8 +292,12 @@ class Ingestor:
             for (r, c), b in zip(kept, buckets):
                 key = contact_keys.contact_key(self.contact_secret, r["url"], r["first"], r["last"], c)
                 if key:
-                    cur = self.con.execute("INSERT OR IGNORE INTO contacts VALUES (?,?,?,?,?,?)",
-                                           (key, pid, c, b, contact_keys.connected_year(r["connected_on"]), snapshot))
+                    name = " ".join(x.strip() for x in (r["first"] or "", r["last"] or "") if x and x.strip()) or None
+                    cur = self.con.execute(
+                        "INSERT OR IGNORE INTO contacts (contact_key, connector_id, company_norm, title_bucket, connected_year, "
+                        "snapshot_date, full_name, position, profile_url) VALUES (?,?,?,?,?,?,?,?,?)",
+                        (key, pid, c, b, contact_keys.connected_year(r["connected_on"]), snapshot, name,
+                         r["title"] or None, contact_keys.canonical_profile_url(r["url"])))
                     keyed += cur.rowcount
             summary["contacts_keyed"] = keyed
         else:

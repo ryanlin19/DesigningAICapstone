@@ -102,21 +102,33 @@ def resume_profile(text, history_titles=()):
 
 # ---------- fit ----------
 
+def field_of(job, p):
+    """strong (your field) | partial (a neighbour) | none."""
+    mine = p.get("categories") or []
+    jc = job["category"]
+    if jc in mine:
+        return "strong"
+    if any(jc in cats.ADJACENT.get(c, ()) for c in mine):
+        return "partial"
+    return "none"
+
+
+def years_of(job, p):
+    """(years the job asks, your effective years: an MBA counts 2)."""
+    years = max(0, int(p.get("years") or 0))
+    asks = job["min_years"] if job.get("min_years") is not None else cats.LEVEL_YEARS[job["level"]]
+    return asks, years + (2 if p.get("mba") else 0)
+
+
 def fit(job, p):
     """-> (bucket, reason). p: {years, mba, categories}."""
     mine = p.get("categories") or []
     jc = job["category"]
-    if jc in mine:
-        field = "strong"
-    elif any(jc in cats.ADJACENT.get(c, ()) for c in mine):
-        field = "partial"
-    else:
-        field = "none"
+    field = field_of(job, p)
     years = max(0, int(p.get("years") or 0))
     mba = bool(p.get("mba"))
-    eff = years + (2 if mba else 0)
     lvl = job["level"]
-    asks = job["min_years"] if job.get("min_years") is not None else cats.LEVEL_YEARS[lvl]
+    asks, eff = years_of(job, p)
     you = f"you have about {years} yr{'s' if years != 1 else ''}" + (" + an MBA" if mba else "")
     asks_txt = f"asks {job['min_years']}+ yrs" if job.get("min_years") is not None else f"{lvl.lower()}-level role"
     if lvl == "Internship":
@@ -140,6 +152,183 @@ def fit(job, p):
     if field == "partial":
         return "reach", f"Neighbouring field: {jc}; " + why_level
     return "ready", f"Your field ({jc}); " + why_level
+
+
+# ---------- what you want: ranking, what would make you closer, and your path ----------
+
+# Skill terms too generic (or too much a domain) to be useful advice in "Closer with".
+GENERIC_SKILLS = {"Leadership", "Communication", "Hiring and recruiting", "Stakeholder management", "Cross-functional leadership",
+                  "Problem solving", "People management", "Executive communication", "Negotiation", "Manufacturing",
+                  "Data center and infrastructure", "Public sector and policy"}
+# Industries named in a posting -> directory verticals, for companies the company database doesn't cover (a weaker signal).
+IND_VERTICAL = {"Healthcare": "Healthcare & Life Sciences", "Life sciences": "Healthcare & Life Sciences",
+                "Health tech": "Healthcare & Life Sciences", "Financial services": "Financial Services", "Fintech": "Financial Services",
+                "Software and SaaS": "Technology", "AI and data": "Technology", "Consumer and retail": "Consumer & Retail",
+                "Travel and hospitality": "Consumer & Retail", "Media and entertainment": "Media, Entertainment & Telecom",
+                "Telecom and infrastructure": "Media, Entertainment & Telecom", "Energy and utilities": "Energy & Climate",
+                "Industrials": "Industrials & Manufacturing", "Transportation and logistics": "Transportation & Logistics",
+                "Real estate and construction": "Real Estate", "Education": "Education", "Public sector": "Government & Nonprofit",
+                "Professional services": "Consulting"}
+FEASIBLE = {"ready": 1.0, "reach": 0.6, "overqualified": 0.25, "pivot": 0.1}
+_CRED = re.compile(r"\b(CPA|CFA|PMP|security clearance|clearance required|active clearance|bar admission|licensed attorney)\b", re.I)
+_idf_cache = {"key": None, "idf": None}
+
+
+def skill_idf(data):
+    """Rarer skill terms say more about a job: weight them up (cached per job set)."""
+    if _idf_cache["key"] != id(data):
+        import math
+        n = max(1, len(data["jobs"]))
+        df = Counter(k for j in data["jobs"] for k, _ in j.get("sk", []))
+        _idf_cache.update(key=id(data), idf={k: math.log((n + 1) / (c + 1)) + 0.5 for k, c in df.items()})
+    return _idf_cache["idf"]
+
+
+def clean_want(w):
+    w = w or {}
+    lst = lambda k: [str(x).strip() for x in (w.get(k) or []) if str(x).strip()][:20]
+    try:
+        floor = max(0, int(w.get("salary_min") or 0))
+    except (TypeError, ValueError):
+        floor = 0
+    return {"categories": lst("categories"), "levels": lst("levels"), "verticals": lst("verticals"),
+            "companies": [c.lower() for c in lst("companies")], "avoid": [a.lower() for a in lst("avoid")], "salary_min": floor}
+
+
+def has_want(w):
+    return any(w[k] for k in ("categories", "levels", "verticals", "companies"))
+
+
+def job_vertical(j, co_vertical, inds):
+    """(vertical, sure): from the company database when it knows the company, else the industries the posting names."""
+    v = co_vertical.get(j["company"])
+    if v:
+        return [v], True
+    out = []
+    for i in j.get("ind") or []:
+        k = i if isinstance(i, int) else i[0]
+        name = IND_VERTICAL.get(inds[k]) if k < len(inds) else None
+        if name and name not in out:
+            out.append(name)
+    return out, False
+
+
+def blocked(j, w):
+    """The want's hard limits: companies or words to avoid, and a salary floor (in $K; unknown pay passes)."""
+    if w["avoid"]:
+        co, title = j["company"].lower(), j["title"].lower()
+        if any(a in co or re.search(r"\b" + re.escape(a) + r"\b", title) for a in w["avoid"]):
+            return True
+    if w["salary_min"]:
+        top = (j.get("salary") or {}).get("max")
+        if top and top < w["salary_min"] * 1000:
+            return True
+    return False
+
+
+def rank(j, fitinfo, p, w, tie, vert, today):
+    """-> (score, reasons). What you want, how reachable it is, cohort warmth, freshness. Reasons: at most 3, best first."""
+    b = fitinfo[0]
+    s, reasons = 0.0, []
+    jc = j["category"]
+    if w["companies"] and any(c in j["company"].lower() for c in w["companies"]):
+        s += 0.8
+        reasons.append("Target company")
+    if w["categories"]:
+        if jc in w["categories"]:
+            s += 1.0
+            reasons.append("Target field: " + jc)
+        elif any(jc in cats.ADJACENT.get(c, ()) for c in w["categories"]):
+            s += 0.4
+    if w["levels"] and j["level"] in w["levels"]:
+        s += 0.4
+    vs, sure = vert
+    hit = [v for v in vs if v in w["verticals"]]
+    if hit:
+        s += 0.6 if sure else 0.3
+        reasons.append("Target vertical: " + hit[0])
+    feas = FEASIBLE[b]
+    if b == "pivot" and jc in w["categories"]:
+        feas = 0.45                                        # a pivot into a field you want is worth showing
+    s += feas + 0.5 * fitinfo[2]
+    if tie:
+        if tie.get("alumni"):
+            s += 0.4
+            reasons.append(tie["alumni"][0] + " worked here" if len(tie["alumni"]) == 1 else f"{len(tie['alumni'])} classmates worked here")
+        elif tie.get("contacts"):
+            s += 0.2
+            reasons.append(f"{tie['contacts']} cohort contact{'s' if tie['contacts'] != 1 else ''} here")
+    d = _days_ago(j.get("posted"), today)
+    if d is not None:
+        s += 0.3 * max(0.0, 1 - d / 60)
+    return s, reasons[:3]
+
+
+def missing_skills(j, skills, vocab, idf, n=2):
+    """The posting's most telling skill terms that aren't in your profile (generic ones left out)."""
+    ranked = sorted(j.get("sk", []), key=lambda kw: -kw[1] * idf.get(kw[0], 1))
+    return [k for k, _ in ranked if k not in skills and k < len(vocab) and vocab[k] not in GENERIC_SKILLS][:n]
+
+
+def closer(j, fitinfo, p, vocab, idf):
+    """What would bring a Reach or Serious pivot job within reach: at most 3 short items, from the posting itself."""
+    b = fitinfo[0]
+    if b not in ("reach", "pivot"):
+        return []
+    out = []
+    field = field_of(j, p)
+    if field != "strong":
+        out.append(j["category"] + " experience")
+    asks, eff = years_of(j, p)
+    if asks - eff >= 2 and j["level"] != "Internship":
+        out.append(f"{asks - eff} more year{'s' if asks - eff != 1 else ''}")
+    if j.get("mba") in ("title", "required") and not p.get("mba"):
+        out.append("an MBA")
+    m = _CRED.search((j.get("title") or "") + " " + (j.get("snippet") or ""))
+    if m:
+        out.append(m.group(1))
+    skills = set(p.get("skills") or [])
+    out += [vocab[k] for k in missing_skills(j, skills, vocab, idf)]
+    return out[:3]
+
+
+def path(data, p, w, fits, keep, vocab, idf):
+    """Your closest gaps across the roles you're aiming at (target fields, else your Reach roles): at most 3 items.
+
+    bridge: target-field roles at your level, where the field is the only gap; skill: a term missing from many of them;
+    years: when many of them ask for more experience than you have."""
+    if w["categories"]:
+        aim = [j for j in data["jobs"] if keep(j) and j["category"] in w["categories"]]
+        label = "your target roles"
+    else:
+        aim = [j for j in data["jobs"] if keep(j) and fits[j["id"]][0] == "reach"]
+        label = "your Reach roles"
+    if not aim:
+        return {"items": [], "basis": label, "n": 0}
+    items = []
+    mine = set(p.get("categories") or [])
+    bridges = []
+    for c in w["categories"]:
+        if c in mine:
+            continue
+        n = sum(1 for j in aim if j["category"] == c and years_of(j, p)[0] - years_of(j, p)[1] < 2 and j["level"] != "Internship")
+        if n:
+            bridges.append({"kind": "bridge", "category": c, "n": n,
+                            "text": f"{n:,} {c} roles match your level; the field is the only gap"})
+    items += sorted(bridges, key=lambda b: -b["n"])[:1]                 # the biggest bridge; the rest of the space is for skills
+    skills = set(p.get("skills") or [])
+    gap = Counter()
+    for j in aim:
+        for k in missing_skills(j, skills, vocab, idf, n=3):
+            gap[k] += 1
+    for k, n in gap.most_common(2):
+        share = n / len(aim)
+        if share >= 0.08:
+            items.append({"kind": "skill", "skill": k, "n": n, "text": f"{vocab[k]}: in {round(share * 100)}% of {label}"})
+    longer = sum(1 for j in aim if years_of(j, p)[0] - years_of(j, p)[1] >= 2) / len(aim)
+    if longer >= 0.3:
+        items.append({"kind": "years", "text": f"{round(longer * 100)}% of {label} ask for more experience than you have"})
+    return {"items": items[:3], "basis": label, "n": len(aim)}
 
 
 def skill_match(job, skills):
@@ -179,6 +368,18 @@ def _fits(data, profile):
     return _fit_cache["fits"]
 
 
+_rank_cache = {"key": None, "ranks": None}
+
+
+def _ranks(data, profile, w, cohort, co_vertical, inds, fits, today):
+    """rank() for every job, cached per job set, profile, want, cohort ties and day (filters don't change a job's score)."""
+    key = (id(data), id(fits), json.dumps(w, sort_keys=True), id(cohort), id(co_vertical), today.isoformat())
+    if _rank_cache["key"] != key:
+        _rank_cache.update(key=key, ranks={j["id"]: rank(j, fits[j["id"]], profile, w, cohort.get(j["company"]),
+                                                         job_vertical(j, co_vertical, inds), today) for j in data["jobs"]})
+    return _rank_cache["ranks"]
+
+
 def _days_ago(posted, today):
     try:
         return (today - date.fromisoformat(posted[:10])).days
@@ -186,11 +387,19 @@ def _days_ago(posted, today):
         return None
 
 
-def search(data, profile, f, cohort=None, offset=0, limit=40):
-    """f: {categories, buckets, levels, posted, q, mba, hide_unlikely, warm, sort}. Returns counts and one page."""
+def search(data, profile, f, cohort=None, offset=0, limit=40, want=None, co_vertical=None, with_path=False):
+    """f: {categories, buckets, levels, posted, q, mba, hide_unlikely, warm, sort, skill}. want: "What you want"
+    {categories, levels, verticals, companies, avoid, salary_min}. Returns counts and one page (and your path)."""
     has_profile = bool(profile and (profile.get("categories") or profile.get("skills")))
     fits = _fits(data, profile) if has_profile else {}
     cohort = cohort or {}
+    w = clean_want(want)
+    co_vertical = co_vertical or {}
+    inds = data.get("vocab", {}).get("inds", [])
+    try:
+        want_skill = int(f["skill"]) if f.get("skill") not in (None, "") else None
+    except (TypeError, ValueError):
+        want_skill = None
     today = date.today()
     want_cats, want_buckets, want_levels = set(f.get("categories") or []), set(f.get("buckets") or []), set(f.get("levels") or [])
     q = (f.get("q") or "").strip().lower()
@@ -202,8 +411,23 @@ def search(data, profile, f, cohort=None, offset=0, limit=40):
     visa = f.get("visa") or ("not_no" if f.get("hide_unlikely") else "any")
     regs = job_regions(data)
 
+    def keep(j):                                          # hard limits: hidden companies, the want's avoid list and pay floor,
+        if hidden and j["company"] in hidden:             # sponsorship and location
+            return False
+        if blocked(j, w):
+            return False
+        if visa == "not_no" and j.get("visa") == "Unlikely":
+            return False
+        if visa == "likely" and j.get("visa") != "Likely":
+            return False
+        return not want_regions or bool(want_regions.intersection(regs[j["id"]]))
+
     def passes(j, skip=None):
         if hidden and j["company"] in hidden:
+            return False
+        if blocked(j, w):
+            return False
+        if want_skill is not None and not any(k == want_skill for k, _ in j.get("sk", [])):
             return False
         if skip != "regions" and want_regions and not want_regions.intersection(regs[j["id"]]):
             return False
@@ -257,29 +481,44 @@ def search(data, profile, f, cohort=None, offset=0, limit=40):
             except ValueError:
                 undated += 1
     rows = [j for j in data["jobs"] if passes(j)]
-    order = {b: i for i, b in enumerate(BUCKETS)}
+    ranked = _ranks(data, profile, w, cohort, co_vertical, inds, fits, today) if has_profile else {}
     if f.get("sort") == "fit" and has_profile:
-        rows.sort(key=lambda j: (order[fits[j["id"]][0]], -fits[j["id"]][2], -(_days_ago_key(j))))
+        rows.sort(key=lambda j: (-ranked[j["id"]][0], -(_days_ago_key(j))))
     else:
         rows.sort(key=lambda j: j.get("posted") or "", reverse=True)
     page = []
     vocab = data.get("vocab", {}).get("skills", [])
+    idf = skill_idf(data) if has_profile else {}
     for j in rows[offset:offset + limit]:
         card = {k: j.get(k) for k in ("id", "title", "company", "category", "level", "min_years", "location", "remote",
                                      "posted", "url", "salary", "mba", "visa", "snippet", "on_classic_board")}
         card["n_locations"] = len(j.get("locations") or [])
+        links, seen = [], set()                           # one posting per location when they differ (the Apply menu)
+        for loc in j.get("locations") or []:
+            u = loc.get("url") if isinstance(loc, dict) else None
+            if u and u not in seen:
+                seen.add(u)
+                links.append({"name": loc.get("name") or "Posting", "url": u})
+        if len(links) > 1:
+            card["apply"] = links[:40]
         card["regions"] = regs[j["id"]]
         if has_profile:
             b, why, score, top = fits[j["id"]]
+            if b == "pivot" and j["category"] in w["categories"]:
+                why = f"Pivot into your target field: {j['category']}"
             card.update(bucket=b, bucket_label=BUCKET_LABEL[b], reason=why,
-                        skills_hit=[vocab[k] for k in top if k < len(vocab)], skill_score=round(score, 2))
+                        skills_hit=[vocab[k] for k in top if k < len(vocab)], skill_score=round(score, 2),
+                        reasons=ranked[j["id"]][1], closer=closer(j, fits[j["id"]], profile, vocab, idf))
         c = cohort.get(j["company"])
         if c:
             card["cohort"] = c
         page.append(card)
-    return {"total": len(rows), "offset": offset, "jobs": page, "has_profile": has_profile,
-            "counts": {k: dict(v) for k, v in counts.items()},
-            "timeline": {"days": dict(days), "undated": undated, "weekday": weekday}}
+    out = {"total": len(rows), "offset": offset, "jobs": page, "has_profile": has_profile, "has_want": has_want(w),
+           "counts": {k: dict(v) for k, v in counts.items()},
+           "timeline": {"days": dict(days), "undated": undated, "weekday": weekday}}
+    if with_path and has_profile:
+        out["path"] = path(data, profile, w, fits, keep, vocab, skill_idf(data))
+    return out
 
 
 def _days_ago_key(j):

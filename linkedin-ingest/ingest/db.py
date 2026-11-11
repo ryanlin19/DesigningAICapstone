@@ -1,9 +1,10 @@
 """SQLite database. The schema is plain SQL so it ports to Postgres for the larger app.
 
 Contract for downstream code: read `people`, `positions`, `education`, `skills`,
-`derived_connections`, `contacts`, `shared_contacts`, `companies`. No table holds a
-connection's name, email, profile URL or individual title. `contacts.contact_key` is a
-keyed fingerprint of the profile link (see contact_keys.py), not the link.
+`derived_connections`, `contacts`, `shared_contacts`, `companies`. `contacts` holds each connection's
+name, title and LinkedIn profile link (for the cohort's relationship graph); emails are never kept.
+`contacts.contact_key` is a keyed fingerprint of the profile link (see contact_keys.py) that matches the
+same person across classmates' exports.
 
 The `contacts` table and `shared_contacts` view match cohort-api/migrations in the cloud database.
 """
@@ -125,6 +126,11 @@ def connect(path):
     for col in ("self_key", "profile_url"):
         if col not in cols:
             con.execute(f"ALTER TABLE people ADD COLUMN {col} TEXT")
+    # contacts' names, titles and profile links (kept since the relationship graph)
+    cols = {r["name"] for r in con.execute("PRAGMA table_info(contacts)")}
+    for col in ("full_name", "position", "profile_url"):
+        if col not in cols:
+            con.execute(f"ALTER TABLE contacts ADD COLUMN {col} TEXT")
     con.executescript(SHARED_CONTACTS_VIEW)
     return con
 
