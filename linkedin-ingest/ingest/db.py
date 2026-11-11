@@ -128,9 +128,13 @@ def connect(path):
             con.execute(f"ALTER TABLE people ADD COLUMN {col} TEXT")
     # contacts' names, titles and profile links (kept since the relationship graph)
     cols = {r["name"] for r in con.execute("PRAGMA table_info(contacts)")}
-    for col in ("full_name", "position", "profile_url"):
+    for col in ("full_name", "position", "profile_url", "location"):
         if col not in cols:
             con.execute(f"ALTER TABLE contacts ADD COLUMN {col} TEXT")
+    # what happened and when (Muse runs, merges, uploads); mirrors cohort-api/migrations/0011
+    con.execute("""CREATE TABLE IF NOT EXISTS activity_log (id TEXT PRIMARY KEY, at TEXT NOT NULL, source TEXT NOT NULL,
+                   action TEXT NOT NULL, person TEXT, summary TEXT NOT NULL, details TEXT)""")
+    con.execute("CREATE INDEX IF NOT EXISTS activity_log_by_time ON activity_log (at)")
     # where each of a classmate's own jobs was (Positions.csv "Location"), for the map
     if "location" not in {r["name"] for r in con.execute("PRAGMA table_info(positions)")}:
         con.execute("ALTER TABLE positions ADD COLUMN location TEXT")

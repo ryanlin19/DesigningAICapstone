@@ -287,6 +287,10 @@ class Ingestor:
         summary = {"connections": len(rows), "connections_without_company": len(rows) - len(kept),
                    "companies": len(counts)}
         # One keyed row per contact: lets the database deduplicate and find contacts shared by classmates.
+        # cities found later (Muse) aren't in exports: keep them across a re-upload
+        has_loc = "location" in {r[1] for r in self.con.execute("PRAGMA table_info(contacts)")}
+        kept_loc = dict(self.con.execute("SELECT contact_key, location FROM contacts WHERE connector_id=? AND location IS NOT NULL",
+                                         (pid,)).fetchall()) if has_loc else {}
         self.con.execute("DELETE FROM contacts WHERE connector_id=?", (pid,))
         if self.contact_secret:
             keyed = 0
@@ -301,6 +305,11 @@ class Ingestor:
                          r["title"] or None, contact_keys.canonical_profile_url(r["url"])))
                     keyed += cur.rowcount
             summary["contacts_keyed"] = keyed
+            if has_loc:
+                self.con.executemany("UPDATE contacts SET location=? WHERE contact_key=? AND connector_id=?",
+                                     [(loc, k, pid) for k, loc in kept_loc.items()])
+                self.con.execute("""UPDATE contacts SET location = (SELECT c2.location FROM contacts c2 WHERE c2.contact_key = contacts.contact_key
+                                    AND c2.location IS NOT NULL LIMIT 1) WHERE connector_id=? AND location IS NULL""", (pid,))
         else:
             summary["contacts_keyed"] = "off (no contact key set up)"
         return summary

@@ -146,3 +146,9 @@ a.np-name:hover { color: var(--brand); text-decoration: underline; }
 .cp-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
 .cp-connect { white-space: nowrap; }
 .cp-done { color: var(--good); font-weight: 600; margin: 8px 0 0; }
+/* Log tab */
+.log-muse { border-left: 4px solid var(--violet); }
+.log-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.log-row { display: grid; grid-template-columns: 70px 1fr; gap: 10px; padding: 9px 0; border-top: 1px solid var(--border); align-items: start; }
+.tag.log-muse { background: var(--violet-bg); color: var(--violet); }
+.tag.log-upload { background: var(--good-bg); color: var(--good); }

@@ -152,12 +152,38 @@ def push(person_ids, db=LOCAL_DB, target="--remote", names=True):
         raise
 
 
+def query(sql, target="--remote"):
+    """Read from D1: a list of row dicts. Raises SyncError."""
+    r = subprocess.run(["wrangler", "d1", "execute", D1_NAME, target, "--json", "--command", sql], cwd=HERE,
+                       capture_output=True, text=True)
+    out = r.stdout
+    try:
+        return json.loads(out[out.find("["):out.rfind("]") + 1])[0]["results"]
+    except (ValueError, IndexError, KeyError):
+        raise SyncError((r.stderr or out)[-800:].strip() or "wrangler failed")
+
+
+def execute(statements, label, target="--remote"):
+    """Write to D1 (a list of SQL statements). Raises SyncError."""
+    if statements:
+        run_sql(statements, label, target)
+
+
+LOG_COLS = ["id", "at", "source", "action", "person", "summary", "details"]
+
+
+def push_log(rows, target="--remote"):
+    """Add activity-log rows (dicts) to D1; rows already there are left alone."""
+    execute(inserts("activity_log", LOG_COLS, [tuple(r.get(c) for c in LOG_COLS) for r in rows], "ON CONFLICT (id) DO NOTHING"),
+            f"log {len(rows)} entr{'y' if len(rows) == 1 else 'ies'}", target)
+
+
 def verify(db=LOCAL_DB, target="--remote"):
     """Compare the local ingest database with D1, table by table, on the exact SQL value of every column.
     Returns True when every mirrored table is identical; prints one line per table."""
     con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
     ok = True
-    for t in MIRRORED:
+    for t in MIRRORED + ("activity_log",):
         cols = [r[1] for r in con.execute(f"PRAGMA table_info({t})")]
         if not cols:
             continue

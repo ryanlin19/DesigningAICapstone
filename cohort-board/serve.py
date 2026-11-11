@@ -55,6 +55,7 @@ from ingest import contact_keys, rules  # noqa: E402
 
 sys.path.insert(0, str(HERE))
 import directory  # noqa: E402
+import inbox  # noqa: E402
 import find  # noqa: E402
 import regions  # noqa: E402
 import uploads  # noqa: E402
@@ -145,6 +146,7 @@ NAV_HTML = """<header class="cb-nav">
       <a href="/map" data-tab="map">Map</a>
       <a href="/companies" data-tab="companies" aria-current="page">Companies</a>
       <a href="/cohort" data-tab="cohort">Cohort</a>
+      <a href="/log" data-tab="log">Log</a>
     </nav>
     <a class="cb-upload" href="/companies?view=upload" title="Add a LinkedIn export (the upload page links to LinkedIn's data request)">Upload your data</a>
     <span class="cb-private">Private: this computer only</span>
@@ -1360,6 +1362,7 @@ STATIC_FILES = {
     "/companies.js": (STATIC / "companies.js", "application/javascript"),
     "/companygraph.js": (STATIC / "companygraph.js", "application/javascript"),
     "/cohortpage.js": (STATIC / "cohortpage.js", "application/javascript"),
+    "/log.js": (STATIC / "log.js", "application/javascript"),
     "/companies.css": (STATIC / "companies.css", "text/css"),
 }
 
@@ -1424,6 +1427,14 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/region-people":                    # the map: who's there in the picked regions
                 qs = parse_qs(urlsplit(self.path).query)
                 return self.send(200, json.dumps(region_people(qs.get("region") or [], (qs.get("field") or [None])[0]),
+                                                 ensure_ascii=False), "application/json")
+            if path == "/log":                                  # the Log tab: Muse runs, merges, uploads
+                return self.send(200, (STATIC / "log.html").read_bytes(), "text/html; charset=utf-8")
+            if path == "/api/log":
+                rows = inbox.entries(COHORT_DB)
+                muse = [r for r in rows if r["source"] == "muse"]
+                return self.send(200, json.dumps({"entries": rows, "last_muse": muse[0] if muse else None,
+                                                  "last_check": inbox.last_check, "cloud": isinstance(STORE, RemoteStore)},
                                                  ensure_ascii=False), "application/json")
             if path == "/cohort":                               # the Cohort tab
                 return self.send(200, (STATIC / "cohort-page.html").read_bytes(), "text/html; charset=utf-8")
@@ -1530,6 +1541,16 @@ class Handler(BaseHTTPRequestHandler):
             _snap["value"] = None
             state.push_later("cohort.db")
             return self.send(200, json.dumps({"profile_url": url}), "application/json")
+        if path == "/api/log/check":                         # pull Muse's findings from the cloud now
+            if not isinstance(STORE, RemoteStore):
+                return self.send(400, "The board isn't using the cloud database.")
+            try:
+                res = inbox.check(COHORT_DB)
+            except (inbox.sync.SyncError, OSError, sqlite3.Error) as e:
+                inbox.last_check.update(at=datetime.now(timezone.utc).isoformat(timespec="seconds"), error=str(e))
+                return self.send(502, f"Couldn't check the cloud: {e}")
+            _snap["value"] = None
+            return self.send(200, json.dumps(res), "application/json")
         if path == "/api/connections":
             try:
                 d = json.loads(self.body())
@@ -1572,6 +1593,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(502, f"Loaded on this computer, but the upload to the cloud database failed: {e}")
         _snap["value"] = None
         state.push_later("cohort.db")
+        inbox.record(COHORT_DB, "upload", "upload", f"{result.get('name')} uploaded their LinkedIn data "
+                     f"({result.get('connections')} connections)", person=result.get("person_id"), remote=isinstance(STORE, RemoteStore))
         return self.send(200, json.dumps(result), "application/json")
 
     def do_DELETE(self):
@@ -1585,6 +1608,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(502, f"Removed on this computer, but not from the cloud database: {e}")
             _snap["value"] = None
             state.push_later("cohort.db")
+            inbox.record(COHORT_DB, "board", "remove", f"Removed {m.group(1)} and all their data", person=m.group(1),
+                         remote=isinstance(STORE, RemoteStore))
             return self.send(204)
         m = re.fullmatch(r"/api/connections/([0-9a-f]{12})", self.path)
         if not m:
@@ -1614,6 +1639,8 @@ def main():
     if all_jobs()[0]:
         find.job_regions(all_jobs()[0])          # work out every job's map regions now, not on the first search
     state.start_refresher()
+    if isinstance(STORE, RemoteStore):                  # Muse's findings: merged now and every 15 minutes
+        inbox.start(COHORT_DB, on_change=lambda: _snap.update(value=None))
     print(f"Private board: http://{HOST}:{PORT}" + ("  (hosted)" if HOSTED else "  (this computer only; Ctrl+C to stop)"), flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
 
