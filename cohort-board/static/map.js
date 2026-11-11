@@ -33,7 +33,7 @@
   // ---------- data ----------
   function refresh() {
     var g = window.Global.state();
-    var body = { profile: profile, limit: 0,
+    var body = { profile: profile, limit: 0, want: window.Global.want(),
                  filters: Object.assign({}, filters, { buckets: profile ? g.buckets : [], visa: g.visa, regions: g.regions }) };
     return fetch("/api/find", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       .then(function (r) { return r.ok ? r.json() : r.text().then(function (t) { throw new Error(t || r.status); }); })

@@ -1,5 +1,7 @@
 // "Your search": the panel down the left side of every tab, plus the Fit row at the top right. Together they hold the
-// filters that follow you everywhere (resume, fit, sponsorship, location) and "Revert to everything".
+// filters that follow you everywhere (functions, fit, sponsorship, location) and "Revert to everything".
+// Everything starts on every job. "What you are" (resume or filled in) only scores fit; "What you want" filters by
+// function (7 groups of the job categories). A resume upload fills "What you want" with the same functions.
 // Pages read them through window.Global:
 //   Global.state()            -> {visa: "any"|"not_no"|"likely", regions: [...], buckets: [...]}
 //   Global.setFitCounts(c)    -> show {bucket: n} counts in the Fit row
@@ -19,8 +21,21 @@
   var PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
   var PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
   var MAMMOTH = "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js";
-  var CATEGORIES = ["Consulting", "Strategy & Operations", "Finance", "Data & Analytics", "Product", "Marketing & Growth",
-                    "Sales & Business Development", "Operations & Supply Chain", "Technology & Engineering", "People & HR", "Legal & Policy"];
+  // The sidebar shows 7 functions; each covers one or more of the job categories above (plus "Other").
+  var FUNCTIONS = [
+    ["Consulting", ["Consulting"]],
+    ["Strategy & Ops", ["Strategy & Operations", "Operations & Supply Chain"]],
+    ["Finance", ["Finance"]],
+    ["Marketing & Sales", ["Marketing & Growth", "Sales & Business Development"]],
+    ["Product & Tech", ["Product", "Technology & Engineering"]],
+    ["Data & Analytics", ["Data & Analytics"]],
+    ["People, Legal & Other", ["People & HR", "Legal & Policy", "Other"]]
+  ];
+  var ALL_CATS = [].concat.apply([], FUNCTIONS.map(function (f) { return f[1]; }));
+  function catsOf(names) { return [].concat.apply([], FUNCTIONS.filter(function (f) { return names.indexOf(f[0]) >= 0; }).map(function (f) { return f[1]; })); }
+  // functions touched by a list of categories (a resume's "Product" lights up "Product & Tech")
+  function functionsOf(cats) { return FUNCTIONS.filter(function (f) { return f[1].some(function (c) { return cats.indexOf(c) >= 0; }); }).map(function (f) { return f[0]; }); }
+  function normCats(cats) { return cats.length >= ALL_CATS.length ? [] : cats; }   // every function picked = no filter
   var VISA = [["any", "Any", "Show every role"], ["not_no", "Not “no”", "Hide roles that say they won't sponsor"],
               ["likely", "Likely", "Only roles likely to sponsor a visa"]];
 
@@ -39,7 +54,7 @@
   function usable(p) { return p && ((p.categories || []).length || (p.skills || []).length) ? p : null; }
 
   // ---------- state (moved over from the old per-page filters the first time) ----------
-  var DEFAULT_BUCKETS = ["ready", "reach"];
+  var DEFAULT_BUCKETS = ["ready", "reach", "overqualified", "pivot"];   // every job until you narrow it
   var BUCKETS = [["ready", "Ready", "Your field, your level"], ["reach", "Reach", "Asks more experience, or a neighbouring field"],
                  ["overqualified", "Overqualified", "Below your level"], ["pivot", "Serious pivot", "A different field"]];
   var state = load(KEY, null);
@@ -50,6 +65,9 @@
   }
   state.regions = state.regions || [];
   state.buckets = state.buckets || DEFAULT_BUCKETS.slice();
+  if (state.v !== 2) {                                    // once: the old default hid jobs outside Ready + Reach
+    state.v = 2; state.buckets = DEFAULT_BUCKETS.slice(); save(KEY, state);
+  }
   var listeners = [], revertFn = null, regionCounts = null, fitCounts = null;
 
   function changed() { save(KEY, state); draw(); listeners.forEach(function (fn) { fn(state); }); schedulePath(); }
@@ -84,6 +102,8 @@
   function passes(job) {
     var b = bucket(job);                                    // fit: only with a resume, and only for jobs it can score
     if (b && state.buckets.indexOf(b) < 0) return false;
+    var picked = want().categories;                         // the functions you want; none picked = every job
+    if (picked.length && picked.indexOf(job.bcat || "Other") < 0) return false;
     if (state.visa === "not_no" && job.visa === "Unlikely") return false;
     if (state.visa === "likely" && job.visa !== "Likely") return false;
     if (state.regions.length) {
@@ -128,15 +148,16 @@
     }).then(function (r) { return r.ok ? r.json() : r.text().then(function (t) { throw new Error(t); }); }).then(function (p) {
       save(PROFILE, p);
       var f = load(PAGE_FILTERS, {}); f.sort = "fit"; save(PAGE_FILTERS, f);
-      state.buckets = DEFAULT_BUCKETS.slice();               // a new resume starts on Ready + Reach
+      // the resume sets what you are, and fills "What you want" with the same functions (add more there)
+      var fns = functionsOf(p.categories || []);
+      if (fns.length) { var w = want(); w.categories = normCats(catsOf(fns)); save(WANT, w); }
       status = "Read " + file.name + ". Check your fields below."; editing = true; changed();
     }).catch(function (e) { status = e.message; draw(); });
   }
   function startByHand() {                                  // the same boxes a resume fills, without one
     save(PROFILE, { years: 0, mba: false, categories: [], category_scores: {}, skills: [], inds: [], manual: true });
     var f = load(PAGE_FILTERS, {}); f.sort = "fit"; save(PAGE_FILTERS, f);    // Find a job sorts by fit once a field is picked
-    state.buckets = DEFAULT_BUCKETS.slice();
-    status = "Pick your fields and skills below; every tab uses them like a resume."; editing = true; changed();
+    status = "Pick your functions and skills below; every tab uses them like a resume."; editing = true; changed();
   }
   function setProfile(fn) { var p = load(PROFILE, null); if (!p) return; fn(p); save(PROFILE, p); changed(); }
   function setWant(fn) { var w = want(); fn(w); save(WANT, w); changed(); }
@@ -179,8 +200,6 @@
     });
     return el("div", { class: "gb-words" }, [chips.length ? el("div", { class: "gb-chips" }, chips) : null, input]);
   }
-  function short(c) { return c.replace("Strategy & Operations", "Strategy & Ops").replace("Sales & Business Development", "Sales & BD")
-                              .replace("Operations & Supply Chain", "Ops & Supply Chain").replace("Technology & Engineering", "Tech & Eng"); }
 
   // ---------- the panel ----------
   var bar = null, editing = false, open = false;
@@ -204,7 +223,7 @@
                 el("div", { class: "gb-row" }, [byHand])];
     } else {
       var summary = (p.manual ? "Filled in by hand · " : "") + "About " + p.years + " yr" + (p.years === 1 ? "" : "s") + (p.mba ? " + MBA" : "") +
-        (p.categories.length ? " · " + p.categories.map(short).join(", ") : " · no fields picked") +
+        (p.categories.length ? " · " + functionsOf(p.categories).join(", ") : " · no functions picked") +
         ((p.skills || []).length ? " · " + p.skills.length + " skill" + (p.skills.length === 1 ? "" : "s") : "");
       var editBtn = el("button", { type: "button", class: "gb-link", "aria-expanded": String(editing), text: editing ? "Done" : "Edit" });
       editBtn.addEventListener("click", function () { editing = !editing; draw(); });
@@ -217,8 +236,14 @@
         mba.addEventListener("change", function () { setProfile(function (q) { q.mba = mba.checked; }); });
         resume.push(el("label", { class: "gb-field" }, ["About ", yrs, " years of experience"]));
         resume.push(el("label", { class: "gb-check" }, [mba, " MBA (graduating or done)"]));
-        resume.push(el("div", { class: "gb-label", text: "Your fields (pick 1 to 3)" }));
-        resume.push(chipPicker(CATEGORIES, p.categories, function (c) { setProfile(function (q) { toggleIn(q.categories, c); }); }));
+        resume.push(el("div", { class: "gb-label", text: "Your functions (pick 1 to 3)" }));
+        resume.push(chipPicker(FUNCTIONS.map(function (f) { return f[0]; }), functionsOf(p.categories), function (name) {
+          setProfile(function (q) {
+            var cs = catsOf([name]), on = cs.some(function (c) { return q.categories.indexOf(c) >= 0; });
+            q.categories = on ? q.categories.filter(function (c) { return cs.indexOf(c) < 0; })
+                              : q.categories.concat(cs.filter(function (c) { return q.categories.indexOf(c) < 0; }));
+          });
+        }));
         if (meta && meta.skills) {
           var names = (p.skills || []).map(function (k) { return meta.skills[k]; }).filter(Boolean);
           resume.push(el("div", { class: "gb-label", text: "Your skills" }));
@@ -272,19 +297,38 @@
   var editingWant = false;
   function wantSection() {
     var w = want(), kids = [];
+    // functions: a filter. "All functions" (nothing picked) shows every job; picking one narrows to it, more add on.
+    var all = !w.categories.length, onFns = all ? [] : functionsOf(w.categories);
+    var allBtn = el("button", { type: "button", class: "gb-chip", "aria-pressed": String(all), text: "All functions" });
+    allBtn.addEventListener("click", function () { setWant(function (q) { q.categories = []; }); });
+    var fnChips = FUNCTIONS.map(function (f) {
+      var on = onFns.indexOf(f[0]) >= 0;
+      var b = el("button", { type: "button", class: "gb-chip", "aria-pressed": String(on), text: f[0], title: f[1].join(", ") });
+      b.addEventListener("click", function () {
+        setWant(function (q) {
+          var names = on ? onFns.filter(function (x) { return x !== f[0]; }) : onFns.concat([f[0]]);
+          q.categories = normCats(catsOf(names));            // the last one off, or all of them on, is "All functions" again
+        });
+      });
+      return b;
+    });
+    kids.push(el("div", { class: "gb-label", text: "Functions" }));
+    kids.push(el("div", { class: "gb-chips" }, [allBtn].concat(fnChips)));
+    kids.push(el("p", { class: "gb-note", text: all ? "Showing every job. Pick functions to narrow it down."
+                                                     : "Showing " + onFns.join(", ") + " jobs." }));
+
     var bits = [];
-    if (w.categories.length) bits.push(w.categories.map(short).join(", "));
     if (w.levels.length) bits.push(w.levels.join(", "));
     if (w.verticals.length) bits.push(w.verticals.join(", "));
     if (w.companies.length) bits.push(w.companies.join(", "));
-    var editBtn = el("button", { type: "button", class: "gb-link", "aria-expanded": String(editingWant), text: editingWant ? "Done" : (bits.length ? "Edit" : "Set your targets") });
+    if (w.avoid.length) bits.push("avoiding " + w.avoid.join(", "));
+    if (w.salary_min) bits.push("$" + w.salary_min + "K+");
+    var editBtn = el("button", { type: "button", class: "gb-link", "aria-expanded": String(editingWant),
+                                 text: editingWant ? "Done" : (bits.length ? "Edit more targets" : "More targets (optional)") });
     editBtn.addEventListener("click", function () { editingWant = !editingWant; draw(); });
-    kids.push(bits.length ? el("p", { class: "gb-summary", text: bits.join(" · ") })
-                          : el("p", { class: "gb-note", text: "Where you're aiming. It ranks jobs and shows what would get you closer." }));
+    if (bits.length) kids.push(el("p", { class: "gb-summary", text: bits.join(" · ") }));
     kids.push(el("div", { class: "gb-row" }, [editBtn]));
     if (editingWant) {
-      kids.push(el("div", { class: "gb-label", text: "Target fields" }));
-      kids.push(chipPicker(CATEGORIES, w.categories, function (c) { setWant(function (q) { toggleIn(q.categories, c); }); }));
       kids.push(el("div", { class: "gb-label", text: "Level" }));
       kids.push(chipPicker(LEVELS, w.levels, function (c) { setWant(function (q) { toggleIn(q.levels, c); }); }));
       if (meta && meta.verticals) {
@@ -348,14 +392,15 @@
       });
       box.appendChild(b);
     });
-    if (!has) box.appendChild(el("span", { class: "cb-fit-hint", text: raw ? "Pick your fields on the left to filter by fit"
+    if (!has) box.appendChild(el("span", { class: "cb-fit-hint", text: raw ? "Pick your functions on the left to filter by fit"
                                                                           : "Upload your resume (or fill it in) on the left to filter by fit" }));
   }
 
   function revert() {
-    state = { visa: "any", regions: [], buckets: DEFAULT_BUCKETS.slice() };
+    state = { v: 2, visa: "any", regions: [], buckets: DEFAULT_BUCKETS.slice() };
     save(PAGE_FILTERS, { categories: [], levels: [], posted: "0", q: "", mba: false, warm: false,
                          sort: usable(load(PROFILE, null)) ? "fit" : "newest", from: "", to: "", hidden: [] });   // every tab's filters
+    var w = want(); w.categories = []; save(WANT, w);    // every function again
     save(KEY, state); draw();
     if (revertFn) revertFn(); else listeners.forEach(function (fn) { fn(state); });
     var b = bar.querySelector(".gb-revert"); b.classList.add("done"); setTimeout(function () { b.classList.remove("done"); }, 700);
@@ -365,7 +410,7 @@
     if (bar) return;
     var toggle = el("button", { type: "button", class: "gb-toggle", "aria-expanded": "false", "aria-controls": "globalBar" }, ["Your search"]);
     toggle.addEventListener("click", function () { open = !open; bar.classList.toggle("open", open); toggle.setAttribute("aria-expanded", String(open)); });
-    var revertBtn = el("button", { type: "button", class: "gb-revert", title: "Every filter on every tab back to everything (your resume stays)" },
+    var revertBtn = el("button", { type: "button", class: "gb-revert", title: "Every filter on every tab back to every job (your resume and other targets stay)" },
                        [el("span", { "aria-hidden": "true", text: "↺ " }), "Revert to everything"]);
     revertBtn.addEventListener("click", revert);
     bar = el("aside", { class: "global-bar", id: "globalBar", "aria-label": "Your search: applies on every tab" }, [

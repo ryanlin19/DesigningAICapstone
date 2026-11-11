@@ -214,7 +214,10 @@ def job_vertical(j, co_vertical, inds):
 
 
 def blocked(j, w):
-    """The want's hard limits: companies or words to avoid, and a salary floor (in $K; unknown pay passes)."""
+    """The want's hard limits: the functions picked (none = every job), companies or words to avoid, and a salary floor
+    (in $K; unknown pay passes)."""
+    if w["categories"] and j["category"] not in w["categories"]:
+        return True
     if w["avoid"]:
         co, title = j["company"].lower(), j["title"].lower()
         if any(a in co or re.search(r"\b" + re.escape(a) + r"\b", title) for a in w["avoid"]):
