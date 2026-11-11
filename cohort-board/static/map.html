@@ -32,12 +32,23 @@
         <h1 id="mapTitle">Jobs by region</h1>
         <p class="muted tiny" id="mapSub">Click bubbles to pick regions. Your pick filters Find a job and Companies.</p>
       </div>
-      <div class="seg" role="group" aria-label="Bubble size">
+      <div class="map-switches">
+      <div class="seg" role="group" aria-label="Show on the map" id="modeSeg">
+        <button type="button" data-mode="jobs" aria-pressed="true">Jobs</button>
+        <button type="button" data-mode="people" aria-pressed="false" title="Classmates who uploaded their data, at the places they've worked">People</button>
+        <button type="button" data-mode="companies" aria-pressed="false" title="Companies in the directory, at their headquarters">Companies</button>
+      </div>
+      <div class="seg" role="group" aria-label="Map area" id="areaSeg">
+        <button type="button" data-area="us" aria-pressed="true">US</button>
+        <button type="button" data-area="world" aria-pressed="false">Global</button>
+      </div>
+      <div class="seg" role="group" aria-label="Bubble size" id="sizeSeg">
         <button type="button" data-size="w" aria-pressed="true" title="A job listed in several regions counts as a share in each">Weighted</button>
         <button type="button" data-size="raw" aria-pressed="false" title="Every listing counts fully in each region it names">All listings</button>
       </div>
+      </div>
     </div>
-    <div class="map-wrap"><svg id="map" role="group" aria-label="US map of jobs by region"></svg><div class="map-tip" id="tip" hidden></div></div>
+    <div class="map-wrap"><svg id="map" role="group" aria-label="Map of jobs by region"></svg><div class="map-tip" id="tip" hidden></div></div>
     <div class="offmap" id="offmap"></div>
     <p class="muted tiny" id="mapNote"></p>
     <div class="who-worked" id="whoWorked" hidden></div>

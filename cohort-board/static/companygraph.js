@@ -76,56 +76,73 @@
       return { highlight: function () {} };
     }
 
-    // ---- the grid: functions across, seniority down ----
-    var tiers = c.tiers || ["Leadership", "Senior", "Mid", "Early career"];
-    var fcount = {};
-    named.forEach(function (x) { fcount[x.function] = (fcount[x.function] || 0) + 1; });
-    var fns = Object.keys(fcount).sort(function (a, b) {
-      return (b === c.field) - (a === c.field) || (a === "Other") - (b === "Other") || fcount[b] - fcount[a];
-    });
-    if (fns.length > 5) {                                    // keep it to five columns; the smallest go under "Other"
-      var keep = fns.filter(function (f) { return f !== "Other"; }).slice(0, 4);
-      named.forEach(function (x) { x._col = keep.indexOf(x.function) >= 0 ? x.function : "Other"; });
-      fns = keep.concat(["Other"]);
-    } else {
-      named.forEach(function (x) { x._col = x.function; });
-    }
-    var grid = el("div", { class: "cm-grid", style: "grid-template-columns: 104px repeat(" + fns.length + ", minmax(190px, 1fr))" });
-    grid.appendChild(el("div", { class: "cm-corner" }));
-    fns.forEach(function (f) {
-      var n = named.filter(function (x) { return x._col === f; }).length;
-      grid.appendChild(el("div", { class: "cm-colhead" + (f === c.field ? " field" : "") }, [f === "Other" ? "Other" : SHORT[f] || f, el("span", { class: "cm-n", text: " " + n })]));
-    });
-    var chips = [];
-    tiers.forEach(function (t) {
-      grid.appendChild(el("div", { class: "cm-rowhead", text: t }));
-      fns.forEach(function (f) {
-        var people = named.filter(function (x) { return x._col === f && x.tier === t; });
-        var cell = el("div", { class: "cm-cell" + (people.length ? "" : " empty") });
-        people.forEach(function (x, i) {
-          var chip = el("button", { type: "button", class: "cm-chip" + (x.known_by.length > 1 ? " warm" : "") + (i >= PER_CELL ? " extra" : ""),
-                                    title: x.name + (x.position ? " · " + x.position : "") },
-            [el("span", { class: "cm-chip-name", text: x.name }),
-             x.position ? el("span", { class: "cm-chip-pos", text: trunc(x.position, 34) }) : null,
-             el("span", { class: "cm-chip-who" }, x.known_by.map(function (k) { return tag(k.name); }))]);
-          chip._who = x.known_by.map(function (k) { return k.name; });
-          chip.addEventListener("click", function () { select(x, chip); });
-          chips.push(chip);
-          cell.appendChild(chip);
-        });
-        if (people.length > PER_CELL) {
-          var more = el("button", { type: "button", class: "cm-more", text: "+" + (people.length - PER_CELL) + " more" });
-          more.addEventListener("click", function () { cell.classList.add("open"); more.remove(); });
-          cell.appendChild(more);
-        }
-        grid.appendChild(cell);
+    // ---- only people 2+ classmates know (off by default: everybody shows) ----
+    var allNamed = named, onlyWarm = false, chips = [];
+    var warmBox = el("input", { type: "checkbox" });
+    var warmCount = allNamed.filter(function (x) { return x.known_by.length >= 2; }).length;
+    warmBox.addEventListener("change", function () { onlyWarm = warmBox.checked; drawGrid(); });
+    box.appendChild(el("label", { class: "chk cm-warm-only" }, [warmBox, " Only people 2+ classmates know (" + warmCount + ")"]));
+    var gridHost = el("div");
+    box.appendChild(gridHost);
+
+    function drawGrid() {
+      if (selected) { selected = null; card.hidden = true; }
+      // ---- the grid: functions across, seniority down ----
+      var tiers = c.tiers || ["Leadership", "Senior", "Mid", "Early career"];
+      var named = onlyWarm ? allNamed.filter(function (x) { return x.known_by.length >= 2; }) : allNamed;
+      chips = [];
+      if (!named.length) { gridHost.textContent = ""; gridHost.appendChild(el("p", { class: "muted tiny", text: "Nobody here is known by 2 or more classmates yet." })); return; }
+      var fcount = {};
+      named.forEach(function (x) { fcount[x.function] = (fcount[x.function] || 0) + 1; });
+      var fns = Object.keys(fcount).sort(function (a, b) {
+        return (b === c.field) - (a === c.field) || (a === "Other") - (b === "Other") || fcount[b] - fcount[a];
       });
-    });
-    box.appendChild(el("div", { class: "cm-scroll" }, [grid]));
+      if (fns.length > 5) {                                    // keep it to five columns; the smallest go under "Other"
+        var keep = fns.filter(function (f) { return f !== "Other"; }).slice(0, 4);
+        named.forEach(function (x) { x._col = keep.indexOf(x.function) >= 0 ? x.function : "Other"; });
+        fns = keep.concat(["Other"]);
+      } else {
+        named.forEach(function (x) { x._col = x.function; });
+      }
+      var grid = el("div", { class: "cm-grid", style: "grid-template-columns: 104px repeat(" + fns.length + ", minmax(190px, 1fr))" });
+      grid.appendChild(el("div", { class: "cm-corner" }));
+      fns.forEach(function (f) {
+        var n = named.filter(function (x) { return x._col === f; }).length;
+        grid.appendChild(el("div", { class: "cm-colhead" + (f === c.field ? " field" : "") }, [f === "Other" ? "Other" : SHORT[f] || f, el("span", { class: "cm-n", text: " " + n })]));
+      });
+      tiers.forEach(function (t) {
+        grid.appendChild(el("div", { class: "cm-rowhead", text: t }));
+        fns.forEach(function (f) {
+          var people = named.filter(function (x) { return x._col === f && x.tier === t; });
+          var cell = el("div", { class: "cm-cell" + (people.length ? "" : " empty") });
+          people.forEach(function (x, i) {
+            var chip = el("button", { type: "button", class: "cm-chip" + (x.known_by.length > 1 ? " warm" : "") + (i >= PER_CELL ? " extra" : ""),
+                                      title: x.name + (x.position ? " · " + x.position : "") },
+              [el("span", { class: "cm-chip-name", text: x.name }),
+               x.position ? el("span", { class: "cm-chip-pos", text: trunc(x.position, 34) }) : null,
+               el("span", { class: "cm-chip-who" }, x.known_by.map(function (k) { return tag(k.name); }))]);
+            chip._who = x.known_by.map(function (k) { return k.name; });
+            chip.addEventListener("click", function () { select(x, chip); });
+            chips.push(chip);
+            cell.appendChild(chip);
+          });
+          if (people.length > PER_CELL) {
+            var more = el("button", { type: "button", class: "cm-more", text: "+" + (people.length - PER_CELL) + " more" });
+            more.addEventListener("click", function () { cell.classList.add("open"); more.remove(); });
+            cell.appendChild(more);
+          }
+          grid.appendChild(cell);
+        });
+      });
+      gridHost.textContent = "";
+      gridHost.appendChild(el("div", { class: "cm-scroll" }, [grid]));
+      if (focus) setFocus(focus);
+    }
 
     // ---- the selected person ----
     var card = el("div", { class: "cm-card", hidden: "" });
     box.appendChild(card);
+    drawGrid();
     function select(x, chip) {
       if (selected) selected.classList.remove("sel");
       if (selected === chip) { selected = null; card.hidden = true; return; }

@@ -99,3 +99,52 @@ def rank_key(c):
     works = any((p.get("worked") or {}).get("current") for p in people)
     worked = any(p.get("worked") for p in people)
     return (not works, not worked, -(c.get("contacts") or 0), -((c.get("jobs") or {}).get("n") or 0), c["name"].lower())
+
+
+_places_cache = {"version": None, "value": None}
+COUNTRY_ALIASES = {"People's Republic of China": "China", "USA": "United States", "United States of America": "United States",
+                   "UK": "United Kingdom", "England": "United Kingdom", "Scotland": "United Kingdom", "Wales": "United Kingdom"}
+
+
+def places():
+    """Where each company is, for the map: {"by_company": {id: [place, ...]}, "hq": {id: place},
+    "countries": {country: (lat, lon) or None}}.
+    A place is a US map region (the office's metro) or, outside the US, the country name. HQ first, then offices,
+    each place once. Country coordinates are the average of that country's offices (None when none have them)."""
+    if not DB.exists():
+        return {"by_company": {}, "hq": {}, "countries": {}, "cities": {}}
+    version = DB.stat().st_mtime
+    if _places_cache["version"] == version:
+        return _places_cache["value"]
+    con = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
+    con.row_factory = sqlite3.Row
+    try:
+        by_co, xy, hq, cities = defaultdict(list), defaultdict(list), {}, {}
+        for o in con.execute("SELECT company_id, city, country, metro, lat, lon, is_hq FROM offices ORDER BY is_hq DESC, job_count DESC"):
+            country = COUNTRY_ALIASES.get(o["country"] or "", o["country"] or "")
+            if country and country != "United States" and o["city"]:
+                cities.setdefault(o["city"].strip().lower(), country)        # "London" -> United Kingdom
+            if country == "United States":
+                place = o["metro"]
+            else:
+                place = country or None
+                if place and o["lat"] is not None:
+                    xy[place].append((o["lat"], o["lon"]))
+            if place in ("Remote / US-wide", "Location not given"):     # not a place on the map
+                place = None
+            if place and o["is_hq"] and o["company_id"] not in hq:
+                hq[o["company_id"]] = place
+            if place and place not in by_co[o["company_id"]]:
+                by_co[o["company_id"]].append(place)
+        countries = {c: (sum(a for a, _ in xy[c]) / len(xy[c]), sum(b for _, b in xy[c]) / len(xy[c])) if xy.get(c) else None
+                     for c in set(xy) | {p for co in by_co.values() for p in co if p not in _us_region_names()}}
+    finally:
+        con.close()
+    value = {"by_company": dict(by_co), "hq": hq, "countries": countries, "cities": cities}
+    _places_cache.update(version=version, value=value)
+    return value
+
+
+def _us_region_names():
+    import regions
+    return {r["name"] for r in regions.REGIONS}

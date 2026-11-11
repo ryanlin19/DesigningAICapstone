@@ -4,13 +4,12 @@
 (function () {
   var C = window.COHORT, el = C.el, plural = C.plural;
   var DAY = 864e5;
-  var VIEWS = [["30", "30 days"], ["90", "90 days"], ["365", "1 year"], ["all", "All"]];
   var WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   function getLocal(k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } }
   function setLocal(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } }
 
-  var state = { view: getLocal("cohort.timelineView", "90"), from: null, to: null };   // from/to: day numbers, inclusive
+  var state = { view: "60", from: null, to: null };   // from/to: day numbers, inclusive
 
   function dayNum(s) {
     var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || "");
@@ -73,11 +72,7 @@
     var inPeriod = state.from === null ? 0 : dated.filter(function (n) { return n >= state.from && n <= state.to; }).length;
 
     // header: title, summary, view switch
-    var viewBtns = el("div", { class: "cohort-tl-views", role: "group", "aria-label": "Timeline range" }, VIEWS.map(function (v) {
-      var b = el("button", { type: "button", class: "linkbtn" + (state.view === v[0] ? " on" : ""), "aria-pressed": String(state.view === v[0]), text: v[1] });
-      b.addEventListener("click", function () { state.view = v[0]; setLocal("cohort.timelineView", v[0]); C.drawTimeline(list); });
-      return b;
-    }));
+    var viewBtns = el("span", { class: "cohort-sub", text: "Last 2 months" });   // always the last 2 months
     box.appendChild(el("div", { class: "cohort-tl-h" }, [
       el("b", { text: "Posting timeline" }),
       el("span", { class: "cohort-sub", text: plural(dated.length, "role", "roles") + " with a posting date" +

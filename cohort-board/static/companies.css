@@ -100,6 +100,7 @@ a.np-name:hover { color: var(--brand); text-decoration: underline; }
 
 /* who's who: the company map */
 .cm-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 12px; }
+.cm-warm-only { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 10px; font-size: 13.5px; cursor: pointer; }
 .cm-mate { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--card); border-radius: 999px;
   padding: 3px 10px 3px 3px; cursor: pointer; font-size: 13px; }
 .cm-mate[aria-pressed="true"] { border-color: var(--text); box-shadow: 0 0 0 1px var(--text) inset; }

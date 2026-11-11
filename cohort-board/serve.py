@@ -199,7 +199,13 @@ PATCHES = [
     ('el("span", { class: "gcount", text: rolesList.length',
      'COHORT.newestNote(rolesList), el("span", { class: "gcount", text: rolesList.length', 1),
     ('$("hidePassed").checked = true; $("closingWithin").value = "0";',
-     '$("hidePassed").checked = true; $("closingWithin").value = "0"; COHORT.clearPeriod(true);', 1),
+     '$("hidePassed").checked = false; $("closingWithin").value = "0"; COHORT.clearPeriod(true);', 1),
+    # every filter starts on everything (Peter, 2026-11-11): roles past their deadline and Account Executive roles show
+    # until you choose to hide them
+    ('<input type="checkbox" id="hidePassed" checked>', '<input type="checkbox" id="hidePassed">', 1),
+    ('if (!$("hidePassed").checked) tag("Showing roles whose deadline has passed", function () { $("hidePassed").checked = true; });',
+     'if ($("hidePassed").checked) tag("Hiding roles whose deadline has passed", function () { $("hidePassed").checked = false; });', 1),
+    (', ["Account Executive"]);   // starts unticked (user decision 2026-11-09): about a third of the board', ');', 1),
     ('$("hideUnlikely").checked = false;',
      '$("hideUnlikely").checked = false; $("onlyConnected").checked = false; $("onlyAlumni").checked = false;', 1),
     # "Classmate worked here" tag on each job card
@@ -956,6 +962,58 @@ def company_places(d, data):
     return _co_places["value"]
 
 
+def place_of(loc):
+    """A person's own location text -> one map place: a US map region, or the country name outside the US. None if unclear."""
+    loc = (loc or "").strip()
+    if not loc:
+        return None
+    usable = [r for r in regions.regions_for([loc]) if r not in _NOT_A_PLACE]
+    if usable:
+        return usable[0]
+    tail = directory.COUNTRY_ALIASES.get(loc.split(",")[-1].strip(), loc.split(",")[-1].strip())
+    tail = directory.places().get("cities", {}).get(tail.lower(), tail)      # a bare city name: its country, if offices know it
+    return tail if tail and tail != "United States" else None
+
+
+def map_places(mode):
+    """The map's People and Companies views: {"counts": {place: [count, weighted]}, "countries": [{name, lat, lon}],
+    "total", "unplaced"}. A place is a US map region or a country.
+    companies: each directory company at its headquarters (when known).
+    people: classmates who uploaded their data, at every place they worked (their Positions.csv locations).
+    Weighted: someone in n places counts 1/n in each, like jobs listed in several regions."""
+    pl = directory.places()
+    counts, total, unplaced = defaultdict(lambda: [0, 0.0]), 0, 0
+
+    def add(where):
+        nonlocal total, unplaced
+        total += 1
+        if not where:
+            unplaced += 1
+            return
+        for w in where:
+            counts[w][0] += 1
+            counts[w][1] += 1 / len(where)
+
+    if mode == "companies":
+        d = directory.load()
+        for c in (d or {}).get("companies", []):
+            h = pl["hq"].get(c["id"])
+            add([h] if h else None)
+    else:
+        worked = defaultdict(list)
+        for r in STORE.positions():
+            p = place_of(r.get("location"))
+            if p and p not in worked[r["person_id"]]:
+                worked[r["person_id"]].append(p)
+        for p in STORE.people():
+            add(worked.get(p["person_id"]))
+    us = {r["name"] for r in regions.REGIONS}
+    countries = [{"name": k, "lat": (pl["countries"].get(k) or (None, None))[0], "lon": (pl["countries"].get(k) or (None, None))[1]}
+                 for k in counts if k not in us]
+    return {"counts": {k: [v[0], round(v[1], 3)] for k, v in counts.items()}, "countries": countries,
+            "total": total, "unplaced": unplaced}
+
+
 def region_people(picked, field=None, single=False):
     """Who's there in some map regions: companies with an office, HQ or open roles there that your cohort is tied to,
     the people your cohort knows at them (ranked like the shared connections), and classmates based there.
@@ -1311,6 +1369,9 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200, (STATIC / "companies.html").read_bytes(), "text/html; charset=utf-8")
             if path == "/api/companies":
                 return self.send(200, json.dumps(directory_payload(), ensure_ascii=False), "application/json")
+            if path == "/api/map-places":                       # the map's People and Companies views
+                mode = (parse_qs(urlsplit(self.path).query).get("mode") or ["people"])[0]
+                return self.send(200, json.dumps(map_places(mode), ensure_ascii=False), "application/json")
             if path == "/api/region-people":                    # the map: who's there in the picked regions
                 qs = parse_qs(urlsplit(self.path).query)
                 return self.send(200, json.dumps(region_people(qs.get("region") or [], (qs.get("field") or [None])[0],

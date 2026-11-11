@@ -3,12 +3,15 @@
 .map-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
 .map-head h1 { margin: 0; font-size: 22px; }
 .map-head p { margin: 4px 0 0; }
+.map-switches { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 .map-wrap { position: relative; margin-top: 8px; }
 #map { display: block; width: 100%; height: auto; }
 .state { fill: #eef2f6; stroke: #ffffff; stroke-width: 1; }
 .bubble { cursor: pointer; }
 .bubble circle { fill: var(--brand); fill-opacity: .55; stroke: var(--brand-dark); stroke-width: 1; transition: fill-opacity .12s; }
 .bubble.state-kind circle { fill: #94a3b8; fill-opacity: .45; stroke: #64748b; stroke-dasharray: 2 2; }
+.bubble.country-kind { cursor: default; }
+.bubble.country-kind circle { fill: #7c3aed; fill-opacity: .45; stroke: #5b21b6; }
 .bubble:hover circle, .bubble:focus circle { fill-opacity: .8; }
 .bubble:focus { outline: none; }
 .bubble:focus circle { stroke-width: 2.5; }

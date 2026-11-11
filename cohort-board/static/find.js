@@ -19,7 +19,7 @@
 
   var meta = null;
   var profile = window.Global ? window.Global.profile() : null;
-  var DEFAULT_FILTERS = { categories: [], buckets: ["ready", "reach"], levels: [], posted: "0", q: "", skill: "", mba: false,
+  var DEFAULT_FILTERS = { categories: [], buckets: ["ready", "reach", "overqualified", "pivot"], levels: [], posted: "0", q: "", skill: "", mba: false,
                           warm: false, sort: "fit", from: "", to: "", hidden: [] };
   function loadFilters() {
     var f = Object.assign({}, DEFAULT_FILTERS, load("cohort.findFilters", {}));
@@ -34,7 +34,7 @@
   if (window.Global) {
     window.Global.onChange(function () {
       var had = !!profile; profile = window.Global.profile();
-      if (profile && !had) filters = loadFilters();        // a new resume sets the fit view (Ready + Reach, best fit)
+      if (profile && !had) filters = loadFilters();        // a new resume sorts by fit; it filters nothing
       drawProfile(); refresh();
     });
     window.Global.onRevert(function () {
@@ -289,8 +289,7 @@
 
   // ---------- posting timeline: postings per day for the jobs in view; drag or click to pick a period ----------
   var DAY = 864e5, WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  var TL_VIEWS = [["30", "30 days"], ["90", "90 days"], ["365", "1 year"], ["all", "All"]];
-  var tlView = load("cohort.findTimelineView", "90"), lastTimeline = null;
+  var tlView = "60", lastTimeline = null;                 // always the last 2 months
   function dayNum(iso) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ""); return m ? Math.floor(Date.UTC(+m[1], m[2] - 1, +m[3]) / DAY) : null; }
   function isoOf(n) { return new Date(n * DAY).toISOString().slice(0, 10); }
   function todayNum() { var d = new Date(); return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / DAY); }
@@ -317,11 +316,7 @@
     var max = bins.reduce(function (m, b) { return Math.max(m, b.count); }, 0) || 1;
     var from = dayNum(filters.from), to = dayNum(filters.to);
 
-    var views = el("div", { class: "tl-views", role: "group", "aria-label": "Timeline range" }, TL_VIEWS.map(function (v) {
-      var b = el("button", { type: "button", "aria-pressed": String(tlView === v[0]), text: v[1] });
-      b.addEventListener("click", function () { tlView = v[0]; save("cohort.findTimelineView", tlView); drawTimeline(); });
-      return b;
-    }));
+    var views = el("span", { class: "muted tiny", text: "Last 2 months" });
     box.appendChild(el("div", { class: "tl-h" }, [el("b", { text: "When these jobs were posted" }),
       el("span", { class: "muted tiny", text: plural(dated, "job", "jobs") + " dated" + (tl.undated ? ", " + fmtN(tl.undated) + " without a date" : "") +
         " · one bar per " + (weekly ? "week" : "day") }), views]));

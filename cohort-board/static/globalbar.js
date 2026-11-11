@@ -1,7 +1,7 @@
 // "Your search": the panel down the left side of every tab, plus the Fit row at the top right. Together they hold the
 // filters that follow you everywhere (functions, fit, sponsorship, location) and "Revert to everything".
 // Everything starts on every job. "What you are" (resume or filled in) only scores fit; "What you want" filters by
-// function (7 groups of the job categories). A resume upload fills "What you want" with the same functions.
+// function (7 groups of the job categories). A resume upload never changes "What you want".
 // Pages read them through window.Global:
 //   Global.state()            -> {visa: "any"|"not_no"|"likely", regions: [...], buckets: [...]}
 //   Global.setFitCounts(c)    -> show {bucket: n} counts in the Fit row
@@ -148,9 +148,7 @@
     }).then(function (r) { return r.ok ? r.json() : r.text().then(function (t) { throw new Error(t); }); }).then(function (p) {
       save(PROFILE, p);
       var f = load(PAGE_FILTERS, {}); f.sort = "fit"; save(PAGE_FILTERS, f);
-      // the resume sets what you are, and fills "What you want" with the same functions (add more there)
-      var fns = functionsOf(p.categories || []);
-      if (fns.length) { var w = want(); w.categories = normCats(catsOf(fns)); save(WANT, w); }
+      // the resume sets only "What you are"; "What you want" stays as it is (All functions unless you pick)
       status = "Read " + file.name + ". Check your fields below."; editing = true; changed();
     }).catch(function (e) { status = e.message; draw(); });
   }

@@ -3,6 +3,10 @@
 // Find a job and the Companies page too.
 (function () {
   var ATLAS = "https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/states-10m.json";
+  var WORLD = "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json";
+  // What the bubbles count and where: always opens on Jobs, US (not remembered).
+  var mode = "jobs", area = "us", world = null, jobCounts = {}, placeData = {};
+  var NOUN = { jobs: ["job", "jobs"], people: ["person", "people"], companies: ["company", "companies"] };
   var KEY = "cohort.findFilters";
   var $ = function (id) { return document.getElementById(id); };
   function el(tag, attrs, kids) {
@@ -29,6 +33,23 @@
   window.Global.onChange(function () { profile = window.Global.profile(); filters.regions = window.Global.state().regions; refresh(); });
   window.Global.onRevert(function () { filters = load(KEY, {}); filters.regions = []; profile = window.Global.profile(); refresh(); });
   function value(name) { var c = counts[name]; return c ? (sizeBy === "w" ? c[1] : c[0]) : 0; }
+  function setCounts() {
+    if (mode === "jobs") { counts = jobCounts; return; }
+    var d = placeData[mode] || { counts: {} };
+    counts = d.counts;
+  }
+  function loadMode() {                     // People / Companies: counted once per visit, not by the job filters
+    if (mode === "jobs" || placeData[mode]) { setCounts(); draw(); drawSide(); return Promise.resolve(); }
+    $("mapSub").textContent = "Loading " + NOUN[mode][1] + "…";
+    var m = mode;
+    return fetch("/api/map-places?mode=" + m).then(function (r) { return r.json(); }).then(function (d) {
+      placeData[m] = d; if (m === mode) { setCounts(); draw(); drawSide(); }
+    }).catch(function (e) { $("mapSub").textContent = "Couldn't load " + NOUN[m][1] + " (" + e.message + ")."; });
+  }
+  function loadWorld() {
+    if (world) return Promise.resolve();
+    return fetch(WORLD).then(function (r) { return r.json(); }).then(function (w) { world = topojson.feature(w, w.objects.countries); });
+  }
 
   // ---------- data ----------
   function refresh() {
@@ -38,7 +59,7 @@
     return fetch("/api/find", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       .then(function (r) { return r.ok ? r.json() : r.text().then(function (t) { throw new Error(t || r.status); }); })
       .then(function (res) {
-        counts = res.counts.regions || {}; total = res.total;
+        jobCounts = res.counts.regions || {}; total = res.total; setCounts();
         window.Global.setFitCounts(profile ? res.counts.buckets : null);
         draw(); drawSide(); drawWho();
       }).catch(function (e) { $("mapSub").textContent = e.message; });
@@ -183,20 +204,34 @@
     if (!states) return;
     var svg = d3.select("#map"), W = $("map").parentNode.clientWidth, H = Math.round(W * 0.6);
     svg.attr("viewBox", "0 0 " + W + " " + H).attr("width", W).attr("height", H).selectAll("*").remove();
-    var projection = d3.geoAlbersUsa().fitSize([W, H], states), path = d3.geoPath(projection);
-    svg.append("g").selectAll("path").data(states.features).join("path").attr("class", "state").attr("d", path);
+    var global = area === "world" && world;
+    if (global) { H = Math.round(W * 0.52); svg.attr("viewBox", "0 0 " + W + " " + H).attr("height", H); }
+    var projection = global ? d3.geoNaturalEarth1().fitSize([W, H], { type: "Sphere" }) : d3.geoAlbersUsa().fitSize([W, H], states);
+    var path = d3.geoPath(projection);
+    svg.append("g").selectAll("path").data(global ? world.features : states.features).join("path").attr("class", "state").attr("d", path);
+    $("map").setAttribute("aria-label", (global ? "World" : "US") + " map of " + NOUN[mode][1] + " by region");
 
-    var points = REGIONS.filter(function (r) { return r.lat !== null && value(r.name) > 0; }).map(function (r) {
+    var shapes = {};                                         // country outlines, for countries without office coordinates
+    if (world) world.features.forEach(function (f) { shapes[f.properties.name] = f; });
+    var countries = mode === "jobs" ? [] : ((placeData[mode] || {}).countries || []).map(function (c) {
+      var lat = c.lat, lon = c.lon, f = shapes[c.name];
+      if (lat == null && f) { var ct = d3.geoCentroid(f); lon = ct[0]; lat = ct[1]; }
+      return { name: c.name, lat: lat == null ? null : lat, lon: lon == null ? null : lon, kind: "country" };
+    });
+    var outside = d3.sum(countries, function (c) { return value(c.name); });
+    var drawn = REGIONS.concat(global ? countries : []);
+
+    var points = drawn.filter(function (r) { return r.lat !== null && value(r.name) > 0; }).map(function (r) {
       var xy = projection([r.lon, r.lat]);
       return xy ? { r: r, x: xy[0], y: xy[1], v: value(r.name) } : null;
     }).filter(Boolean);
     var max = d3.max(points, function (p) { return p.v; }) || 1;
     var rad = d3.scaleSqrt().domain([0, max]).range([0, Math.max(26, W / 22)]);     // area follows the (weighted) count
     points.sort(function (a, b) { return b.v - a.v; });                              // small bubbles drawn on top
-    var labelled = new Set(points.filter(function (p) { return p.r.kind === "metro"; }).slice(0, 10).map(function (p) { return p.r.name; }));
+    var labelled = new Set(points.filter(function (p) { return p.r.kind === "metro" || p.r.kind === "country"; }).slice(0, global ? 8 : 10).map(function (p) { return p.r.name; }));
 
     var g = svg.append("g").selectAll("g").data(points).join("g")
-      .attr("class", function (p) { return "bubble" + (p.r.kind === "state" ? " state-kind" : "") + (filters.regions.indexOf(p.r.name) >= 0 ? " on" : ""); })
+      .attr("class", function (p) { return "bubble" + (p.r.kind === "state" ? " state-kind" : "") + (p.r.kind === "country" ? " country-kind" : "") + (filters.regions.indexOf(p.r.name) >= 0 ? " on" : ""); })
       .attr("transform", function (p) { return "translate(" + p.x + "," + p.y + ")"; })
       .attr("tabindex", 0).attr("role", "button")
       .attr("aria-pressed", function (p) { return String(filters.regions.indexOf(p.r.name) >= 0); })
@@ -204,8 +239,9 @@
     g.append("circle").attr("r", function (p) { return Math.max(3, rad(p.v)); });
     g.filter(function (p) { return labelled.has(p.r.name); }).append("text").attr("text-anchor", "middle")
       .attr("y", function (p) { return Math.max(3, rad(p.v)) + 12; }).text(function (p) { return short(p.r.name); });
-    g.on("click", function (e, p) { toggle(p.r.name); })
-     .on("keydown", function (e, p) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(p.r.name); } })
+    g.filter(function (p) { return p.r.kind === "country"; }).attr("role", "img").attr("tabindex", null).attr("aria-pressed", null);
+    g.on("click", function (e, p) { if (p.r.kind !== "country") toggle(p.r.name); })
+     .on("keydown", function (e, p) { if (p.r.kind !== "country" && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggle(p.r.name); } })
      .on("mousemove", function (e, p) {
         var box = $("map").getBoundingClientRect();
         tip.hidden = false; tip.style.left = (e.clientX - box.left) + "px"; tip.style.top = (e.clientY - box.top) + "px";
@@ -216,25 +252,39 @@
 
     // regions with no place on the map
     var off = $("offmap"); off.textContent = "";
-    REGIONS.filter(function (r) { return r.lat === null && value(r.name) > 0; }).forEach(function (r) {
+    if (!global && outside > 0) {
+      var go = el("button", { type: "button", class: "off" }, [el("span", { class: "dot", style: "width:14px;height:14px" }),
+        el("span", {}, [el("b", { text: "Outside the US" }), el("small", { text: plural(outside, NOUN[mode][0], NOUN[mode][1]) + (sizeBy === "w" ? " (weighted)" : "") + " · show Global" })])]);
+      go.addEventListener("click", function () { setArea("world"); });
+      off.appendChild(go);
+    }
+    drawn.filter(function (r) { return r.lat === null && value(r.name) > 0 && (r.kind !== "country" || global); }).forEach(function (r) {
       var d = Math.max(10, Math.min(56, 2 * rad(value(r.name))));
       var b = el("button", { type: "button", class: "off" + (filters.regions.indexOf(r.name) >= 0 ? " on" : ""),
                              "aria-pressed": String(filters.regions.indexOf(r.name) >= 0) }, [
         el("span", { class: "dot", style: "width:" + d + "px;height:" + d + "px" }),
         el("span", {}, [el("b", { text: r.name }), el("small", { text: label(r.name) })])]);
-      b.addEventListener("click", function () { toggle(r.name); });
+      if (r.kind !== "country") b.addEventListener("click", function () { toggle(r.name); });
       off.appendChild(b);
     });
-    var shown = d3.sum(Object.keys(counts), function (k) { return counts[k][1]; });
-    $("mapNote").textContent = "Bubble area: " + (sizeBy === "w"
-      ? "jobs, with a posting that names several regions split evenly across them. "
-      : "every listing, counted fully in each region it names. ") +
-      "Grey dashed bubbles are “elsewhere in” a state, outside its big metros. " + plural(shown, "job", "jobs") + " under your filters.";
+    var shown = d3.sum(Object.keys(counts), function (k) { return counts[k][1]; }), pd = placeData[mode] || {};
+    $("mapTitle").textContent = { jobs: "Jobs", people: "People", companies: "Companies" }[mode] + " by region" + (global ? ", worldwide" : "");
+    $("mapSub").textContent = mode === "jobs" ? "Click bubbles to pick regions. Your pick filters Find a job and Companies." + (global ? " Jobs on the board are US postings." : "")
+      : "Click a US bubble to pick it as a region (it filters jobs and shows who's there). Country bubbles are for looking.";
+    $("mapNote").textContent = mode === "jobs"
+      ? "Bubble area: " + (sizeBy === "w" ? "jobs, with a posting that names several regions split evenly across them. "
+                                          : "every listing, counted fully in each region it names. ") +
+        "Grey dashed bubbles are “elsewhere in” a state, outside its big metros. " + plural(shown, "job", "jobs") + " under your filters."
+      : (mode === "people"
+          ? "Classmates who uploaded their data, at every place they've worked (from their LinkedIn jobs). "
+          : "Companies in the directory, at their headquarters. ") +
+        (sizeBy === "w" ? "Weighted: one in several places counts as a share in each. " : "All listings: counted fully in every place. ") +
+        plural(pd.total || 0, NOUN[mode][0], NOUN[mode][1]) + ", " + fmtN(pd.unplaced || 0) + (mode === "people" ? " with no job locations listed." : " with no known headquarters.") + " Not filtered by Your search.";
   }
   function short(n) { return n.replace(/ area$/, "").replace("San Francisco Bay", "SF Bay").replace("New York City", "NYC").replace("Washington, DC", "DC"); }
   function label(name) {
     var c = counts[name] || [0, 0];
-    return plural(c[0], "job", "jobs") + (c[0] !== Math.round(c[1]) ? " (" + fmtN(c[1]) + " weighted)" : "");
+    return plural(c[0], NOUN[mode][0], NOUN[mode][1]) + (c[0] !== Math.round(c[1]) ? " (" + fmtN(c[1]) + " weighted)" : "");
   }
 
   // ---------- side panel ----------
@@ -275,19 +325,33 @@
       var b = el("button", { type: "button", "aria-pressed": String(on) }, [
         el("span", { text: r }), el("span", { class: "n", text: fmtN(value(r)) }),
         el("span", { class: "bar" }, [el("span", { style: "width:" + Math.round(100 * value(r) / max) + "%" })])]);
-      b.addEventListener("click", function () { toggle(r); });
+      if (REGIONS.some(function (x) { return x.name === r; })) b.addEventListener("click", function () { toggle(r); }); else b.disabled = true;
       list.appendChild(el("li", {}, [b]));
     });
   }
 
   // ---------- start ----------
-  Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function (b) {
+  Array.prototype.forEach.call(document.querySelectorAll("#sizeSeg button"), function (b) {
     b.setAttribute("aria-pressed", String(b.getAttribute("data-size") === sizeBy));
     b.addEventListener("click", function () {
       sizeBy = b.getAttribute("data-size"); save("cohort.mapSize", sizeBy);
-      Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      Array.prototype.forEach.call(document.querySelectorAll("#sizeSeg button"), function (x) { x.setAttribute("aria-pressed", String(x === b)); });
       draw(); drawSide();
     });
+  });
+  function press(seg, attr, v) {
+    Array.prototype.forEach.call(document.querySelectorAll(seg + " button"), function (x) { x.setAttribute("aria-pressed", String(x.getAttribute(attr) === v)); });
+  }
+  function setArea(a) {
+    area = a; press("#areaSeg", "data-area", a);
+    (a === "world" ? loadWorld() : Promise.resolve()).then(function () { draw(); drawSide(); })
+      .catch(function (e) { $("mapSub").textContent = "Couldn't load the world map (" + e.message + ")."; });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("#areaSeg button"), function (b) {
+    b.addEventListener("click", function () { setArea(b.getAttribute("data-area")); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("#modeSeg button"), function (b) {
+    b.addEventListener("click", function () { mode = b.getAttribute("data-mode"); press("#modeSeg", "data-mode", mode); loadMode(); });
   });
   document.querySelector(".cb-logout").addEventListener("click", function () {
     fetch("/logout", { method: "POST" }).then(function () { location.href = "/login"; });
