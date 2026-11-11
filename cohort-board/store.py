@@ -120,6 +120,16 @@ class _Cached:
         self.invalidate()
         return out
 
+    def research_done(self):
+        """Company research Muse finished and nobody merged yet, uncached: [{id, name, result}]."""
+        return self._research_done()
+
+    def research_mark(self, merged, needs_fix, log=()):
+        """merged: ids now in the directory; needs_fix: [{id, error}] sent back to Muse; log: activity_log rows."""
+        out = self._research_mark(list(merged), list(needs_fix), list(log))
+        self.invalidate()
+        return out
+
     def add(self, entry):
         out = self._add_manual(entry)
         self.invalidate()
@@ -213,6 +223,12 @@ class RemoteStore(_Cached):
     def _apply_inbox(self, upsert, delete, log, clear_inbox, clear_manual):
         return self._ok("POST", "/v1/inbox/apply", {"upsert": upsert, "delete": delete, "log": log,
                                                     "clear_inbox": clear_inbox, "clear_manual": clear_manual}, timeout=120)
+
+    def _research_done(self):
+        return self._ok("GET", "/v1/research/done", timeout=60)["rows"]
+
+    def _research_mark(self, merged, needs_fix, log):
+        return self._ok("POST", "/v1/research/mark", {"merged": merged, "needs_fix": needs_fix, "log": log}, timeout=60)
 
     def _add_manual(self, entry):
         return self._ok("POST", "/v1/manual", {k: entry[k] for k in ("company", "classmate", "contact", "title", "note")}, want=(201,))
@@ -371,6 +387,20 @@ class LocalStore(_Cached):
             con.executemany("DELETE FROM manual_connections WHERE note LIKE 'Muse%' AND id = ?", [(i,) for i in clear_manual])
         self._write(run)
         return {"upserted": len(upsert), "deleted": len(delete), "logged": len(log), "cleared": len(clear_inbox) + len(clear_manual)}
+
+    def _research_done(self):
+        return self._rows("SELECT id, name, result FROM company_research WHERE status = 'done' ORDER BY researched_at, id LIMIT 2000")
+
+    def _research_mark(self, merged, needs_fix, log):
+        at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+        def run(con):
+            con.executemany("UPDATE company_research SET status = 'merged', error = NULL WHERE status = 'done' AND id = ?", [(i,) for i in merged])
+            con.executemany("UPDATE company_research SET status = 'needs_fix', error = ?, researched_at = COALESCE(researched_at, ?) WHERE id = ?",
+                            [(r["error"][:500], at, r["id"]) for r in needs_fix])
+            self._insert(con, "activity_log", LOG_COLS, log, "INSERT OR IGNORE")
+        self._write(run)
+        return {"merged": len(merged), "needs_fix": len(needs_fix)}
 
     def _add_manual(self, entry):
         e = {**entry, "id": entry.get("id") or uuid.uuid4().hex[:12],

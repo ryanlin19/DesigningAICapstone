@@ -7,8 +7,8 @@ headquarters and US offices. It's a directory: no job fetching here.
     python3 company-db/companies.py offices     # US offices seen in our job postings (data/all_jobs.json)
     python3 company-db/companies.py batches N   # write research batches for agents (tier 1-2, N per batch)
     python3 company-db/companies.py muse-push   # put every unresearched company in D1's company_research table for Muse
-    python3 company-db/companies.py muse-pull   # merge what Muse researched (status 'done') into research/muse.json, then merge
-                                                # (both take --local to use the `wrangler dev` copy of D1)
+    python3 company-db/companies.py muse-pull   # merge what Muse researched now (the board also does it every 15 minutes)
+                                                # (muse-push takes --local to use the `wrangler dev` copy of D1)
     python3 company-db/companies.py merge       # build the companies / names / offices tables from everything
     python3 company-db/companies.py stats
 
@@ -544,11 +544,14 @@ def cmd_muse_push(target="--remote"):
     print(f"{len(vals)} unresearched companies offered to Muse (rows already in the table were left alone).")
 
 
-def cmd_muse_pull(target="--remote"):
-    """Merge Muse's finished rows (status 'done') into research/muse.json, rebuild the directory, mark them 'merged'.
-    A result that isn't usable JSON for its company is marked 'needs_fix' with the reason, for Muse to redo."""
-    sync, query = _d1(target)
-    rows = query("SELECT id, name, result FROM company_research WHERE status = 'done'")
+def pull_research(store):
+    """Merge Muse's finished company research (status 'done') into research/muse.json, rebuild the directory, and mark the
+    rows 'merged' (or 'needs_fix' with the reason) with a log entry. store: cohort-board/store.py's store (the cloud
+    database through the cohort API). Returns {"merged": n, "needs_fix": n}; does nothing when there's nothing new."""
+    import uuid
+    rows = store.research_done()
+    if not rows:
+        return {"merged": 0, "needs_fix": 0}
     have = {r["id"]: r for r in json.loads(MUSE_FILE.read_text())} if MUSE_FILE.exists() else {}
     good, bad = [], []
     for r in rows:
@@ -557,7 +560,7 @@ def cmd_muse_pull(target="--remote"):
             if not isinstance(res, dict):
                 raise ValueError("result is not a JSON object")
         except ValueError as e:
-            bad.append((r["id"], f"result isn't valid JSON ({e})"))
+            bad.append({"id": r["id"], "error": f"result isn't valid JSON ({e})"})
             continue
         res["id"] = r["id"]
         notes = [res.get("notes")] if res.get("notes") else []
@@ -576,21 +579,22 @@ def cmd_muse_pull(target="--remote"):
         RESEARCH.mkdir(parents=True, exist_ok=True)
         MUSE_FILE.write_text(json.dumps(list(have.values()), indent=1, ensure_ascii=False))
         cmd_merge()
-    at = sync.q(now())
-    stmts = [f"UPDATE company_research SET status = 'merged', error = NULL WHERE id IN ({','.join(sync.q(i) for i in good[k:k + 200])});"
-             for k in range(0, len(good), 200)]
-    stmts += [f"UPDATE company_research SET status = 'needs_fix', error = {sync.q(msg)}, researched_at = COALESCE(researched_at, {at}) "
-              f"WHERE id = {sync.q(i)};" for i, msg in bad]
-    if stmts:
-        names = {r["id"]: r["name"] for r in rows}
-        shown = ", ".join(names[i] for i in good[:5]) + (f" and {len(good) - 5} more" if len(good) > 5 else "")
-        stmts.append(_log(sync, "research_merge",
-                          (f"Merged {len(good)} compan{'y' if len(good) == 1 else 'ies'} researched by Muse into the directory"
-                           + (f" ({shown})" if good else "")) + (f"; {len(bad)} sent back to fix" if bad else ""),
-                          {"merged": good, "needs_fix": {i: m for i, m in bad}}))
-        sync.run_sql(stmts, f"company_research: {len(good)} merged, {len(bad)} need fixing", target)
-    print(f"Merged {len(good)} researched compan{'y' if len(good) == 1 else 'ies'}; {len(bad)} marked needs_fix." +
-          ("" if good else " Nothing new to merge."))
+    names = {r["id"]: r["name"] for r in rows}
+    shown = ", ".join(names[i] for i in good[:5]) + (f" and {len(good) - 5} more" if len(good) > 5 else "")
+    summary = (f"Merged {len(good)} compan{'y' if len(good) == 1 else 'ies'} researched by Muse into the directory" +
+               (f" ({shown})" if good else "")) + (f"; {len(bad)} sent back to fix" if bad else "")
+    log = [{"id": uuid.uuid4().hex[:16], "at": now(), "source": "board", "action": "research_merge", "person": None,
+            "summary": summary, "details": json.dumps({"merged": good, "needs_fix": {x["id"]: x["error"] for x in bad}}, ensure_ascii=False)}]
+    store.research_mark(good, bad, log)
+    return {"merged": len(good), "needs_fix": len(bad)}
+
+
+def cmd_muse_pull():
+    """The board does this every 15 minutes on its own; run it by hand to merge right away."""
+    import store
+    res = pull_research(store.make_store())
+    print(f"Merged {res['merged']} researched companies; {res['needs_fix']} sent back to fix." if res["merged"] or res["needs_fix"]
+          else "Nothing new from Muse.")
 
 
 # ---------------------------------------------------------------- merge
@@ -762,4 +766,4 @@ if __name__ == "__main__":
                                     tuple(int(x) for x in args[2].split(",")) if len(args) > 2 else (1, 2)), "merge": cmd_merge,
      "stats": cmd_stats,
      "muse-push": lambda: cmd_muse_push("--local" if "--local" in args else "--remote"),
-     "muse-pull": lambda: cmd_muse_pull("--local" if "--local" in args else "--remote")}[cmd]()
+     "muse-pull": cmd_muse_pull}[cmd]()

@@ -1509,6 +1509,29 @@ class Handler(BaseHTTPRequestHandler):
         self.send(204 if found else 404)
 
 
+research_check = {"at": None, "result": None, "error": None}
+
+
+def start_research_merge(every=900):
+    """Muse's company research (muse/COMPANY_RESEARCH.md): merged into the company directory now and every 15 minutes.
+    The directory (data/companies.db) is rebuilt only when Muse has finished something; the Companies tab picks it up
+    on the next page load."""
+    def loop():
+        sys.path.insert(0, str(REPO / "company-db"))
+        import companies
+        while True:
+            try:
+                res = companies.pull_research(STORE)
+                research_check.update(at=datetime.now(timezone.utc).isoformat(timespec="seconds"), result=res, error=None)
+                if res["merged"] or res["needs_fix"]:
+                    print(f"research: merged {res['merged']} companies from Muse, {res['needs_fix']} sent back", flush=True)
+            except Exception as e:                       # network, Wikidata, a bad row: try again next time
+                research_check.update(at=datetime.now(timezone.utc).isoformat(timespec="seconds"), error=str(e))
+                print(f"research: couldn't merge Muse's company research: {e}", flush=True)
+            time.sleep(every)
+    threading.Thread(target=loop, daemon=True).start()
+
+
 def cohort_payload_names():
     if _cache["value"] is None:
         _cache.update(key=None, value={"names": board_companies()})
@@ -1527,6 +1550,8 @@ def main():
         find.job_regions(all_jobs()[0])          # work out every job's map regions now, not on the first search
     state.start_refresher()
     inbox.start(STORE)                                  # Muse's findings: merged now and every 15 minutes
+    if (REPO / "data" / "companies.db").exists():       # Muse's company research, likewise (needs the directory's build files)
+        start_research_merge()
     print(f"Private board: http://{HOST}:{PORT}" + ("  (hosted)" if HOSTED else "  (this computer only; Ctrl+C to stop)"), flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
 

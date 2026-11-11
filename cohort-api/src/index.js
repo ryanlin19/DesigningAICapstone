@@ -17,6 +17,8 @@
 //   DELETE /v1/people/:id        -> remove a classmate and every row from their upload
 //   GET    /v1/inbox             -> Muse's deliveries {inbox: muse_inbox rows, manual: manual_connections noted "Muse..."}
 //   POST   /v1/inbox/apply       -> the board's merge of them, in one transaction {upsert, delete, log, clear_inbox, clear_manual}
+//   GET    /v1/research/done     -> company research Muse finished {rows: [{id, name, result}]} (muse/COMPANY_RESEARCH.md)
+//   POST   /v1/research/mark     -> after merging them {merged: [ids], needs_fix: [{id, error}], log: [rows]}, one transaction
 //   GET    /v1/jobs/version      -> the current jobs build {build_id, generated, pushed_at, jobs}; ?kind=all for every posting
 //   GET    /v1/jobs              -> the current build's roles, shaped like the page's window.BOARD_DATA; ?kind=all likewise
 //   POST   /v1/manual            -> add a hand-entered connection {company, classmate, contact, title, note}
@@ -101,6 +103,10 @@ export default {
         return json({ inbox: inbox.results, manual: manual.results });
       }
       if (method === "POST" && path === "/v1/inbox/apply") return applyInbox(request, db);
+      if (method === "GET" && path === "/v1/research/done") {
+        return json({ rows: (await db.prepare("SELECT id, name, result FROM company_research WHERE status = 'done' ORDER BY researched_at, id LIMIT 2000").all()).results });
+      }
+      if (method === "POST" && path === "/v1/research/mark") return markResearch(request, db);
       let m = path.match(/^\/v1\/people\/([a-z0-9-]{1,60})\/link$/);
       if (method === "POST" && m) {
         const b = await body(request);
@@ -249,6 +255,27 @@ async function applyInbox(request, db) {
   ];
   if (stmts.length) await db.batch(stmts);
   return json({ upserted: upsert.length, deleted: del.length, logged: log.length, cleared: inbox.length + manual.length });
+}
+
+// Company research merged into the directory ('merged') or sent back to Muse ('needs_fix' with the reason), plus log rows.
+async function markResearch(request, db) {
+  const b = await body(request);
+  const merged = b && Array.isArray(b.merged) ? b.merged.map(String) : null;
+  const fix = b && Array.isArray(b.needs_fix) ? b.needs_fix : null;
+  const log = b && b.log !== undefined ? b.log : [];
+  if (!merged || !fix || !Array.isArray(log) || merged.length > 5000 || fix.length > 5000 ||
+      fix.some((r) => !r || !r.id || !r.error) || log.some((r) => !r || !r.id || !r.at || !r.source || !r.action || !r.summary)) {
+    return json({ error: "merged: [ids], needs_fix: [{id, error}], log: [rows] required" }, 400);
+  }
+  const now = new Date().toISOString().slice(0, 19) + "Z";
+  const stmts = [];
+  if (merged.length) stmts.push(db.prepare("UPDATE company_research SET status = 'merged', error = NULL WHERE status = 'done' AND id IN (SELECT value FROM json_each(?))")
+    .bind(JSON.stringify(merged)));
+  for (const r of fix) stmts.push(db.prepare("UPDATE company_research SET status = 'needs_fix', error = ?, researched_at = COALESCE(researched_at, ?) WHERE id = ?")
+    .bind(String(r.error).slice(0, 500), now, String(r.id)));
+  stmts.push(...insertRows(db, "activity_log", log, "OR IGNORE"));
+  if (stmts.length) await db.batch(stmts);
+  return json({ merged: merged.length, needs_fix: fix.length });
 }
 
 async function snapshot(db) {
