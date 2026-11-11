@@ -13,7 +13,42 @@ VALUES ('muse-2026-11-18', '2026-11-18T09:00:00Z', 'muse', 'run', 'Muse weekly r
 ```
 Use a new `id` each run (e.g. `muse-` + the date). Use the same value as `run_id` below.
 
-## 2. For each change you find, add one row to `muse_inbox`
+## 2. Check every classmate who has uploaded, newest connections first
+
+Check **every** classmate in the `people` table, not only Peter, one at a time:
+
+```sql
+SELECT person_id, display_name, profile_url FROM people ORDER BY person_id;
+```
+
+For each classmate, get the connections the board already has for them (you only read `contacts`, never write it):
+
+```sql
+SELECT profile_url, full_name FROM contacts WHERE connector_id = 'ryan-lin';
+```
+
+Then on LinkedIn:
+1. Open that classmate's connections list **sorted by recently added, newest first**. For Peter this is his own
+   Connections page. For other classmates, open their profile's connections list from Peter's account.
+2. Read from the top. Every connection that isn't in the board's list for that classmate is a `new_connection`
+   (step 3).
+3. **Stop at the first 3 connections in a row that the board already has.** Everything below them is older. Don't page
+   through the rest of the list.
+4. Never load more than **10 pages** of one classmate's list. If you hit that limit before finding 3 known ones in a
+   row, stop there and say so in that classmate's log entry.
+
+When the list can't be sorted newest first (LinkedIn may not offer that sort for someone else's connections), don't
+read the whole list. Instead, check only whether that classmate is now connected to each of the **other classmates**
+(search their connections for each classmate's name), report any new classmate-to-classmate connection, and write
+`"how": "no recent-first sort; checked classmates only"` in their log entry.
+
+If a classmate's connections aren't visible to Peter (they hid them), skip that classmate and log
+`"connections hidden"`.
+
+Job changes, locations and removed connections stay as before: report them when you notice them on the way. Don't
+open extra profiles to look for them.
+
+## 3. For each change you find, add one row to `muse_inbox`
 
 | change | when | fill in |
 |---|---|---|
@@ -40,7 +75,7 @@ Rules:
 - Report changes only: don't re-send people the board already has unchanged.
 - No emails, phone numbers or messages.
 
-## 3. Log what you did on LinkedIn, one entry per classmate
+## 4. Log what you did on LinkedIn, one entry per classmate
 
 After you finish each classmate (whether or not you found changes), record what you looked at. This is how the board's
 owner sees what the run did; keep it accurate.
@@ -51,7 +86,8 @@ VALUES ('muse-2026-11-18-peter-berzins', '2026-11-18T09:12:00Z', 'muse', 'checke
         'Checked Peter Berzins''s connections: 832 listed, 6 profiles opened, 2 changes',
         '{"started_at": "2026-11-18T09:05:00Z", "finished_at": "2026-11-18T09:12:00Z", "connections_listed": 832,
           "pages_viewed": 9, "profiles_opened": ["https://www.linkedin.com/in/jane-doe-1/"], "changes": 2,
-          "how": "scrolled the Connections page sorted by recently added; opened profiles only to confirm changes"}');
+          "how": "scrolled the Connections page sorted by recently added; stopped at 3 known in a row",
+          "stopped_because": "3 known in a row | 10-page limit | no recent-first sort | connections hidden"}');
 ```
 
 - `id`: run id + `-` + the classmate's id. `person`: the classmate's board id.
@@ -67,7 +103,7 @@ VALUES ('muse-2026-11-18-warning', '2026-11-18T09:20:00Z', 'muse', 'warning', 's
         '{"what_linkedin_showed": "exact wording of the notice", "pages_viewed_before": 14}');
 ```
 
-## 4. Finish the run
+## 5. Finish the run
 
 ```sql
 INSERT INTO activity_log (id, at, source, action, summary)
