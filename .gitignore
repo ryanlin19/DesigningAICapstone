@@ -22,3 +22,7 @@ linkedin-ingest/.contact_key
 data/descriptions.db
 data/descriptions.tmp
 data/all_jobs.json
+
+# Company directory database (target list comes from classmates connections)
+data/companies.db
+data/company-db/

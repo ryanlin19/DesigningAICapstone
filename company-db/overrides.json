@@ -1,0 +1,2 @@
+{"_help": "Hand fixes keyed by company id (see data/companies.db targets). Fields: wikidata_id (null = no match), wikipedia_title, name, kind, vertical, sub_vertical, description.",
+ "broadcom": {"wikidata_id": "Q790060"}}
