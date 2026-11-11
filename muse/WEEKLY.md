@@ -40,7 +40,34 @@ Rules:
 - Report changes only: don't re-send people the board already has unchanged.
 - No emails, phone numbers or messages.
 
-## 3. Finish the run
+## 3. Log what you did on LinkedIn, one entry per classmate
+
+After you finish each classmate (whether or not you found changes), record what you looked at. This is how the board's
+owner sees what the run did; keep it accurate.
+
+```sql
+INSERT INTO activity_log (id, at, source, action, person, summary, details)
+VALUES ('muse-2026-11-18-peter-berzins', '2026-11-18T09:12:00Z', 'muse', 'checked', 'peter-berzins',
+        'Checked Peter Berzins''s connections: 832 listed, 6 profiles opened, 2 changes',
+        '{"started_at": "2026-11-18T09:05:00Z", "finished_at": "2026-11-18T09:12:00Z", "connections_listed": 832,
+          "pages_viewed": 9, "profiles_opened": ["https://www.linkedin.com/in/jane-doe-1/"], "changes": 2,
+          "how": "scrolled the Connections page sorted by recently added; opened profiles only to confirm changes"}');
+```
+
+- `id`: run id + `-` + the classmate's id. `person`: the classmate's board id.
+- `details` is JSON: when you started and finished, how many connections the list showed, how many LinkedIn pages you
+  loaded in total, the link of every profile you opened, the number of changes, and one sentence on how you checked.
+- **If LinkedIn shows any warning, captcha, "unusual activity" notice, sign-in challenge or limit: stop the whole run
+  immediately**, log it, and don't continue with other classmates:
+
+```sql
+INSERT INTO activity_log (id, at, source, action, person, summary, details)
+VALUES ('muse-2026-11-18-warning', '2026-11-18T09:20:00Z', 'muse', 'warning', 'sean-kim',
+        'LinkedIn showed a security check while checking Sean Kim''s connections; run stopped',
+        '{"what_linkedin_showed": "exact wording of the notice", "pages_viewed_before": 14}');
+```
+
+## 4. Finish the run
 
 ```sql
 INSERT INTO activity_log (id, at, source, action, summary)

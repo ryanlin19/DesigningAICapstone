@@ -1322,7 +1322,8 @@ class Handler(BaseHTTPRequestHandler):
                     rows = inbox.entries(STORE)
                 except (RuntimeError, OSError) as e:
                     return self.send(502, json.dumps({"error": f"Couldn't read the log: {e}"}), "application/json")
-                muse = [r for r in rows if r["source"] == "muse"]
+                muse = [r for r in rows if r["source"] == "muse" and r["action"] in ("run", "warning")] or \
+                       [r for r in rows if r["source"] == "muse"]
                 return self.send(200, json.dumps({"entries": rows, "last_muse": muse[0] if muse else None,
                                                   "last_check": inbox.last_check, "cloud": isinstance(STORE, RemoteStore)},
                                                  ensure_ascii=False), "application/json")

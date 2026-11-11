@@ -157,3 +157,11 @@ a.np-name:hover { color: var(--brand); text-decoration: underline; }
 .co-foryou { margin: 6px 0 0; font-size: 13px; color: var(--text, #1f2933); }
 .co-foryou b { color: var(--brand, #0a66c2); font-weight: 600; }
 #rankSeg button:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Log tab: details of an entry, and LinkedIn warnings */
+.log-more { margin-left: 8px; font: inherit; font-size: 12px; background: none; border: 0; padding: 0; color: var(--brand); cursor: pointer; }
+.log-details { margin-top: 6px; padding: 8px 10px; background: var(--bg, #f6f8fa); border-radius: 8px; font-size: 13px; overflow-wrap: anywhere; }
+.log-details ul { margin: 2px 0 6px; padding-left: 18px; }
+.log-warning { border-left: 4px solid #b42318; }
+.log-warning h2 { color: #b42318; }
+.log-row.is-warning .tag { background: #fde8e7; color: #b42318; }

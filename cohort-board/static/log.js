@@ -16,6 +16,25 @@
     return d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " (" + ago + ")";
   }
   var LABEL = { muse: "Muse", board: "Board", upload: "Upload", sync: "Sync" };
+  // an entry's details (JSON): a short "Details" toggle; for Muse's LinkedIn checks, the counts and the profiles it opened
+  function details(r) {
+    var d;
+    try { d = r.details ? JSON.parse(r.details) : null; } catch (e) { d = null; }
+    if (!d || typeof d !== "object") return null;
+    var box = el("div", { class: "log-details", hidden: "" });
+    Object.keys(d).forEach(function (k) {
+      var v = d[k], label = k.replace(/_/g, " ");
+      if (Array.isArray(v) && v.every(function (x) { return typeof x === "string" && /^https?:\/\//.test(x); })) {
+        box.appendChild(el("div", {}, [el("b", { text: label + " (" + v.length + "): " })]));
+        box.appendChild(el("ul", {}, v.map(function (u) { return el("li", {}, [el("a", { href: u, target: "_blank", rel: "noopener", text: u })]); })));
+      } else {
+        box.appendChild(el("div", {}, [el("b", { text: label + ": " }), typeof v === "object" ? JSON.stringify(v) : String(v)]));
+      }
+    });
+    var btn = el("button", { type: "button", class: "log-more", "aria-expanded": "false", text: "Details" });
+    btn.addEventListener("click", function () { box.hidden = !box.hidden; btn.setAttribute("aria-expanded", String(!box.hidden)); });
+    return [btn, box];
+  }
   function render(d) {
     var page = $("page"); page.textContent = "";
     var check = el("button", { type: "button", class: "btn primary", text: "Check for Muse updates now" });
@@ -30,6 +49,9 @@
       el("p", { class: "muted tiny dir-sub", text: "Muse runs, what was merged into the cohort data, uploads and removals. Muse's findings are merged automatically every 15 minutes." })]),
       el("div", { class: "cp-pick" }, [check, status])]));
     var m = d.last_muse;
+    var warn = (d.entries || []).filter(function (r) { return r.source === "muse" && r.action === "warning"; })[0];
+    if (warn) page.appendChild(el("section", { class: "co-card log-warning" }, [
+      el("h2", { text: "LinkedIn warning during a Muse run, " + when(warn.at) }), el("p", { text: warn.summary })]));
     page.appendChild(el("section", { class: "co-card log-muse" }, [
       el("h2", { text: "Muse last ran: " + (m ? when(m.at) : "no runs recorded yet") }),
       m ? el("p", { text: m.summary }) : el("p", { class: "muted", text: "When Muse adds findings to the cloud database, they show up here." }),
@@ -37,8 +59,10 @@
     var rows = d.entries || [];
     page.appendChild(el("section", { class: "co-card" }, [el("h2", { text: "History (" + rows.length + ")" }),
       rows.length ? el("ul", { class: "log-list" }, rows.map(function (r) {
-        return el("li", { class: "log-row" }, [el("span", { class: "tag log-" + r.source, text: LABEL[r.source] || r.source }),
-          el("div", {}, [el("div", { text: r.summary }), el("div", { class: "np-who", text: when(r.at) })])]);
+        var more = details(r) || [];
+        return el("li", { class: "log-row" + (r.action === "warning" ? " is-warning" : "") }, [
+          el("span", { class: "tag log-" + r.source, text: r.action === "warning" ? "Warning" : LABEL[r.source] || r.source }),
+          el("div", {}, [el("div", { text: r.summary }), el("div", { class: "np-who" }, [when(r.at)].concat(more.slice(0, 1))), more[1] || null])]);
       })) : el("p", { class: "muted", text: "Nothing logged yet." })]));
   }
   function load() { fetch("/api/log").then(function (r) { return r.json(); }).then(render); }
