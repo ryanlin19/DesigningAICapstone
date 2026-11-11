@@ -34,17 +34,35 @@ export class Board extends Container {
 
   // Idle: sleep, unless the daily refresh (or another task) is still running.
   async onActivityExpired() {
+    if (!(await this.busy())) await this.stop();
+    else this.renewActivityTimeout();
+  }
+
+  // POST /__restart with the state token (deploy/restart.sh): after a deploy, stop now so the next visit starts the
+  // new image. Not while a task runs. Checked here, so no other way in reaches it.
+  async fetch(request) {
+    if (new URL(request.url).pathname === "/__restart") {
+      const ok = request.method === "POST" && this.env.STATE_TOKEN && request.headers.get("X-Task-Token") === this.env.STATE_TOKEN;
+      return ok ? new Response(await this.restartIfIdle()) : new Response("forbidden", { status: 403 });
+    }
+    return super.fetch(request);
+  }
+
+  async restartIfIdle() {
+    if (await this.busy()) return "busy";
+    await this.stop();
+    return "stopped";
+  }
+
+  async busy() {
     try {
       const r = await this.containerFetch(new Request("http://board/__task/busy", {
         method: "POST", headers: { "X-Task-Token": this.env.STATE_TOKEN || "" } }), this.defaultPort);
-      if (r.ok && (await r.json()).busy) {
-        this.renewActivityTimeout();
-        return;
-      }
+      return r.ok && !!(await r.json()).busy;
     } catch (e) {
-      console.error("busy check failed", e);
+      console.error("busy check failed", e);            // not running, or not answering: nothing to protect
+      return false;
     }
-    await this.stop();
   }
 }
 
