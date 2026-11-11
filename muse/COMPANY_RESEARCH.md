@@ -67,6 +67,44 @@ Inside the SQL string, double every `'` (`O''Brien`). Several `UPDATE`s can run 
   - Government & Nonprofit: Government, Nonprofit & NGO, International organizations
   - Other: Other
 
+## Log what you do
+
+These entries show on the board's Log tab, so the owner can see what you're doing. Use a session id like
+`muse-research-2026-11-12` (new one each session).
+
+**When you start a session:**
+
+```sql
+INSERT INTO activity_log (id, at, source, action, summary)
+VALUES ('muse-research-2026-11-12', '2026-11-12T10:00:00Z', 'muse', 'research', 'Muse started company research');
+```
+
+**After each batch of companies you save** (one entry per batch, not per company):
+
+```sql
+INSERT INTO activity_log (id, at, source, action, summary, details)
+VALUES ('muse-research-2026-11-12-b01', '2026-11-12T10:40:00Z', 'muse', 'research',
+        'Researched 25 companies (22 high or medium confidence, 3 low)',
+        '{"started_at": "2026-11-12T10:00:00Z", "finished_at": "2026-11-12T10:40:00Z", "companies": ["b-labs-ventures", "blue-bench"],
+          "low_confidence": ["blue-bench"], "skipped": [], "pages_visited": 61,
+          "sites_used": ["https://www.example.com/about", "https://en.wikipedia.org/wiki/Example"]}');
+```
+
+- `companies`: the `id` of every row you set to `done`. `low_confidence` and `skipped` (rows you couldn't do, with
+  the reason in the row's `result` notes or left `todo`): ids too.
+- `pages_visited`: roughly how many web pages you loaded for the batch. `sites_used`: the main pages you relied on.
+
+**When you stop** (done for now, out of time, or a site blocked you):
+
+```sql
+INSERT INTO activity_log (id, at, source, action, summary)
+VALUES ('muse-research-2026-11-12-done', '2026-11-12T12:00:00Z', 'muse', 'research',
+        'Muse finished company research for now: 75 companies done, 751 left');
+```
+
+If any site shows a captcha, block or "unusual traffic" page, log it with action `'warning'` (exact wording in
+`details`), skip that site, and continue with other sources.
+
 ## For the board's owner
 
 ```bash

@@ -515,6 +515,14 @@ def _d1(target):
     return sync, query
 
 
+def _log(sync, action, summary, details=None):
+    """One activity_log row (the board's Log tab), as SQL."""
+    import uuid
+    return (f"INSERT INTO activity_log (id, at, source, action, summary, details) VALUES ({sync.q(uuid.uuid4().hex[:16])}, "
+            f"{sync.q(datetime.now(timezone.utc).isoformat(timespec='seconds'))}, 'board', {sync.q(action)}, {sync.q(summary)}, "
+            f"{sync.q(json.dumps(details, ensure_ascii=False) if details else None)});")
+
+
 def cmd_muse_push(target="--remote"):
     """Add every company nobody has researched to company_research (status 'todo'). Rows already there are kept."""
     sync, _ = _d1(target)
@@ -531,6 +539,7 @@ def cmd_muse_push(target="--remote"):
     stmts = ["INSERT INTO company_research (id, name, info, tier, status, added_at) VALUES\n" + ",\n".join(vals[i:i + 50]) +
              "\nON CONFLICT (id) DO NOTHING;" for i in range(0, len(vals), 50)]
     if stmts:
+        stmts.append(_log(sync, "research_offer", f"Offered {len(vals)} unresearched compan{'y' if len(vals) == 1 else 'ies'} to Muse for research"))
         sync.run_sql(stmts, f"company_research: {len(vals)} companies to research", target)
     print(f"{len(vals)} unresearched companies offered to Muse (rows already in the table were left alone).")
 
@@ -573,6 +582,12 @@ def cmd_muse_pull(target="--remote"):
     stmts += [f"UPDATE company_research SET status = 'needs_fix', error = {sync.q(msg)}, researched_at = COALESCE(researched_at, {at}) "
               f"WHERE id = {sync.q(i)};" for i, msg in bad]
     if stmts:
+        names = {r["id"]: r["name"] for r in rows}
+        shown = ", ".join(names[i] for i in good[:5]) + (f" and {len(good) - 5} more" if len(good) > 5 else "")
+        stmts.append(_log(sync, "research_merge",
+                          (f"Merged {len(good)} compan{'y' if len(good) == 1 else 'ies'} researched by Muse into the directory"
+                           + (f" ({shown})" if good else "")) + (f"; {len(bad)} sent back to fix" if bad else ""),
+                          {"merged": good, "needs_fix": {i: m for i, m in bad}}))
         sync.run_sql(stmts, f"company_research: {len(good)} merged, {len(bad)} need fixing", target)
     print(f"Merged {len(good)} researched compan{'y' if len(good) == 1 else 'ies'}; {len(bad)} marked needs_fix." +
           ("" if good else " Nothing new to merge."))

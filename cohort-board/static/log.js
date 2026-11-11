@@ -51,7 +51,7 @@
     var m = d.last_muse;
     var warn = (d.entries || []).filter(function (r) { return r.source === "muse" && r.action === "warning"; })[0];
     if (warn) page.appendChild(el("section", { class: "co-card log-warning" }, [
-      el("h2", { text: "LinkedIn warning during a Muse run, " + when(warn.at) }), el("p", { text: warn.summary })]));
+      el("h2", { text: "Warning during a Muse run, " + when(warn.at) }), el("p", { text: warn.summary })]));
     page.appendChild(el("section", { class: "co-card log-muse" }, [
       el("h2", { text: "Muse last ran: " + (m ? when(m.at) : "no runs recorded yet") }),
       m ? el("p", { text: m.summary }) : el("p", { class: "muted", text: "When Muse adds findings to the cloud database, they show up here." }),
