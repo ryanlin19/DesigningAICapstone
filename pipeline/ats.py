@@ -402,8 +402,10 @@ def _sf_date(text):
 
 def fetch_sfhtml(cfg, want=None):
     """EY and other SuccessFactors career sites with server-rendered search pages.
-    cfg: {"base": "https://careers.ey.com", "path": "/ey", "location": "United States", "country_suffix": "United States"}."""
+    cfg: {"base": "https://careers.ey.com", "path": "/ey", "location": "United States", "country_suffix": "United States"}.
+    "page_size" is how many results the site shows per page (EY 25, Bayer 10)."""
     base, path = cfg["base"].rstrip("/"), cfg.get("path", "")
+    page_size = cfg.get("page_size", 25)
     found, reachable = {}, False
     for term in cfg.get("terms", HTML_TERMS):
         start = 0
@@ -422,9 +424,9 @@ def fetch_sfhtml(cfg, want=None):
                 loc = re.search(r'class="jobLocation[^"]*">(.*?)</span>', row, re.S)
                 date = re.search(r'class="jobDate[^"]*">(.*?)</span>', row, re.S)
                 found.setdefault(m.group(1), (_text_of(m.group(2)), _text_of(loc.group(1)) if loc else "", _text_of(date.group(1)) if date else ""))
-            if len(rows) < 25:
+            if len(rows) < page_size:
                 break
-            start += 25
+            start += page_size
             time.sleep(0.15)
     if not reachable:
         return None

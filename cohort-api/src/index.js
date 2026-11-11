@@ -4,6 +4,8 @@
 //
 //   GET    /v1/health          -> {ok: true}
 //   GET    /v1/snapshot        -> everything the board needs, in one call, including shared contacts
+//   GET    /v1/jobs/version    -> the current jobs build {build_id, generated, pushed_at, jobs}; ?kind=all for every posting
+//   GET    /v1/jobs            -> the current build's roles, shaped like the page's window.BOARD_DATA; ?kind=all likewise
 //   POST   /v1/manual          -> add a hand-entered connection {company, classmate, contact, title, note}
 //   DELETE /v1/manual/:id      -> remove one
 
@@ -17,6 +19,16 @@ export default {
       if (!(await authorized(request, env))) return json({ error: "unauthorized" }, 401);
 
       if (request.method === "GET" && url.pathname === "/v1/snapshot") return json(await snapshot(env.DB));
+      const kind = url.searchParams.get("kind") === "all" ? "all" : "board";
+      if (request.method === "GET" && url.pathname === "/v1/jobs/version") {
+        const b = await currentBuild(env.DB, kind);
+        return b ? json(b) : json({ error: "no jobs loaded" }, 404);
+      }
+      if (request.method === "GET" && url.pathname === "/v1/jobs") {
+        const limit = Math.min(10000, parseInt(url.searchParams.get("limit") || "0", 10) || 0);
+        const offset = Math.max(0, parseInt(url.searchParams.get("offset") || "0", 10) || 0);
+        return boardData(env.DB, kind, limit, offset);
+      }
       if (request.method === "POST" && url.pathname === "/v1/manual") return addManual(request, env.DB);
       const m = url.pathname.match(/^\/v1\/manual\/([0-9a-f]{12})$/);
       if (request.method === "DELETE" && m) {
@@ -71,6 +83,36 @@ async function snapshot(db) {
     manual: manual.results, shared: shared.results, shared_links: sharedLinks.results, knows: knows.results,
     positions: positions.results,
   };
+}
+
+// ---- the job board's roles (cohort-api/push_jobs.py loads them; one version per build) ----
+async function currentBuild(db, kind) {
+  return db.prepare(`SELECT build_id, generated, pushed_at, jobs, kind FROM job_builds WHERE complete = 1 AND kind = ?
+                     ORDER BY pushed_at DESC LIMIT 1`).bind(kind).first();
+}
+
+// The newest complete build of one kind, in the shape the page expects (window.BOARD_DATA for "board").
+// Rows already hold JSON text, so the response is stitched together without parsing every role.
+// limit/offset page through a large build (the "all" set): pages share the build_id so a caller can check
+// it didn't change mid-way; the build's other keys come with every page.
+async function boardData(db, kind, limit = 0, offset = 0) {
+  const b = await currentBuild(db, kind);
+  if (!b) return json({ error: "no jobs loaded" }, 404);
+  const jobsQuery = limit
+    ? db.prepare("SELECT data FROM jobs WHERE build_id = ? AND seq >= ? ORDER BY seq LIMIT ?").bind(b.build_id, offset, limit)
+    : db.prepare("SELECT data FROM jobs WHERE build_id = ? ORDER BY seq").bind(b.build_id);
+  const [rows, meta] = await db.batch([
+    jobsQuery,
+    db.prepare("SELECT key, value FROM job_build_meta WHERE build_id = ? ORDER BY key, part").bind(b.build_id),
+  ]);
+  const values = {};
+  for (const m of meta.results) values[m.key] = (values[m.key] || "") + m.value;
+  const parts = Object.keys(values).map((k) => JSON.stringify(k) + ":" + values[k]);
+  parts.push('"build_id":' + JSON.stringify(b.build_id));
+  parts.push('"jobs":[' + rows.results.map((r) => r.data).join(",") + "]");
+  return new Response("{" + parts.join(",") + "}", {
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+  });
 }
 
 async function addManual(request, db) {

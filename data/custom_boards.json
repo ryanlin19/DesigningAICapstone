@@ -44,6 +44,16 @@
    "United States of America"
   ]
  },
+ "Bayer": {
+  "platform": "sfhtml",
+  "base": "https://jobs.bayer.com",
+  "location": "United States",
+  "country_suffix": "United States",
+  "page_size": 10,
+  "max_per_term": 1000,
+  "group": "tech",
+  "_note": "SAP SuccessFactors. Climate LLC (Climate FieldView) is part of Bayer Crop Science and posts here."
+ },
  "EY": {
   "platform": "sfhtml",
   "base": "https://careers.ey.com",

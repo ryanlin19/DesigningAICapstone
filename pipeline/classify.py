@@ -233,13 +233,21 @@ VP_TITLE = re.compile(r"(?<!senior )(?<!executive )(?<!sr\. )(?<!sr )\b(vice pre
 VP_NOT_STRATEGY = re.compile(r"\bcpa\b|ediscovery|investigations|disputes|valuations?|compliance|\brisk\b|\btax\b|\blegal\b")
 
 
-def classify(job, is_consulting_firm, allow_vp=False, keep=False):
-    """keep=True is for a role the user picked by hand (data/early_career_keep.json): the title filters do not apply to it."""
+def classify(job, is_consulting_firm, allow_vp=False, keep=False, why=None):
+    """keep=True is for a role the user picked by hand (data/early_career_keep.json): the title filters do not apply to it.
+    why: optional list; when a job is rejected, the reason is appended (for the drop report in build.py)."""
+    def drop(reason):
+        if why is not None:
+            why.append(reason)
+        return None
+
     title = job["title"].strip()
     tl = title.lower()
     is_vp = bool(allow_vp and is_consulting_firm and VP_TITLE.search(tl) and not VP_NOT_STRATEGY.search(tl))
-    if not keep and EXCLUDE.search(VP_TITLE.sub("", tl) if is_vp else tl):
-        return None
+    if not keep:
+        hit = EXCLUDE.search(VP_TITLE.sub("", tl) if is_vp else tl)
+        if hit:
+            return drop("excluded title word: " + re.sub(r"\s+", " ", hit.group(0)).strip())
 
     category, review = None, False
     for name, pat in CATEGORIES:
@@ -253,17 +261,17 @@ def classify(job, is_consulting_firm, allow_vp=False, keep=False):
     if category is None and (is_vp or keep):
         category = "Strategy Consulting"
     if category is None:
-        return None
+        return drop("no matching category")
     if not keep and not is_consulting_firm and (category in ("Strategy Consulting", "Tech & Digital Consulting") or review):
         # At tech companies "consultant", "engagement manager" and bare "strategic" are services, implementation
         # and account roles ("Strategic Account Manager"), not MBA strategy roles.
-        return None
+        return drop("consulting-type title at a non-consulting company")
 
     loc = job.get("location", "") or ""
     if loc and not US_STRONG.search(loc):
         # No US evidence. Keep only a bare "Remote" (or nothing) with no foreign place named; otherwise drop.
         if NON_US.search(loc) or not re.search(r"\bremote\b|\bhybrid\b|\bmultiple\b|\banywhere\b", loc, re.I):
-            return None
+            return drop("outside the US")
         review = True
 
     seniority = None
@@ -278,7 +286,7 @@ def classify(job, is_consulting_firm, allow_vp=False, keep=False):
     desc = job.get("description", "") or ""
     years = _min_years(desc[:6000])
     if years is not None and years >= 10:
-        return None  # senior hire, not post-MBA
+        return drop("asks for 10+ years")  # senior hire, not post-MBA
     mba = bool(re.search(r"\bmba\b|master of business administration", desc + " " + title, re.I))
     immig_offers, immig_declines = immigration_support(desc)
     if not seniority and years is not None:

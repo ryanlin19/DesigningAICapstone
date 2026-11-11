@@ -18,3 +18,7 @@ cohort-backup-*.sql
 .wrangler/
 .dev.vars
 linkedin-ingest/.contact_key
+# Full job descriptions (rebuilt from the download)
+data/descriptions.db
+data/descriptions.tmp
+data/all_jobs.json

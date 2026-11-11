@@ -1,0 +1,45 @@
+/* Top bar shared by Find a job and the Companies page (Ryan's page with the cohort layer). */
+.cb-nav { position: sticky; top: 0; z-index: 50; background: #ffffff; border-bottom: 1px solid rgba(31,41,51,0.14);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #1f2933; }
+.cb-nav-row { max-width: 1200px; margin: 0 auto; padding: 0 16px; display: flex; align-items: center; gap: 8px 22px; flex-wrap: wrap; }
+.cb-nav-row:first-child { min-height: 56px; }
+.cb-brand { font-weight: 800; font-size: 17px; color: #1f2933; text-decoration: none; letter-spacing: -.01em; }
+.cb-tabs { display: flex; gap: 2px; flex: 1; align-self: stretch; }
+.cb-tabs a { display: flex; align-items: center; padding: 0 14px; color: #3e4c59; text-decoration: none; font-weight: 600;
+  border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.cb-tabs a:hover { color: #0a66c2; }
+.cb-tabs a[aria-current="page"] { color: #084e96; border-bottom-color: #0a66c2; }
+.cb-private { font-size: 12px; font-weight: 700; color: #9a3412; background: #ffedd5; border-radius: 999px; padding: 2px 9px; }
+.cb-logout { background: none; border: 0; padding: 0; color: #0a66c2; cursor: pointer; font: inherit; font-size: 14px;
+  text-decoration: underline; text-underline-offset: 2px; }
+
+/* second row: the cohort tools, shown on the Cohort tab */
+.cb-sub { background: #f3f5f8; border-top: 1px solid rgba(31,41,51,0.08); }
+.cb-sub .cb-nav-row, .cb-sub .cb-nav-row.cohort-views { min-height: 44px; gap: 6px; margin: 0 auto; display: flex; justify-content: flex-start; }
+.cb-sub .cohort-view-btn { background: none; border: 0; border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 14px;
+  font-weight: 600; color: #3e4c59; cursor: pointer; }
+.cb-sub .cohort-view-btn:hover { background: #e7f0fa; color: #084e96; }
+.cb-sub .cohort-view-btn.on { background: #0a66c2; color: #fff; }
+
+/* Job description toggle (both pages) */
+.jd { margin-top: 8px; }
+.jd-btn { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 2px 0; cursor: pointer;
+  color: #0a66c2; font: 600 13.5px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.jd-btn:hover { text-decoration: underline; }
+.jd-caret { transition: transform .15s; }
+.jd-btn[aria-expanded="true"] .jd-caret { transform: rotate(180deg); }
+.jd-panel { margin-top: 8px; padding: 12px 14px; background: #f6f8fa; border: 1px solid rgba(31,41,51,0.10); border-radius: 10px;
+  max-height: 460px; overflow: auto; font-size: 14px; line-height: 1.55; color: #1f2933; }
+.jd-panel[hidden] { display: none; }
+.jd-text h4 { margin: 14px 0 4px; font-size: 14px; }
+.jd-text h4:first-child { margin-top: 0; }
+.jd-text p { margin: 0 0 8px; }
+.jd-text ul { margin: 0 0 8px; padding-left: 20px; }
+.jd-text li { margin-bottom: 3px; }
+.jd-missing { margin: 0; color: #66727f; }
+
+@media (max-width: 640px) {
+  .cb-tabs { order: 3; flex-basis: 100%; min-height: 40px; }
+  .cb-tabs a { padding: 0 10px; }
+  .cb-private { display: none; }
+}

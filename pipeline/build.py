@@ -2,10 +2,11 @@
 
     python pipeline/build.py              # reuse cached board map (fast refresh)
     python pipeline/build.py --reprobe    # rediscover every company's board
+    python pipeline/build.py --push-db    # also load the result into the cohort database (cohort-api/push_jobs.py)
 
 Inputs:  data/firms.json (run clean_firms.py first), data/seed_companies.txt,
          data/board_overrides.json. (USCIS H-1B files are no longer used.)
-Outputs: site/data.js, data/boards.json (cache), data/build_report.txt
+Outputs: site/data.js, data/boards.json (cache), data/build_report.txt, data/funnel.json (drop report)
 """
 import datetime
 import json
@@ -323,27 +324,41 @@ def main():
     dropped_managers = Counter()
     dropped_early = []
     dropped_lowpay = []
+    # Drop report (Peter's branch): every posting fetched, and the first rule that removed it. Written to
+    # data/funnel.json and the end of build_report.txt, so filter changes can be judged on real numbers.
+    funnel, funnel_titles = Counter(), {}
+    fetched = 0
+
+    def funnel_drop(reason, company, title):
+        funnel[reason] += 1
+        funnel_titles.setdefault(reason, Counter())[f"{title.strip()} @ {company}"] += 1
+
     for (name, group), hit in zip(targets, found):
         if not hit:
             continue
         platform, slug, jobs = hit
+        fetched += len(jobs)
         splits = [(other, re.compile(rx, re.I)) for other, rx in (custom.get(name, {}).get("split") or {}).items()]
         for j in jobs:
             kept = hand_kept(name, j["title"])         # hand-picked role (data/early_career_keep.json): the rules below must not drop it
-            tags = classify(j, group == "consulting", allow_vp=name in VP_FIRMS, keep=kept)
+            why = []
+            tags = classify(j, group == "consulting", allow_vp=name in VP_FIRMS, keep=kept, why=why)
             if not tags:
+                funnel_drop(why[0] if why else "rejected", name, j["title"])
                 continue
             if kept and kept.get("mba") and not tags["mba_kind"]:
                 tags["mba_kind"] = kept["mba"]     # e.g. "firm": listed for MBAs on the school's job board, so it goes in the MBA roles tab
             if tags["seniority"] == "Entry-level" and kept:
                 tags["seniority"] = "Sr. Associate" if re.search(r"\b(senior|sr\.?)\b", j["title"], re.I) else "Associate"
             if tags["seniority"] == "Entry-level" and not ENTRY_LEVEL_ON_BOARD:
+                funnel_drop("pre-MBA rung (entry-level title)", name, j["title"])
                 continue                           # "Associate Consultant", "Consultant I" and similar pre-MBA rungs
             if (j.get("source") != "standing" and group == "consulting" and name not in EARLY_CAREER_EXEMPT_FIRMS
                     and not kept
                     and tags["min_years"] is not None and tags["min_years"] <= EARLY_CAREER_MAX_YEARS
                     and not tags["mba_kind"] and not advanced_degree_mentioned(j.get("description"))):
                 dropped_early.append(f"{name} | {j['title'].strip()} | {tags['min_years']} yrs")
+                funnel_drop(f"early-career (<= {EARLY_CAREER_MAX_YEARS} yrs, no MBA/advanced degree)", name, j["title"])
                 continue
             if j.get("source") == "standing":
                 tags["mba_kind"] = j.get("mba")    # stated by hand for standing roles (null = not an MBA-pipeline role)
@@ -357,6 +372,7 @@ def main():
                 unproven = yrs is None and not tags["mba_kind"] and tags["category"] in MANAGER_RUNG_CATEGORIES
                 if too_senior or unproven:
                     dropped_managers[name] += 1
+                    funnel_drop("consulting manager rung without MBA mention / 5+ yrs", name, j["title"])
                     continue
             # One feed can carry a sub-brand (EY-Parthenon, Strategy&): credit those titles to the sub-brand.
             company = next((other for other, rx in splits if rx.search(j["title"].strip())), name)
@@ -377,6 +393,7 @@ def main():
             if (j.get("source") != "standing" and not kept and isinstance(sal, dict) and sal.get("max") and sal["max"] <= LOW_PAY_CEILING
                     and tags["mba_kind"] not in ("title", "required", "preferred")):
                 dropped_lowpay.append(f"{name} | {j['title'].strip()} | ${sal['min']//1000}K-${sal['max']//1000}K")
+                funnel_drop(f"low pay (top of range <= ${LOW_PAY_CEILING//1000}K, no MBA mention)", name, j["title"])
                 continue
             entries = [{"name": p, "url": apply_url, "posted": j["posted"], "salary": sal,
                         **({"remote": True} if remote_here else {}), **({"salary_several": True} if sal_several else {})}
@@ -538,8 +555,41 @@ def main():
         if hit and group == "consulting":
             lines.append(f"  {name:<42} {hit[0]:<11} {hit[1]:<28} jobs={len(hit[2])} matched={per_company.get(name, 0)}")
     lines += ["", "Top companies by matches:"] + [f"  {n:<30} {c}" for n, c in per_company.most_common(25)]
+
+    # Drop report: postings fetched -> first rule that removed each one -> what reached the board.
+    hidden_review = sum(j["review"] for j in jobs_out)
+    dropped = sum(funnel.values())
+    # "excluded title word: X" is grouped under one heading with a per-word breakdown
+    grouped = Counter()
+    for reason, n in funnel.items():
+        grouped["excluded title word" if reason.startswith("excluded title word") else reason] += n
+    funnel_out = {
+        "built": str(TODAY), "postings_fetched": fetched, "postings_dropped": dropped,
+        "postings_kept_before_merge": fetched - dropped, "roles_after_merge": len(jobs_out),
+        "roles_hidden_low_confidence": hidden_review, "roles_shown": len(jobs_out) - hidden_review,
+        "note": "Custom readers (Workday, SuccessFactors, ...) only open postings whose title passes classify(), so their "
+                "rejected titles are never fetched and are not counted here.",
+        "by_reason": [{"reason": r, "count": n, "top_titles": [t for t, _ in funnel_titles[r].most_common(40)]}
+                      for r, n in funnel.most_common()],
+    }
+    (DATA / "funnel.json").write_text(json.dumps(funnel_out, indent=1, ensure_ascii=False), encoding="utf-8")
+    lines += ["", "Drop report (postings fetched -> board):",
+              f"  fetched {fetched}, dropped {dropped}, kept {fetched - dropped} postings -> {len(jobs_out)} roles after merging, "
+              f"{hidden_review} hidden as low-confidence, {len(jobs_out) - hidden_review} shown"]
+    for reason, n in grouped.most_common():
+        lines.append(f"  {n:>7}  {reason}")
+        if reason == "excluded title word":
+            words = Counter()
+            for r, k in funnel.items():
+                if r.startswith("excluded title word: "):
+                    words[r.split(": ", 1)[1]] += k
+            lines += [f"           {k:>6}  {w}" for w, k in words.most_common(25)]
+    lines.append("  (examples per reason: data/funnel.json)")
     (DATA / "build_report.txt").write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines[:5]))
+    if "--push-db" in sys.argv:                 # Peter's branch: the private board reads roles from the cohort database
+        import subprocess
+        subprocess.run([sys.executable, str(ROOT / "cohort-api" / "push_jobs.py"), "--file", str(SITE / "data.js")], check=True)
 
 
 if __name__ == "__main__":

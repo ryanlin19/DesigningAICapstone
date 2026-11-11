@@ -39,7 +39,7 @@
 .cohort-views { margin-left: auto; display: inline-flex; flex-wrap: wrap; gap: 8px; }
 .cohort-view-btn { font-size: 13px; padding: 4px 12px; border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .cohort-view { padding-top: 18px; padding-bottom: 40px; }
-.cohort-view[hidden], main[hidden] { display: none; }
+.cohort-view[hidden], main[hidden], header.hero[hidden] { display: none; }
 .cohort-view h2 { margin: 0 0 4px; font-size: 22px; }
 .cohort-view h3 { margin: 24px 0 8px; font-size: 16px; }
 .cohort-view > .cohort-sub { display: block; max-width: 72ch; margin-bottom: 12px; }
@@ -69,6 +69,32 @@ button.cohort-co { color: var(--brand); text-decoration: underline; text-underli
 .cohort-warn { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
 .cohort-people .cohort-list { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 4px 14px; margin: 0; }
 .cohort-people .cohort-list li:first-child { border-top: 0; }
+
+.cohort-co-title { margin: 4px 0 8px; font-size: 22px; }
+.cohort-findlink { margin: 10px 0 0; font-size: 13.5px; font-weight: 600; }
+.cohort-findlink a { color: var(--brand); }
+
+/* Posting timeline */
+.cohort-tl { margin: 0 0 10px; padding: 12px 14px; }
+.cohort-tl-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 8px; }
+.cohort-tl-views { margin-left: auto; display: inline-flex; gap: 2px; }
+.cohort-tl-views .linkbtn { padding: 2px 8px; border-radius: 999px; font-size: 13px; text-decoration: none; }
+.cohort-tl-views .linkbtn.on { background: var(--brand-bg); color: var(--brand-dark); font-weight: 600; }
+.cohort-tl-bars { display: flex; align-items: flex-end; gap: 1px; height: 84px; cursor: crosshair; touch-action: none;
+  user-select: none; border-bottom: 1px solid var(--border); }
+.cohort-tl-bar { flex: 1 1 0; height: 100%; display: flex; align-items: flex-end; min-width: 0; }
+.cohort-tl-bar:hover .cohort-tl-fill { background: var(--brand-dark); }
+.cohort-tl-fill { display: block; width: 100%; background: var(--brand); border-radius: 2px 2px 0 0; }
+.cohort-tl-bar.dim .cohort-tl-fill { background: var(--chip); }
+.cohort-tl-bar.sel .cohort-tl-fill { background: var(--accent); }
+.cohort-tl-axis { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 3px; }
+.cohort-tl-sel { margin-top: 8px; font-size: 13.5px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.cohort-tl-week { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 8px; font-size: 12px; color: var(--text-2); }
+.cohort-tl-wd { display: inline-flex; align-items: center; gap: 4px; }
+.cohort-tl-wdbar { display: inline-block; width: 34px; height: 6px; background: var(--chip); border-radius: 3px; overflow: hidden; }
+.cohort-tl-wdbar > span { display: block; height: 100%; background: var(--brand); }
+.cohort-newest { color: var(--accent); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.cohort-badges[hidden] + .cohort-newest { margin-left: auto; }     /* right-aligned whether or not the company has cohort tags */
 
 /* Connect on LinkedIn view */
 .cohort-connect-me { max-width: 320px; margin-bottom: 12px; }

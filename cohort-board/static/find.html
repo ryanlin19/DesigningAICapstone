@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find a Job</title>
+<link rel="stylesheet" href="nav.css">
+<link rel="stylesheet" href="find.css">
+</head>
+<body>
+<header class="cb-nav">
+  <div class="cb-nav-row">
+    <a class="cb-brand" href="/">Cohort Job Board</a>
+    <nav class="cb-tabs" aria-label="Sections">
+      <a href="/" data-tab="find" aria-current="page">Find a job</a>
+      <a href="/companies" data-tab="companies">Companies</a>
+      <a href="/companies?view=bridges" data-tab="cohort">Cohort</a>
+    </nav>
+    <span class="cb-private">Private: this computer only</span>
+    <button class="cb-logout" type="button">Log out</button>
+  </div>
+</header>
+
+<main class="wrap layout">
+  <aside class="side" aria-label="Your resume and filters">
+    <section class="panel" id="resumePanel">
+      <h2>Your resume</h2>
+      <div id="resumeEmpty">
+        <p class="muted">Upload it and every job is sorted into Ready, Reach, Overqualified or Serious pivot for you.</p>
+        <label class="btn primary" for="resumeFile">Upload resume</label>
+        <input type="file" id="resumeFile" accept=".pdf,.docx,.txt" hidden>
+        <p class="tiny muted">PDF, Word or text. It's read on this computer; only the summary below is kept, in this browser.</p>
+      </div>
+      <div id="resumeFull" hidden>
+        <label class="field-row">About <input type="number" id="years" min="0" max="40" step="1"> years of work experience</label>
+        <label class="check"><input type="checkbox" id="mba"> MBA (graduating or done)</label>
+        <div class="label">Your fields <span class="muted tiny">pick 1 to 3</span></div>
+        <div class="chips" id="myCats"></div>
+        <p class="tiny muted" id="skillsFound"></p>
+        <div class="row">
+          <label class="linkbtn" for="resumeFile">Replace resume</label>
+          <button class="linkbtn" id="clearResume" type="button">Clear</button>
+        </div>
+      </div>
+      <p class="status" id="resumeStatus" role="status"></p>
+    </section>
+
+    <section class="panel" id="fitPanel" hidden>
+      <h2>Fit</h2>
+      <div class="buckets" id="buckets"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Category</h2>
+      <div class="chips" id="cats"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Level</h2>
+      <div class="chips" id="levels"></div>
+    </section>
+
+    <section class="panel">
+      <h2>More</h2>
+      <label class="field-row">Posted
+        <select id="posted"><option value="0">any time</option><option value="7">in the last 7 days</option>
+          <option value="30">in the last 30 days</option><option value="90">in the last 90 days</option></select></label>
+      <label class="check"><input type="checkbox" id="warm"> Only companies with a cohort tie</label>
+      <label class="check"><input type="checkbox" id="mbaOnly"> Posting mentions an MBA</label>
+      <label class="check"><input type="checkbox" id="hideUnlikely"> Hide roles that say no visa sponsorship</label>
+      <input type="search" id="company" placeholder="Company name" aria-label="Company name">
+      <button class="linkbtn" id="reset" type="button">Reset filters</button>
+    </section>
+  </aside>
+
+  <section class="results" aria-label="Jobs">
+    <div class="banner" id="banner" hidden></div>
+    <div class="results-head">
+      <h1 id="count">Jobs</h1>
+      <div class="seg" role="group" aria-label="Sort jobs">
+        <button type="button" data-sort="fit">Best fit</button>
+        <button type="button" data-sort="newest">Newest</button>
+      </div>
+    </div>
+    <div class="hidden-bar" id="hiddenBar" hidden></div>
+    <section class="tl" id="timeline" aria-label="When these jobs were posted"></section>
+    <div id="list"></div>
+    <button class="btn more" id="more" type="button" hidden>Show more</button>
+  </section>
+</main>
+<script src="describe.js"></script>
+<script src="find.js"></script>
+</body>
+</html>

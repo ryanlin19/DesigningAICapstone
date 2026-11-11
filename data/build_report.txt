@@ -1,16 +1,17 @@
-Built 2026-11-10: 3470 jobs from 1370 of 1663 companies.
-By category: {'Account Executive': 996, 'Product Management': 730, 'Strategy Consulting': 394, 'Partnerships': 218, 'Growth': 193, 'Transformation / PMO': 179, 'Corp Strategy': 161, 'BizOps / Strategy & Ops': 160, 'Tech & Digital Consulting': 131, 'GTM / Revenue Ops': 128, 'Business Development': 98, 'Chief of Staff': 37, 'Product Ops': 29, 'General Management': 16}
-By visa label: {'Unlikely': 794, 'Likely': 168, 'Case-by-case': 86, 'Unknown': 2422}
-Review-flagged: 340
-Low-pay roles left off (stated top of range <= $110K, no MBA mention): 91
+Built 2026-11-10: 3484 jobs from 1371 of 1664 companies.
+By category: {'Account Executive': 1005, 'Product Management': 712, 'Strategy Consulting': 411, 'Partnerships': 233, 'Growth': 200, 'Transformation / PMO': 177, 'Corp Strategy': 163, 'BizOps / Strategy & Ops': 161, 'GTM / Revenue Ops': 128, 'Tech & Digital Consulting': 122, 'Business Development': 94, 'Chief of Staff': 35, 'Product Ops': 29, 'General Management': 14}
+By visa label: {'Unlikely': 817, 'Likely': 161, 'Case-by-case': 89, 'Unknown': 2417}
+Review-flagged: 349
+Low-pay roles left off (stated top of range <= $110K, no MBA mention): 97
   Capgemini | Domain: Associate Application Consultant | $48K-$92K
-  Capgemini | C&CA: Associate Application Consultant | $48K-$92K
   Capgemini | DCX: Associate Application Consultant | $48K-$92K
+  Capgemini | C&CA: Associate Application Consultant | $48K-$92K
   Capgemini | Associate - Data Privacy Analys | $54K-$99K
   Capgemini | C&CA: Associate Application Consultant | $48K-$92K
   Charles River Associates | Associate (Financial Economics practice) | $92K-$105K
   Elixirr | Consumer Insights Senior Consultant | $90K-$110K
   Kearney | Consultant, Kearney Activate - Prokura | $85K-$95K
+  Cursor | Account Executive, Commercial | $75K-$100K
   Datadog | Commercial Account Executive | $65K-$70K
   Datadog | Commercial Account Executive - Boston | $65K-$70K
   Datadog | Commercial Account Executive - LATAM (Portuguese Speaking) - Boston | $65K-$70K
@@ -23,24 +24,24 @@ Low-pay roles left off (stated top of range <= $110K, no MBA mention): 91
   Figma | Senior Account Executive, SMB | $82K-$82K
   Miro | Expression of Interest: Enterprise & Strategic Account Executive | $50K-$100K
   MongoDB | Associate Commercial Growth Account Executive | $60K-$60K
+  MongoDB | Associate Commercial Growth Account Executive - Spanish Speaking | $60K-$60K
   Elastic | Inside Account Executive (Hunter) | $65K-$103K
   Elastic | Inside Account Executive (Hunter) | $65K-$103K
   Elastic | Territory Account Executive - West | $65K-$103K
   GitLab | New Business Account Executive - East | $68K-$106K
+  Salesforce | Small, Medium and Growth Business - Account Executive - New York City | $54K-$103K
   Salesforce | Territory Account Executive, Non-Profit: Tableau | $62K-$103K
   Salesforce | Business Development Associate (Early Career) | $63K-$63K
   Salesforce | Platform and Security Growth Business Account Executive | $62K-$103K
-  Salesforce | Non-Profit Territory Account Executive, Growth Business | $62K-$103K
   Qualtrics | Account Executive - Account Management Organization | $82K-$99K
   Braze | Account Executive, Retail Scale | $67K-$105K
   Braze | Account Executive, Retail Scale | $67K-$105K
   Braze | Account Executive, Scale, Financial Services | $80K-$100K
   Braze | Account Executive, Scale, Financial Services | $80K-$106K
-  Braze | Account Executive, Scale, MEGS | $63K-$99K
-  Braze | Account Executive, Scale, MEGS | $70K-$110K
   Braze | Account Executive, Scale, MEGS | $70K-$110K
   Braze | Account Executive, Scale, MEGS | $67K-$105K
-  Braze | Manager, Business Development | $76K-$96K
+  Braze | Account Executive, Scale, MEGS | $63K-$99K
+  Braze | Account Executive, Scale, MEGS | $70K-$110K
   Klaviyo | Commercial Account Executive | $75K-$75K
   Klaviyo | Commercial Account Executive | $75K-$75K
   Klaviyo | Commercial Account Executive (Portuguese Speaking) | $75K-$75K
@@ -56,9 +57,14 @@ Low-pay roles left off (stated top of range <= $110K, no MBA mention): 91
   Hello Fresh | Associate Strategy Manager, Produce Execution | $76K-$96K
   Flexport | Enterprise Account Executive | $83K-$105K
   Flexport | Enterprise Account Executive | $83K-$105K
+  FanDuel | Customer Growth Associate | $68K-$108K
+  FanDuel | Product Manager | $79K-$100K
+  FanDuel | Product Manager | $79K-$100K
   Axios | Business Development Associate | $65K-$75K
   Blank Street | General Manager | Brooklyn | $67K-$80K
   Blank Street | General Manager | Washington DC | $65K-$75K
+  Classpass | Corporate Account Executive | $58K-$77K
+  Classpass | Sr Corporate Account Executive - New York (Field Sales) | $75K-$100K
   Dealops | Founding Account Executive | $50K-$100K
   Mindbody | Account Executive - SMB | $50K-$60K
   Mindbody | SMB Account Executive | $50K-$60K
@@ -81,9 +87,9 @@ Low-pay roles left off (stated top of range <= $110K, no MBA mention): 91
   Nitra | Account Executive | $80K-$100K
   Nitra | Account Executive | $80K-$100K
   Restaurant365 | Account Executive, Commercial Sales | $66K-$99K
-  Restaurant365 | Account Executive, Commercial Sales | $66K-$99K
   Restaurant365 | Account Executive, Commercial Sales - Greater NYC Area | $66K-$99K
   Restaurant365 | Account Executive, Commercial Sales (Chicago or Denver) | $66K-$99K
+  Restaurant365 | Account Executive, Commercial Sales (must reside in Florida) | $66K-$99K
   Restaurant365 | Account Executive, Commercial Sales (Orange County/Los Angeles, CA) | $85K-$100K
   Restaurant365 | Account Executive, Commercial Sales, Tennessee | $66K-$99K
   Shopmy | Account Executive, SMB | $80K-$100K
@@ -94,7 +100,7 @@ Low-pay roles left off (stated top of range <= $110K, no MBA mention): 91
   Weee | Business Development Manager | $88K-$108K
   Zenoti | Business Development Manager – Fitness Industry | $80K-$95K
   Zenoti | Business Development Manager – Fitness Industry | $80K-$95K
-Early-career roles left off (<= 2 years, no MBA or advanced degree): 119
+Early-career roles left off (<= 2 years, no MBA or advanced degree): 121
   Accenture | Crowdstrike Technical Consultant | 2 yrs
   Accenture | Investment Banking Consultant | 2 yrs
   Accenture | Workday Certified Extend Consultant | 2 yrs
@@ -108,67 +114,68 @@ Early-career roles left off (<= 2 years, no MBA or advanced degree): 119
   Capgemini | Capgemini Invent - Process Excellence Consultant | 2 yrs
   Capgemini | Process Transformation Consultant | 2 yrs
   Capgemini | FCC Consultant | 2 yrs
-  Deloitte | Digital Strategy Consultant | 2 yrs
   Deloitte | Customer Strategy Senior Consultant | 2 yrs
-  Deloitte | GPS HST - Strategy, Growth and Transformation - Workflow Process Automation Optimization (WPAO) – Functional Team Lead | 2 yrs
-  Deloitte | Cargo Strategy & Analytics Consultant | 2 yrs
+  Deloitte | Digital Strategy Consultant | 2 yrs
   Deloitte | Healthcare Supply Chain & Data Analytics, Strategy, Growth and Transformation, Consultant | 2 yrs
-  Deloitte | Supply Chain Strategy, Growth, and Transformation Consultant | 2 yrs
-  Deloitte | SCRM Research, Strategy, and Transformation Consultant | 2 yrs
-  Deloitte | Business Strategy Consultant | 2 yrs
-  Deloitte | Consultant, Infrastructure and Resilience Strategy, Growth, and Transformation | 2 yrs
-  Deloitte | Workforce Strategy & Talent Management Consultant TS/SCI Poly | 2 yrs
+  Deloitte | Cargo Strategy & Analytics Consultant | 2 yrs
+  Deloitte | PMO Consultant, Strategy Growth & Transformation | 2 yrs
   Deloitte | Momentum Financials Functional Strategy & Transformation Manager (TS/SCI w/ Polygraph) | 2 yrs
-  Deloitte | SCRM Risk Assessment & Case Management Strategy, Growth, and Transformation, Consultant | 2 yrs
+  Deloitte | Consultant, Infrastructure and Resilience Strategy, Growth, and Transformation | 2 yrs
   Deloitte | Finance & Procurement Strategy, Growth, and Transformation Senior Consultant (TS Clearance Required) | 2 yrs
   Deloitte | Supply Chain Planning, Strategy, Growth, and Transformation, Consultant | 2 yrs
+  Deloitte | GPS HST - Strategy, Growth and Transformation - Workflow Process Automation Optimization (WPAO) – Functional Team Lead | 2 yrs
+  Deloitte | Supply Chain Strategy, Growth, and Transformation Consultant | 2 yrs
+  Deloitte | SCRM Risk Assessment & Case Management Strategy, Growth, and Transformation, Consultant | 2 yrs
+  Deloitte | SCRM Research, Strategy, and Transformation Consultant | 2 yrs
+  Deloitte | Workforce Strategy & Talent Management Consultant TS/SCI Poly | 2 yrs
   Deloitte | Supply Chain Risk Management, Strategy and Transformation Senior Consultant | 2 yrs
-  Deloitte | PMO Consultant, Strategy Growth & Transformation | 2 yrs
   Deloitte | Higher Ed Advise Consultant | 2 yrs
   Deloitte | Communications Insights Consultant, Technical Transformation | 2 yrs
   Deloitte | Momentum Functional Transformation Consultant | 2 yrs
-  Deloitte | Rural Healthcare Consultant | 2 yrs
-  Deloitte | Organization Workforce & Change Consultant | 2 yrs
-  Deloitte | Life Sciences Market Access Consultant | 2 yrs
-  Deloitte | Healthcare Program & Policy Delivery Consultant | 2 yrs
-  Deloitte | Consultant, Program and Project Management | 2 yrs
-  Deloitte | Sales Ops Consultant | 2 yrs
-  Deloitte | Anaplan Consultant | 2 yrs
   Deloitte | Customer Experience Consultant | 2 yrs
-  Deloitte | Consultant, Regulatory Change Management | 2 yrs
+  Deloitte | Organization Workforce & Change Consultant | 2 yrs
+  Deloitte | Healthcare Program & Policy Delivery Consultant | 2 yrs
+  Deloitte | Life Sciences Market Access Consultant | 2 yrs
+  Deloitte | Sales Ops Consultant | 2 yrs
+  Deloitte | Consultant, Program and Project Management | 2 yrs
+  Deloitte | Anaplan Consultant | 2 yrs
   Deloitte | Infrastructure & Resilience Consultant | 2 yrs
-  Deloitte | Senior Consultant | 2 yrs
   Deloitte | Workday HCM Functional Consultant | 1 yrs
-  Deloitte | EPM/ERP Functional or Technical Consultant | 2 yrs
-  Deloitte | Financial Management Controllership Consultant | 1 yrs
+  Deloitte | ICAM Consultant | 1 yrs
+  Deloitte | Consultant, Regulatory Change Management | 2 yrs
+  Deloitte | Consultant, Industry Solutions, Investment Management - Aladdin | 2 yrs
+  Deloitte | Cornerstone Technical Consultant | 2 yrs
+  Deloitte | Workday Grants, Solutions Delivery Consultant | 1 yrs
   Deloitte | Docebo Consultant | 2 yrs
-  Deloitte | Senior Consultant | 2 yrs
+  Deloitte | EPM/ERP Functional or Technical Consultant | 2 yrs
   Deloitte | Specialized Finance Solutions Delivery Consultant | 1 yrs
   Deloitte | Hiring our Heroes Fellowship (12-week Remote Program) - Finance Transformation | 1 yrs
+  Deloitte | Supply Chain and Network Operations Transformation Consultant | 2 yrs
   Deloitte | Associate Data Cloud Business Transformation Architect | 2 yrs
   Deloitte | Senior Consultant, Functional Transformation | 2 yrs
   Deloitte | Salesforce Life Sciences Senior Manager | 1 yrs
   Deloitte | Financial Management Lead Specialized Finance Solutions Delivery Senior Consultant | 2 yrs
-  Deloitte | Consultant, Industry Solutions, Investment Management - Aladdin | 2 yrs
+  Deloitte | Financial Management Controllership Consultant | 1 yrs
   Deloitte | Workday OCM Communications Consultant (Project) - TS/SCI (Polygraph eligible) | 2 yrs
   Deloitte | Anaplan Senior Consultant | 2 yrs
-  EY | FSO - Business Transformation - Consumer Banking - Senior Consultant | 2 yrs
   EY | Risk Consulting - Enterprise Risk Transformation - TMT Sector - Senior Consultant - Bay Area | 2 yrs
   EY | Service Delivery Center - Guidewire Consulting - Senior | 1 yrs
+  EY | FSO - Business Transformation - Consumer Banking - Senior Consultant | 2 yrs
   EY | Risk Consulting - Enterprise Risk Transformation - TMT Sector - Senior Consultant - Northeast Region | 2 yrs
   EY | Risk Consulting - Risk Technology - Oracle GRC - Senior Consultant | 2 yrs
   EY | People Consulting - HR Technology - Workforce Management UKG - Senior | 2 yrs
   EY | Risk Consulting - Digital Risk - Senior Consultant - Industrials & Energy | 2 yrs
-  EY | ServiceNow -ServiceNow Enterprise Service Management (ESM) - Senior - Tech Cons -Open Location | 2 yrs
-  EY | SAP - Procurement - Inventory Management - Senior - Consulting - Location OPEN | 2 yrs
-  EY | ServiceNow - ServiceNow IT Operations Management (ITOM) - Senior - Tech Cons - Open Location | 2 yrs
-  EY | ServiceNow - ServiceNow HR Service Delivery (HRSD) - Senior - Tech Consulting - Open Location | 2 yrs
-  EY | SAP - Tech Arch - Integrations Senior - Consulting - Location OPEN | 2 yrs
-  EY | Consulting - Tech Consulting - FinTech - Enterprise Performance Management (EPM) - Senior | 2 yrs
-  EY | SAP - Production Planning - PP - Senior - Consulting - Location OPEN | 2 yrs
   EY | SAP - Supply Chain Planning - IBP - PPDS - Senior - Consulting - Location OPEN | 2 yrs
-  EY | SAP - Procurement - Invoice Management and AP Integration - Senior - Consulting - Location OPEN | 2 yrs
+  EY | SAP - Analytics - Senior - Consulting - Location OPEN | 2 yrs
   EY | Senior Consultant - Transformation Strategy, Architecture and Delivery (TAD) | 2 yrs
+  EY | ServiceNow -ServiceNow Enterprise Service Management (ESM) - Senior - Tech Cons -Open Location | 2 yrs
+  EY | ServiceNow - ServiceNow HR Service Delivery (HRSD) - Senior - Tech Consulting - Open Location | 2 yrs
+  EY | SAP - Procurement - Inventory Management - Senior - Consulting - Location OPEN | 2 yrs
+  EY | Consulting - Tech Consulting - FinTech - Enterprise Performance Management (EPM) - Senior | 2 yrs
+  EY | ServiceNow - ServiceNow IT Operations Management (ITOM) - Senior - Tech Cons - Open Location | 2 yrs
+  EY | SAP - Production Planning - PP - Senior - Consulting - Location OPEN | 2 yrs
+  EY | SAP - Procurement - Invoice Management and AP Integration - Senior - Consulting - Location OPEN | 2 yrs
+  EY | SAP - Tech Arch - Integrations Senior - Consulting - Location OPEN | 2 yrs
   Guidehouse | Energy Efficiency Consultant | 1 yrs
   Guidehouse | Federal Financial Management Transformation Senior Consultant | 2 yrs
   Huron Consulting Group | Workday Expenses - Sr Associate - US or Canada | 2 yrs
@@ -192,7 +199,6 @@ Early-career roles left off (<= 2 years, no MBA or advanced degree): 119
   Protiviti | Seattle Technology Audit & Advisory Senior Consultant | 2 yrs
   Protiviti | Houston Technology Audit & Advisory Experienced Consultant | 1 yrs
   Protiviti | Boston Technology Audit & Advisory Senior Consultant | 2 yrs
-  Protiviti | Houston Technology Audit & Advisory Senior Consultant | 2 yrs
   Protiviti | Dallas Technology Audit & Advisory Senior Consultant | 2 yrs
   Protiviti | Philadelphia Technology Audit & Advisory Senior Consultant | 2 yrs
   Protiviti | St Louis Technology Audit & Advisory Senior Consultant | 2 yrs
@@ -203,6 +209,8 @@ Early-career roles left off (<= 2 years, no MBA or advanced degree): 119
   Protiviti | New York Technology Audit & Advisory Senior Consultant | 2 yrs
   Protiviti | Metro DC Technology Audit & Advisory Senior Consultant | 2 yrs
   Protiviti | Legal Risk & Compliance - Lender Due Diligence - Senior Consultant | 2 yrs
+  PwC | Banking Payments Transformation Senior Associate | 2 yrs
+  PwC | Legal Business Solutions - Contracts and Process Consultant- Experienced Associate | 1 yrs
   PwC | Life, Annuity & Group Benefits Operations Consultant - Experienced Associate | 1 yrs
   PwC | Bank Platform Transformation - Test Execution Leader - Sr Associate | 2 yrs
   PwC | AWM Operations - Management Consultant - Experienced Associate | 1 yrs
@@ -214,83 +222,121 @@ Early-career roles left off (<= 2 years, no MBA or advanced degree): 119
   West Monroe Partners | Experienced Consultant, M&A (Healthcare & Life Sciences) | 2 yrs
   West Monroe Partners | Experienced Consultant, Organization, People & Change | 1 yrs
   West Monroe Partners | Manager, Insurance | 1 yrs
-Manager / Senior Manager roles left off (no MBA mention): 574 {'PwC': 95, 'EY': 85, 'KPMG': 83, 'Deloitte': 63, 'Accenture': 58, 'Huron Consulting Group': 33, 'Protiviti': 22, 'West Monroe Partners': 21}
+Manager / Senior Manager roles left off (no MBA mention): 610 {'PwC': 101, 'EY': 96, 'KPMG': 87, 'Deloitte': 64, 'Accenture': 59, 'Huron Consulting Group': 37, 'Protiviti': 22, 'West Monroe Partners': 21}
 
 Consulting firms with a board (verify these are the right companies):
   Abt Global                                 lever       abt                          jobs=3 matched=0
-  Accenture                                  workday     accenture                    jobs=1456 matched=53
+  Accenture                                  workday     accenture                    jobs=1451 matched=54
   Alexander Group                            alexander   https://www.alexandergroup.com jobs=4 matched=2
-  Alix Partners                              greenhouse  alixpartners                 jobs=128 matched=1
-  Altman Solon                               greenhouse  altmansolonuslp              jobs=21 matched=2
+  Alix Partners                              greenhouse  alixpartners                 jobs=127 matched=1
+  Altman Solon                               greenhouse  altmansolonuslp              jobs=18 matched=2
   Bain & Company                             standing    careers page                 jobs=1 matched=1
-  Baringa Partners                           greenhouse  baringa                      jobs=101 matched=7
-  BearingPoint                               greenhouse  bearingpoint                 jobs=12 matched=0
-  Booz Allen Hamilton                        workday     bah                          jobs=33 matched=2
-  Boston Consulting Group (BCG)              phenom      https://careers.bcg.com      jobs=25 matched=15
-  Capco                                      greenhouse  capco                        jobs=722 matched=4
-  Capgemini                                  capgemini   Capgemini                    jobs=77 matched=45
+  Baringa Partners                           greenhouse  baringa                      jobs=97 matched=7
+  BearingPoint                               greenhouse  bearingpoint                 jobs=13 matched=0
+  Booz Allen Hamilton                        workday     bah                          jobs=35 matched=3
+  Boston Consulting Group (BCG)              phenom      https://careers.bcg.com      jobs=26 matched=16
+  Capco                                      greenhouse  capco                        jobs=720 matched=4
+  Capgemini                                  capgemini   Capgemini                    jobs=86 matched=50
   Charles River Associates                   greenhouse  charlesriverassociates       jobs=92 matched=5
-  Chartis                                    ashby       chartis                      jobs=32 matched=4
-  ClearView Healthcare Partners              greenhouse  clearviewhealthcarepartners  jobs=22 matched=2
+  Chartis                                    ashby       chartis                      jobs=33 matched=5
+  ClearView Healthcare Partners              greenhouse  clearviewhealthcarepartners  jobs=23 matched=2
   DayBlink Consulting                        lever       dayblinkconsulting           jobs=0 matched=0
   DeciBio Consulting, LLC                    greenhouse  decibio                      jobs=7 matched=0
   Delivery Associates                        greenhouse  deliveryassociates           jobs=2 matched=0
-  Deloitte                                   avature     https://apply.deloitte.com/en_US/careers jobs=249 matched=126
-  Elixirr                                    greenhouse  elixirr                      jobs=16 matched=1
-  EY                                         sfhtml      https://careers.ey.com       jobs=196 matched=71
+  Deloitte                                   avature     https://apply.deloitte.com/en_US/careers jobs=251 matched=126
+  Elixirr                                    greenhouse  elixirr                      jobs=17 matched=1
+  EY                                         sfhtml      https://careers.ey.com       jobs=213 matched=74
   FSG                                        greenhouse  fsg                          jobs=0 matched=0
-  Gallup Consulting                          greenhouse  gallup                       jobs=26 matched=2
-  Guidehouse                                 workday     guidehouse                   jobs=171 matched=117
-  Huron Consulting Group                     workday     huron                        jobs=128 matched=22
+  Gallup Consulting                          greenhouse  gallup                       jobs=29 matched=2
+  Guidehouse                                 workday     guidehouse                   jobs=175 matched=119
+  Huron Consulting Group                     workday     huron                        jobs=136 matched=21
   Insero Advisors LLC                        zoho        inserocpa.zohorecruit.com    jobs=1 matched=1
   Investor Group Services                    pinpoint    careers.igsinsights.com      jobs=1 matched=0
-  Kearney                                    recsolu     EPd41qlA4_03IncZMnWyRQ       jobs=30 matched=10
+  Kearney                                    recsolu     EPd41qlA4_03IncZMnWyRQ       jobs=32 matched=11
   Keystone Strategy                          greenhouse  keystonestrategy             jobs=0 matched=0
-  KPMG                                       kpmg        https://www.kpmguscareers.com jobs=169 matched=74
-  L.E.K. Consulting                          talnet      L.E.K. Consulting            jobs=2 matched=1
+  KPMG                                       kpmg        https://www.kpmguscareers.com jobs=175 matched=76
+  L.E.K. Consulting                          talnet      L.E.K. Consulting            jobs=3 matched=1
   LifeSciences Consultants                   teamtailor  https://careers.consultingls.com jobs=8 matched=5
   McChrystal Group                           lever       mcchrystalgroup              jobs=4 matched=0
   McKinsey & Company                         standing    careers page                 jobs=1 matched=1
-  Oliver Wyman                               workday     mmc                          jobs=32 matched=13
+  Oliver Wyman                               workday     mmc                          jobs=33 matched=15
   Point B                                    lever       pointb                       jobs=1 matched=1
-  Protiviti                                  workday     roberthalf                   jobs=68 matched=7
-  PwC                                        phenom      https://jobs-us.pwc.com      jobs=168 matched=57
-  Simon-Kucher                               csod        simon-kucher.csod.com        jobs=9 matched=5
+  Protiviti                                  workday     roberthalf                   jobs=67 matched=7
+  PwC                                        phenom      https://jobs-us.pwc.com      jobs=177 matched=60
+  Simon-Kucher                               csod        simon-kucher.csod.com        jobs=10 matched=5
   Stax                                       lever       stax                         jobs=0 matched=0
   The Brattle Group                          greenhouse  thebrattlegroup              jobs=44 matched=2
-  ThoughtWorks                               greenhouse  thoughtworks                 jobs=43 matched=0
+  ThoughtWorks                               greenhouse  thoughtworks                 jobs=44 matched=0
   Wavestone                                  smartrecruiters Wavestone1                   jobs=0 matched=0
-  West Monroe Partners                       greenhouse  westmonroe4                  jobs=119 matched=16
-  ZS Associates                              jibe        jobs.zs.com                  jobs=78 matched=27
+  West Monroe Partners                       greenhouse  westmonroe4                  jobs=114 matched=14
+  ZS Associates                              jibe        jobs.zs.com                  jobs=82 matched=29
   Cartesian                                  pinpoint    cartesian                    jobs=2 matched=1
-  Lincoln International                      greenhouse  lincolninternational         jobs=1 matched=1
+  Lincoln International                      greenhouse  lincolninternational         jobs=0 matched=0
   The Gunter Group                           greenhouse  guntergroup                  jobs=4 matched=0
-  HP Inc.                                    workday     hp                           jobs=13 matched=3
-  ECG Management Consultants                 jibe        careers.ecgmc.com            jobs=4 matched=1
+  HP Inc.                                    workday     hp                           jobs=15 matched=3
+  ECG Management Consultants                 jibe        careers.ecgmc.com            jobs=5 matched=1
 
 Top companies by matches:
   Deloitte                       126
-  Guidehouse                     117
-  KPMG                           74
-  EY                             71
+  Guidehouse                     119
+  KPMG                           76
+  EY                             74
+  PwC                            60
   Cloudflare                     60
-  PwC                            57
-  Accenture                      53
-  Anthropic                      46
-  Capgemini                      45
-  Stripe                         44
-  Salesforce                     37
-  Verkada                        36
-  Cisco                          34
-  Databricks                     33
-  Toast                          31
-  Eliseai                        29
+  Accenture                      54
+  Capgemini                      50
+  Stripe                         45
+  Anthropic                      44
+  Salesforce                     38
+  Databricks                     37
+  Toast                          35
+  Verkada                        35
+  Cisco                          35
+  Eliseai                        30
+  ZS Associates                  29
   Veeva                          28
-  ZS Associates                  27
-  OpenAI                         26
-  Plaid                          23
+  OpenAI                         25
+  Plaid                          25
   Spacex                         23
-  Huron Consulting Group         22
   Elastic                        22
   Dualentry                      22
-  Nvidia                         22
+  Huron Consulting Group         21
+  Okta                           21
+
+Drop report (postings fetched -> board):
+  fetched 60976, dropped 56603, kept 4373 postings -> 3484 roles after merging, 349 hidden as low-confidence, 3135 shown
+    36686  excluded title word
+             9394  engineer
+             4289  software
+             3509  staff
+             2307  director
+             1287  specialist
+             1245  principal
+             1219  analyst
+             1165  technician
+              758  partner
+              752  head of
+              622  customer success
+              603  designer
+              581  scientist
+              571  recruit
+              498  nurse
+              426  sales development
+              420  mechanic
+              406  counsel
+              396  solutions architect
+              363  intern
+              357  support
+              356  assistant
+              301  developer
+              293  support engineer
+              256  business development representative
+    13778  no matching category
+     4029  outside the US
+      896  consulting-type title at a non-consulting company
+      610  consulting manager rung without MBA mention / 5+ yrs
+      340  asks for 10+ years
+      121  early-career (<= 2 yrs, no MBA/advanced degree)
+       97  low pay (top of range <= $110K, no MBA mention)
+       46  pre-MBA rung (entry-level title)
+  (examples per reason: data/funnel.json)

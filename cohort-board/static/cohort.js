@@ -129,6 +129,8 @@
       })));
     }
     p.appendChild(addForm(co));
+    p.appendChild(el("p", { class: "cohort-findlink" }, [
+      el("a", { href: "/?company=" + encodeURIComponent(co), text: "See every open job at " + co + " in Find a job →" })]));
   }
 
   function addForm(co) {
@@ -204,42 +206,92 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     var h = document.querySelector("header.hero .wrap p");
-    if (!h) return;
-    if (window.COHORT_ERROR) {
+    if (h && window.COHORT_ERROR) {
       h.parentNode.insertBefore(el("p", { class: "cohort-private cohort-err", role: "alert", text: window.COHORT_ERROR }), h.nextSibling);
     }
-    var out = el("button", { class: "linkbtn", type: "button", text: "Log out" });
-    out.addEventListener("click", function () {
+    var logout = document.querySelector(".cb-logout");
+    if (logout) logout.addEventListener("click", function () {
       fetch("/logout", { method: "POST" }).then(function () { location.href = "/login"; });
     });
-    var bridgesBtn = el("button", { class: "btn cohort-view-btn", type: "button", "aria-expanded": "false" });
-    var bar = el("p", { class: "cohort-private" }, [
-      el("span", { class: "cohort-pill", text: "Private test version" }),
-      " Cohort connections are visible only on this computer. ", out, el("span", { class: "cohort-views" }, [bridgesBtn])]);
-    h.parentNode.insertBefore(bar, h.nextSibling);
+    // The top bar's Companies / Cohort tabs switch views here without reloading the page.
+    var tabs = document.querySelectorAll(".cb-tabs a");
+    Array.prototype.forEach.call(tabs, function (a) {
+      var tab = a.getAttribute("data-tab");
+      if (tab === "companies") a.addEventListener("click", function (e) { e.preventDefault(); showView(null); });
+      if (tab === "cohort") a.addEventListener("click", function (e) { e.preventDefault(); showView(lastView || "bridges"); });
+    });
+    var bridgesBtn = el("button", { class: "cohort-view-btn", type: "button" });
+    var holder = document.querySelector(".cb-sub .cohort-views");
+    if (holder) holder.appendChild(bridgesBtn);
     setUpBridges(bridgesBtn);
     document.dispatchEvent(new CustomEvent("cohort:ready"));
+    openFromLink();
   });
 
-  // ---- Full-page views that replace the role list (Shared contacts, Add classmates) ----
-  var views = {};
+  // Links from Find a job: /companies?q=Bayer opens that company; ?view=upload|connect|bridges opens a view.
+  function openFromLink() {
+    var params = new URLSearchParams(location.search);
+    var view = params.get("view"), q = params.get("q");
+    if (view && views[view]) { showView(view); return; }
+    if (!q) return;
+    var box = document.getElementById("q");
+    box.value = q; box.dispatchEvent(new Event("input"));
+    var mba = document.getElementById("mbaCount"), other = document.getElementById("otherCount");
+    if (mba && other && +mba.textContent === 0 && +other.textContent > 0) document.getElementById("tabOther").click();
+    var heads = document.querySelectorAll(".ghead");
+    if (heads.length === 1 && heads[0].getAttribute("aria-expanded") !== "true") heads[0].click();
+    if (!heads.length) {           // this page lists only roles that pass the classic board's filters
+      var list = document.getElementById("jobs");
+      if (list) {
+        list.insertBefore(panel(q), list.firstChild);              // the company's cohort ties still apply
+        list.insertBefore(el("p", { class: "cohort-warn" }, [
+          "None of " + q + "'s roles pass this page's MBA filters. ",
+          el("a", { href: "/?company=" + encodeURIComponent(q), text: "See all of " + q + "'s jobs in Find a job" })]), list.firstChild);
+        var title = el("h2", { class: "cohort-co-title", text: q });
+        list.insertBefore(title, list.firstChild);
+        setTimeout(function () { window.scrollTo(0, title.getBoundingClientRect().top + window.scrollY - 80); }, 0);   // below the sticky bar
+      }
+    }
+  }
+
+  // ---- The Cohort tab: full-page views that replace the role list (Shared contacts, Connect, Add classmates) ----
+  // Their buttons sit in the top bar's second row, which shows while the Cohort tab is open.
+  var views = {}, lastView = null;
+  var VIEW_ORDER = { bridges: 1, connect: 2, upload: 3 };
   function registerView(name, section, btn, label, onShow) {
     var main = document.querySelector("main");
     main.parentNode.insertBefore(section, main);
     section.hidden = true;
     views[name] = { section: section, btn: btn, label: label, onShow: onShow };
+    btn.className = "cohort-view-btn";
+    btn.style.order = VIEW_ORDER[name] || 9;
     btn.textContent = label();
-    btn.addEventListener("click", function () { showView(section.hidden ? name : null); });
+    var holder = document.querySelector(".cb-sub .cohort-views");
+    if (holder && btn.parentNode !== holder) holder.appendChild(btn);
+    btn.addEventListener("click", function () { showView(name); });
   }
   function showView(name) {
     var main = document.querySelector("main");
     Object.keys(views).forEach(function (n) {
       var v = views[n], on = n === name;
       v.section.hidden = !on;
-      v.btn.setAttribute("aria-expanded", String(on));
-      v.btn.textContent = on ? "Back to roles" : v.label();
+      v.btn.classList.toggle("on", on);
+      v.btn.setAttribute("aria-current", on ? "page" : "false");
+      v.btn.textContent = v.label();
     });
     main.hidden = !!name;
+    var hero = document.querySelector("header.hero");               // Ryan's title, stats and role tabs: not for cohort tools
+    if (hero) hero.hidden = !!name;
+    var sub = document.querySelector(".cb-sub");
+    if (sub) sub.hidden = !name;
+    Array.prototype.forEach.call(document.querySelectorAll(".cb-tabs a"), function (a) {
+      var tab = a.getAttribute("data-tab");
+      if (tab === "find") return;
+      var on = name ? tab === "cohort" : tab === "companies";
+      if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+    if (name) lastView = name;
+    try { history.replaceState(null, "", name ? "/companies?view=" + name : "/companies"); } catch (e) { /* ignore */ }
     if (name) { if (views[name].onShow) views[name].onShow(); window.scrollTo(0, 0); }
   }
 

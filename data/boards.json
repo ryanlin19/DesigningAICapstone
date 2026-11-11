@@ -5731,6 +5731,10 @@
   "platform": "greenhouse",
   "slug": "zuora"
  },
+ "Bayer": {
+  "platform": "sfhtml",
+  "slug": "https://jobs.bayer.com"
+ },
  "Cartesian": {
   "platform": "pinpoint",
   "slug": "cartesian"

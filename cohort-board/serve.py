@@ -48,6 +48,7 @@ sys.path.insert(0, str(REPO / "linkedin-ingest"))
 from ingest import contact_keys, rules  # noqa: E402
 
 sys.path.insert(0, str(HERE))
+import find  # noqa: E402
 import uploads  # noqa: E402
 from sync import SyncError  # noqa: E402  (uploads puts cohort-api on the path)
 
@@ -118,13 +119,35 @@ COHORT_FILTER = ('<div class="intl intlbar cohortbar"><label class="chk"><input 
                  '<label class="chk"><input type="checkbox" id="onlyAlumni"> only companies where a classmate worked</label>'
                  '</div>\n        ')
 
+# The top bar shared with Find a job (static/find.html has the same markup).
+NAV_HTML = """<header class="cb-nav">
+  <div class="cb-nav-row">
+    <a class="cb-brand" href="/">Cohort Job Board</a>
+    <nav class="cb-tabs" aria-label="Sections">
+      <a href="/" data-tab="find">Find a job</a>
+      <a href="/companies" data-tab="companies" aria-current="page">Companies</a>
+      <a href="/companies?view=bridges" data-tab="cohort">Cohort</a>
+    </nav>
+    <span class="cb-private">Private: this computer only</span>
+    <button class="cb-logout" type="button">Log out</button>
+  </div>
+  <div class="cb-sub" hidden><div class="cb-nav-row cohort-views" aria-label="Cohort tools"></div></div>
+</header>
+"""
+
 # (find, replace, expected count). The build stops with a clear message if Ryan's page changes shape.
 PATCHES = [
+    ("</head>", '<link rel="stylesheet" href="nav.css">\n</head>', 1),
+    ("<body>", "<body>\n" + NAV_HTML, 1),
     ("<title>MBA Job Board</title>", "<title>Cohort Job Board (private)</title>", 1),
     ('<script src="data.js"></script>',
      '<link rel="stylesheet" href="cohort.css">\n<script src="cohort-data.js"></script>\n'
      '<script src="cohort.js"></script>\n<script src="cohort-upload.js"></script>\n'
-     '<script src="cohort-connect.js"></script>\n<script src="data.js"></script>', 1),
+     '<script src="cohort-connect.js"></script>\n<script src="cohort-timeline.js"></script>\n<script src="describe.js"></script>\n'
+     '<script src="data.js"></script>', 1),
+    # "Job description" toggle on each role card
+    ('badges, fit ? el("div", { class: "fitline", text: fit.why.join(" \\u00b7 ") }) : null, reasons',
+     'badges, fit ? el("div", { class: "fitline", text: fit.why.join(" \\u00b7 ") }) : null, reasons, JobDescription.toggle(j.url)', 1),
     ('<div class="searchbar card">', COHORT_FILTER + '<div class="searchbar card">', 1),
     # badge in each company's header
     ('el("span", { class: "gname", text: company }),',
@@ -138,7 +161,23 @@ PATCHES = [
      'if (COHORT.hide(j.company)) return false;\n    if ($("hideUnlikely").checked && j.visa === "Unlikely") return false;', 1),
     ('DIRECT.forEach(function (f) {\n      if (jobsTab === "new"',
      'DIRECT.forEach(function (f) {\n      if (COHORT.hide(f.co)) return;\n      if (jobsTab === "new"', 1),
-    ('["q", "hideUnlikely", "posted",', '["q", "hideUnlikely", "onlyConnected", "onlyAlumni", "posted",', 1),
+    ('["q", "hideUnlikely", "posted",', '["q", "hideUnlikely", "onlyConnected", "onlyAlumni", "cohortPeriod", "posted",', 1),
+    # posting timeline: the histogram panel, its period filter, and "Newest" ordering roles inside a company
+    ('<div class="note" id="fitHint"', '<div id="cohortTimeline"><input type="hidden" id="cohortPeriod" value=""></div>\n'
+     '        <div class="note" id="fitHint"', 1),
+    ('if (skip !== "location" && place && (j.cities || []).indexOf(place) < 0) return false;',
+     'if (skip !== "location" && place && (j.cities || []).indexOf(place) < 0) return false;\n'
+     '    if (skip !== "timeline" && !COHORT.inPeriod(j)) return false;', 1),
+    ('var list = jobsTab === "new" ? newList : jobsTab === "other" ? otherList : mbaList;',
+     'var list = jobsTab === "new" ? newList : jobsTab === "other" ? otherList : mbaList;\n'
+     '    COHORT.drawTimeline(jobs.filter(function (j) { return inTabNow(j) && passes(j, "timeline"); }));', 1),
+    ('return VISA_ORDER[a.visa] - VISA_ORDER[b.visa]',
+     'if (s === "new") return (b.posted || "").localeCompare(a.posted || "") || VISA_ORDER[a.visa] - VISA_ORDER[b.visa];\n'
+     '      return VISA_ORDER[a.visa] - VISA_ORDER[b.visa]', 1),
+    ('el("span", { class: "gcount", text: rolesList.length',
+     'COHORT.newestNote(rolesList), el("span", { class: "gcount", text: rolesList.length', 1),
+    ('$("hidePassed").checked = true; $("closingWithin").value = "0";',
+     '$("hidePassed").checked = true; $("closingWithin").value = "0"; COHORT.clearPeriod(true);', 1),
     ('$("hideUnlikely").checked = false;',
      '$("hideUnlikely").checked = false; $("onlyConnected").checked = false; $("onlyAlumni").checked = false;', 1),
     # "Classmate worked here" tag on each job card
@@ -163,10 +202,106 @@ def build_page():
 _cache = {"key": None, "value": None}
 
 
+_US_DATE = re.compile(r"^(\d{1,2})/(\d{1,2})/(\d{4})$")
+
+
+def normalize_dates(data):
+    """Posting dates as YYYY-MM-DD everywhere (one reader gives M/D/YYYY), so sorting and the timeline agree."""
+    def iso(s):
+        m = _US_DATE.match((s or "").strip())
+        return f"{m.group(3)}-{int(m.group(1)):02d}-{int(m.group(2)):02d}" if m else s
+    for j in data.get("jobs", []):
+        j["posted"] = iso(j.get("posted"))
+        for loc in j.get("locations") or []:
+            loc["posted"] = iso(loc.get("posted"))
+    return data
+
+
+_db_jobs = {"build": None, "data": None, "text": None, "checked": 0}
+_file_jobs = {"key": None, "data": None, "text": None}
+
+
+def board_data():
+    """The job board's roles: (data, page script, version key, source label).
+
+    From the cohort database (cohort-api/push_jobs.py) when it holds a jobs build, else Ryan's site/data.js.
+    The database's version is checked at most once a minute; roles are downloaded again only when it changes.
+    If the database can't be reached, the last copy downloaded (or the file) is used."""
+    if isinstance(STORE, RemoteStore) and time.time() - _db_jobs["checked"] > 60:
+        _db_jobs["checked"] = time.time()
+        try:
+            status, v = STORE.call("GET", "/v1/jobs/version")
+            if status == 404:
+                _db_jobs.update(build=None, data=None, text=None)          # no jobs loaded: use the file
+            elif status == 200 and v["build_id"] != _db_jobs["build"]:
+                status, data = STORE.call("GET", "/v1/jobs", timeout=120)
+                if status == 200 and data.get("jobs"):
+                    normalize_dates(data)
+                    _db_jobs.update(build=v["build_id"], data=data,
+                                    text="window.BOARD_DATA = " + json.dumps(data, ensure_ascii=False) + ";")
+        except (OSError, RuntimeError, ValueError, KeyError) as e:
+            sys.stderr.write(f"jobs from the cohort database unavailable ({e})\n")
+    if _db_jobs["data"]:
+        return (_db_jobs["data"], _db_jobs["text"], "db:" + _db_jobs["build"],
+                f"cohort database (build {_db_jobs['build']}, {len(_db_jobs['data']['jobs'])} roles)")
+    f = SITE / "data.js"
+    key = f"file:{f.stat().st_mtime}"
+    if _file_jobs["key"] != key:
+        text = f.read_text(encoding="utf-8")
+        data = normalize_dates(json.loads(text[text.index("{"):text.rindex("}") + 1]))
+        _file_jobs.update(key=key, data=data, text="window.BOARD_DATA = " + json.dumps(data, ensure_ascii=False) + ";")
+    return _file_jobs["data"], _file_jobs["text"], key, f"site/data.js ({len(_file_jobs['data']['jobs'])} roles)"
+
+
+_all_db = {"build": None, "data": None, "checked": 0}
+_all_file = {"key": None, "data": None}
+
+
+def all_jobs():
+    """Every US posting, labelled by category and level (pipeline/expand.py): (data, version key, source label).
+    From the cohort database (kind "all") when loaded there, else data/all_jobs.json, else None."""
+    if isinstance(STORE, RemoteStore) and time.time() - _all_db["checked"] > 60:
+        _all_db["checked"] = time.time()
+        try:
+            status, v = STORE.call("GET", "/v1/jobs/version?kind=all")
+            if status == 404:
+                _all_db.update(build=None, data=None)
+            elif status == 200 and v["build_id"] != _all_db["build"]:
+                data, offset, page = None, 0, 5000                 # in pages: the full set is large
+                while True:
+                    status, part = STORE.call("GET", f"/v1/jobs?kind=all&limit={page}&offset={offset}", timeout=120)
+                    if status != 200 or part.get("build_id") != v["build_id"]:
+                        data = None                                 # failed, or a new build arrived mid-way: retry later
+                        break
+                    if data is None:
+                        data = part
+                    else:
+                        data["jobs"].extend(part["jobs"])
+                    if len(part["jobs"]) < page:
+                        break
+                    offset += page
+                if data and data.get("jobs"):
+                    _all_db.update(build=v["build_id"], data=data)
+                else:
+                    _all_db["checked"] = 0
+        except (OSError, RuntimeError, ValueError, KeyError) as e:
+            sys.stderr.write(f"all jobs from the cohort database unavailable ({e})\n")
+    if _all_db["data"]:
+        return _all_db["data"], "db:" + _all_db["build"], f"cohort database ({len(_all_db['data']['jobs'])} roles)"
+    f = REPO / "data" / "all_jobs.json"
+    if not f.exists():
+        return None, None, "not built yet (run pipeline/expand.py)"
+    key = f"file:{f.stat().st_mtime}"
+    if _all_file["key"] != key:
+        _all_file.update(key=key, data=json.loads(f.read_text(encoding="utf-8")))
+    return _all_file["data"], key, f"data/all_jobs.json ({len(_all_file['data']['jobs'])} roles)"
+
+
 def board_companies():
-    src = (SITE / "data.js").read_text(encoding="utf-8")
-    data = json.loads(src[src.index("{"):src.rindex("}") + 1])
-    names = {j["company"] for j in data.get("jobs", [])}
+    names = {j["company"] for j in board_data()[0].get("jobs", [])}
+    everything = all_jobs()[0]
+    if everything:
+        names |= {j["company"] for j in everything["jobs"]}
     page = (SITE / "index.html").read_text(encoding="utf-8")
     names |= set(re.findall(r'\{ co: "([^"]+)"', page))          # careers-page cards (DIRECT)
     return names
@@ -239,13 +374,13 @@ class RemoteStore:
         self.url, self.token = url.rstrip("/"), token
         self.label = self.url
 
-    def call(self, method, path, body=None):
+    def call(self, method, path, body=None, timeout=20):
         req = urllib.request.Request(self.url + path, method=method,
                                      data=json.dumps(body).encode() if body is not None else None,
                                      headers={"Authorization": f"Bearer {self.token}", "Content-Type": "application/json",
                                               "User-Agent": "cohort-board"})
         try:
-            with urllib.request.urlopen(req, timeout=20) as r:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
                 raw = r.read()
                 return r.status, json.loads(raw) if raw else None
         except urllib.error.HTTPError as e:
@@ -399,7 +534,7 @@ def connections_by_board_company(snap, names):
 
 
 def cohort_payload(fresh=False):
-    key = tuple(p.stat().st_mtime for p in (SITE / "data.js", SITE / "index.html"))
+    key = (board_data()[2], all_jobs()[1], (SITE / "index.html").stat().st_mtime)
     if _cache["key"] != key:
         _cache.update(key=key, value={"names": board_companies()})
     snap = get_snapshot(fresh)
@@ -411,6 +546,64 @@ def cohort_payload(fresh=False):
     return {"companies": companies, "bridges": bridges, "manual": manual,
             "classmates": classmates, "source": STORE.label, "people": people_summary(snap, settings().get("me")),
             "me": settings().get("me"), "ai_available": ai_available(), "can_upload": bool(contact_keys.load_secret())}
+
+
+DESCRIPTIONS = REPO / "data" / "descriptions.db"
+
+
+def job_description(url):
+    """{company, title, text} for one posting link, from the store pipeline/descriptions.py builds; None if absent."""
+    if not url or not DESCRIPTIONS.exists():
+        return None
+    import zlib
+    con = sqlite3.connect(f"file:{DESCRIPTIONS}?mode=ro", uri=True)
+    try:
+        row = con.execute("SELECT company, title, text FROM descriptions WHERE url = ?", (url,)).fetchone()
+    finally:
+        con.close()
+    return {"company": row[0], "title": row[1], "text": zlib.decompress(row[2]).decode("utf-8")} if row else None
+
+
+def my_history_titles():
+    """Job titles from the board user's own loaded LinkedIn export (the "I am" choice), for their categories."""
+    me = settings().get("me")
+    if not me:
+        return []
+    try:
+        return [r["title"] for r in get_snapshot().get("positions", []) if r["person_id"] == me and r.get("title")]
+    except (RuntimeError, OSError):
+        return []
+
+
+def find_cohort_map():
+    """Everyone in the cohort database tied to each company, for the job cards' dropdown on Find a job.
+
+    {company: {"people": [...], "classmates": n, "contacts": n, "alumni": [names], "shared": n}}. Each person:
+    {name, worked: {title, years, current} | None, count, bucket, added: [{contact, title, note}]}.
+    Order: classmates who work or worked there first (current first), then by number of connections there."""
+    payload = cohort_payload()
+    out = {}
+    for name in set(payload["companies"]) | set(payload["manual"]):
+        c = payload["companies"].get(name) or {}
+        people = {}
+
+        def person(n):
+            return people.setdefault(n, {"name": n, "worked": None, "count": 0, "bucket": None, "added": []})
+        for a in c.get("alumni") or []:
+            person(a["name"])["worked"] = {"title": a.get("title"), "years": a.get("years"), "current": a.get("current")}
+        for k in c.get("connectors") or []:
+            p = person(k["name"])
+            p["count"], p["bucket"] = k["count"], k["bucket"]
+        for m in payload["manual"].get(name) or []:
+            person(m["classmate"])["added"].append({"contact": m.get("contact"), "title": m.get("title"), "note": m.get("note")})
+        if not people:
+            continue
+        ranked = sorted(people.values(), key=lambda p: (p["worked"] is None, not (p["worked"] or {}).get("current"),
+                                                        -(p["count"] + len(p["added"])), p["name"].lower()))
+        out[name] = {"people": ranked, "classmates": len(ranked),
+                     "contacts": (c.get("total") or 0) + sum(len(p["added"]) for p in ranked),
+                     "alumni": [p["name"] for p in ranked if p["worked"]], "shared": len(c.get("shared") or [])}
+    return out
 
 
 def ai_available():
@@ -500,11 +693,15 @@ button{width:100%;font:inherit;font-weight:600;padding:9px;border:0;border-radiu
 <button type="submit">Open</button></form></body></html>"""
 
 STATIC_FILES = {
-    "/data.js": (SITE / "data.js", "application/javascript"),
     "/match_index.js": (SITE / "match_index.js", "application/javascript"),
     "/cohort.js": (STATIC / "cohort.js", "application/javascript"),
     "/cohort-upload.js": (STATIC / "cohort-upload.js", "application/javascript"),
     "/cohort-connect.js": (STATIC / "cohort-connect.js", "application/javascript"),
+    "/cohort-timeline.js": (STATIC / "cohort-timeline.js", "application/javascript"),
+    "/find.js": (STATIC / "find.js", "application/javascript"),
+    "/find.css": (STATIC / "find.css", "text/css"),
+    "/nav.css": (STATIC / "nav.css", "text/css"),
+    "/describe.js": (STATIC / "describe.js", "application/javascript"),
     "/cohort.css": (STATIC / "cohort.css", "text/css"),
 }
 
@@ -554,8 +751,24 @@ class Handler(BaseHTTPRequestHandler):
         if not self.authed():
             return self.send(303, headers={"Location": "/login"})
         try:
-            if path in ("/", "/index.html"):
+            if path in ("/", "/find"):                          # Find a job (the home page)
+                return self.send(200, (STATIC / "find.html").read_bytes(), "text/html; charset=utf-8")
+            if path in ("/companies", "/index.html"):            # the company view: Ryan's page plus the cohort layer
                 return self.send(200, build_page(), "text/html; charset=utf-8")
+            if path == "/api/description":                       # full job text, read from data/descriptions.db
+                url = parse_qs(urlsplit(self.path).query).get("url", [""])[0]
+                found = job_description(url)
+                if not found:
+                    return self.send(404, json.dumps({"error": "No description saved for this posting."}), "application/json")
+                return self.send(200, json.dumps(found, ensure_ascii=False), "application/json")
+            if path == "/api/find/meta":
+                data, _, source = all_jobs()
+                return self.send(200, json.dumps({
+                    "ready": bool(data), "source": source, "generated": (data or {}).get("generated"),
+                    "total": len((data or {}).get("jobs", [])), "categories": find.cats.CATEGORIES, "levels": find.cats.LEVELS,
+                    "me": settings().get("me")}), "application/json")
+            if path == "/data.js":                               # the roles: from the cohort database, else site/data.js
+                return self.send(200, board_data()[1], "application/javascript; charset=utf-8")
             if path == "/cohort-data.js":
                 try:
                     js = "window.COHORT_DATA = " + json.dumps(cohort_payload(), ensure_ascii=False) + ";"
@@ -587,6 +800,29 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(204, headers={"Set-Cookie": "cb_session=; Max-Age=0; Path=/"})
         if path == "/api/upload":
             return self.upload()
+        if path == "/api/resume":                     # resume text -> profile; the text is not kept
+            try:
+                text = json.loads(self.body(2_000_000)).get("text") or ""
+            except ValueError:
+                return self.send(400, "Bad request")
+            if len(text.strip()) < 40:
+                return self.send(400, "Couldn't read much text from that file. Try a PDF or Word file with selectable text.")
+            return self.send(200, json.dumps(find.resume_profile(text, my_history_titles())), "application/json")
+        if path == "/api/find":
+            try:
+                d = json.loads(self.body(200_000))
+            except ValueError:
+                return self.send(400, "Bad request")
+            data = all_jobs()[0]
+            if not data:
+                return self.send(503, "The full job list isn't built yet.")
+            try:
+                cohort = find_cohort_map()
+            except (RuntimeError, OSError):
+                cohort = {}
+            res = find.search(data, d.get("profile") or {}, d.get("filters") or {}, cohort,
+                              offset=max(0, int(d.get("offset") or 0)), limit=min(100, int(d.get("limit") or 40)))
+            return self.send(200, json.dumps(res, ensure_ascii=False), "application/json")
         if path == "/api/me":
             try:
                 me = json.loads(self.body()).get("id") or None
@@ -684,7 +920,9 @@ def main():
     print(f"Connections from {p['source']}: {len(p['companies'])} board companies matched; "
           f"{len(p['bridges'])} shared contacts; "
           f"{sum(len(v) for v in p['manual'].values())} added by hand.", flush=True)
-    print(f"Private board: http://{HOST}:{PORT}  (this computer only; Ctrl+C to stop)")
+    print(f"Jobs from {board_data()[3]}.", flush=True)
+    print(f"Find a job uses {all_jobs()[2]}.", flush=True)
+    print(f"Private board: http://{HOST}:{PORT}  (this computer only; Ctrl+C to stop)", flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
 
 

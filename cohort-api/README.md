@@ -37,6 +37,15 @@ before keys existed sit in `company_counts` (totals only) until re-ingested.
 The secret behind the keys lives only where the ingest runs (`linkedin-ingest/.contact_key`, not in git,
 not in the cloud). It must stay the same for the whole cohort: back it up, and move it with the project.
 
+## Job board roles
+
+Migration 0005 adds `job_builds`, `jobs` (one row per role: filterable columns plus the full role as JSON in
+`data`) and `job_build_meta` (stats, "What's new" changes; long values split into parts). Load a build with
+`python cohort-api/push_jobs.py` after `pipeline/build.py`, or run `pipeline/build.py --push-db`. A push adds
+the new build next to the current one, marks it complete last, then deletes older builds, so the board never
+sees a half-loaded build. `GET /v1/jobs` returns the newest complete build shaped like the page's
+`window.BOARD_DATA`; the private board uses it and falls back to `site/data.js` when no build is loaded.
+
 ## Shared contacts ("deep connections")
 
 The `shared_contacts` view (migration 0002) lists people known by two or more classmates, with `depth`
