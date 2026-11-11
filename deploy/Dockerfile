@@ -5,7 +5,6 @@ WORKDIR /app
 COPY cohort-board/ cohort-board/
 COPY linkedin-ingest/ingest/ linkedin-ingest/ingest/
 COPY linkedin-ingest/data/seed_companies.csv linkedin-ingest/data/seed_companies.csv
-COPY cohort-api/sync.py cohort-api/sync.py
 COPY pipeline/ pipeline/
 COPY company-db/companies.py company-db/companies.py
 COPY site/ site/

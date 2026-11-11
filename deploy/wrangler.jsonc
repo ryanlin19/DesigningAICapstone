@@ -1,5 +1,6 @@
 // The hosted cohort board. Nothing here is tied to one Cloudflare account: `wrangler` uses whoever is logged in.
-// Secrets (set by setup.sh, never in git): BOARD_PASSWORD, CONTACT_KEY, STATE_TOKEN, PUBLIC_URL, optional ANTHROPIC_API_KEY.
+// Secrets (set by setup.sh, never in git): BOARD_PASSWORD, CONTACT_KEY, STATE_TOKEN, PUBLIC_URL, COHORT_API_URL,
+// COHORT_API_TOKEN, optional ANTHROPIC_API_KEY.
 {
   "name": "cohort-board",
   "main": "src/index.js",

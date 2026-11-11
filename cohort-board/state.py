@@ -3,6 +3,9 @@ are stored in a Cloudflare R2 bucket through the deploy Worker, pulled when the 
 after every change. Off (a no-op) unless COHORT_STATE_URL and COHORT_STATE_TOKEN are set, so running locally is
 unchanged.
 
+Classmates, contacts and hand-added connections are not files: they live in the cloud database (cohort-api + D1), which
+the hosted board reaches with COHORT_API_URL and COHORT_API_TOKEN like the local one.
+
     pull_all()        at startup: download every stored file that exists
     push(name)        after a change: upload one file (big files go up in parts)
     refresh()         every few minutes: re-download files someone pushed from elsewhere (new job lists)
@@ -28,14 +31,12 @@ DATA = Path(os.environ.get("COHORT_BOARD_DATA") or HERE / "data")
 def files():
     """Every file the hosted board keeps: name in the bucket -> path on disk."""
     return {
-        "cohort.db": Path(os.environ.get("COHORT_INGEST_DB") or REPO / "linkedin-ingest" / "data" / "cohort.db"),
         "companies.db": Path(os.environ.get("COHORT_COMPANIES_DB") or REPO / "data" / "companies.db"),
         "all_jobs.json": REPO / "data" / "all_jobs.json",
         "descriptions.db": REPO / "data" / "descriptions.db",
         "data.js": REPO / "site" / "data.js",
         "sessions.json": DATA / "sessions.json",
         "settings.json": DATA / "settings.json",
-        "manual_connections.json": DATA / "manual_connections.json",
     }
 
 

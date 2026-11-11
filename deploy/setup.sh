@@ -40,6 +40,15 @@ if [ -z "${CONTACT_KEY:-}" ]; then
   fi
 fi
 STATE_TOKEN=${STATE_TOKEN:-$(gen)}
+# The cohort database: the cohort-api Worker and its D1 database on this account (DEPLOY.md, step 1).
+if [ -z "${COHORT_API_URL:-}" ]; then
+  read -rp "Cohort database address (the cohort-api Worker, https://cohort-api.<your-subdomain>.workers.dev): " COHORT_API_URL
+fi
+if [ -z "${COHORT_API_TOKEN:-}" ]; then
+  read -rsp "Its API token (the API_TOKEN you set on cohort-api): " COHORT_API_TOKEN; echo
+fi
+curl -fsS -H "Authorization: Bearer $COHORT_API_TOKEN" "$COHORT_API_URL/v1/people" >/dev/null \
+  || { echo "Couldn't reach the cohort database at $COHORT_API_URL with that token. Check DEPLOY.md step 1."; exit 1; }
 
 say "4/5 Building and deploying (the first build takes a few minutes)"
 OUT=$(npx wrangler deploy 2>&1 | tee /dev/stderr)
@@ -48,21 +57,21 @@ URL=$(printf '%s' "$OUT" | grep -Eo 'https://cohort-board\.[a-z0-9.-]+\.workers\
 [ -n "$URL" ] || { read -rp "Couldn't read the site address from the output; paste it (https://...workers.dev): " URL; }
 
 say "5/5 Saving the secrets on Cloudflare"
-python3 - "$BOARD_PASSWORD" "$CONTACT_KEY" "$STATE_TOKEN" "$URL" "${ANTHROPIC_API_KEY:-}" > .secrets.json <<'PY'
+python3 - "$BOARD_PASSWORD" "$CONTACT_KEY" "$STATE_TOKEN" "$URL" "$COHORT_API_URL" "$COHORT_API_TOKEN" "${ANTHROPIC_API_KEY:-}" > .secrets.json <<'PY'
 import json, sys
-p, k, t, u, a = sys.argv[1:6]
-d = {"BOARD_PASSWORD": p, "CONTACT_KEY": k, "STATE_TOKEN": t, "PUBLIC_URL": u}
+p, k, t, u, au, at, a = sys.argv[1:8]
+d = {"BOARD_PASSWORD": p, "CONTACT_KEY": k, "STATE_TOKEN": t, "PUBLIC_URL": u, "COHORT_API_URL": au, "COHORT_API_TOKEN": at}
 if a:
     d["ANTHROPIC_API_KEY"] = a
 print(json.dumps(d))
 PY
 npx wrangler secret bulk .secrets.json; rm -f .secrets.json
-python3 - "$BOARD_PASSWORD" "$CONTACT_KEY" "$STATE_TOKEN" "$URL" > .deploy.env <<'PY'
+python3 - "$BOARD_PASSWORD" "$CONTACT_KEY" "$STATE_TOKEN" "$URL" "$COHORT_API_URL" "$COHORT_API_TOKEN" > .deploy.env <<'PY'
 import shlex, sys
-for k, v in zip(("BOARD_PASSWORD", "CONTACT_KEY", "STATE_TOKEN", "PUBLIC_URL"), sys.argv[1:5]):
+for k, v in zip(("BOARD_PASSWORD", "CONTACT_KEY", "STATE_TOKEN", "PUBLIC_URL", "COHORT_API_URL", "COHORT_API_TOKEN"), sys.argv[1:7]):
     print(f"{k}={shlex.quote(v)}")
 PY
 chmod 600 .deploy.env
 
 say "Done. The board: $URL"
-echo "Next: load the data (DEPLOY.md, step 3):  python3 deploy/push_state.py"
+echo "Next: load the job lists and company directory (DEPLOY.md, step 3):  python3 deploy/push_state.py"

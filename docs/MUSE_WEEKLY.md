@@ -2,7 +2,8 @@
 
 Run once a week. Deliver results into the Cloudflare D1 database **`cohort`** (Cloudflare dashboard → Storage & Databases →
 D1 → `cohort` → Console). The cohort board picks them up within 15 minutes, merges them, logs them on its Log tab,
-and clears them. Nothing else needs to happen after you write the rows.
+and clears them. Nothing else needs to happen after you write the rows. (Pickup needs the board to be running; rows
+wait safely in `muse_inbox` until it is.)
 
 ## 1. Start the run
 
@@ -48,6 +49,6 @@ VALUES ('muse-2026-11-18-done', '2026-11-18T09:40:00Z', 'muse', 'run', 'Muse wee
 
 ## Notes
 - The board's Log tab shows "Muse last ran" from these rows, then one entry per change it merged.
-- Don't write to `contacts`, `people` or other tables directly: the board keeps them identical to its local copy and
-  would overwrite them.
+- Don't write to `contacts`, `people` or other tables directly: the board applies the matching rules (same person by
+  profile link, every classmate's copy updated, the log entry) only to what comes through `muse_inbox`.
 - The older way (rows in `manual_connections` with a note starting "Muse") still works, but supports new connections only.

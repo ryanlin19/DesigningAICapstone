@@ -34,8 +34,11 @@ REPORT.md                the milestone write-up, mapped to the rubric
 python -m ingest.contact_keys new      # once for the whole cohort; back up .contact_key
 python ingest_cli.py <export.zip> --person-id <id> --consent profile,connections --profile-url <their LinkedIn link>            # no AI
 python ingest_cli.py <export.zip> --person-id <id> --consent profile,connections --profile-url <their LinkedIn link> --ai haiku # with AI
-python ../cohort-api/sync.py push <id> # upload to the cloud database
 ```
+
+`ingest_cli.py` writes to a local file (`data/cohort.db`) for working on the ingest itself and its evals. The cohort's
+real data lives only in the cloud database: classmates upload on the board, which runs this same ingest into a
+temporary file and sends the result there (`cohort-board/uploads.py`).
 
 Each connection becomes a keyed fingerprint (`ingest/contact_keys.py`), so the same person counts once
 across classmates and people known by several classmates show up as shared contacts. Every export must

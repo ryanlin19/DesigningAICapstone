@@ -1,7 +1,7 @@
 """Company database: every company the cohort is tied to, plus the S&P 500, with vertical, description,
 headquarters and US offices. It's a directory: no job fetching here.
 
-    python3 company-db/companies.py targets     # cohort companies (local cohort.db) + S&P 500 -> targets table
+    python3 company-db/companies.py targets     # cohort companies (cloud database) + S&P 500 -> targets table
     python3 company-db/companies.py wikidata    # match each target to Wikidata (cached, resumable)
     python3 company-db/companies.py wikipedia   # two-sentence descriptions for tier 1-2 (cached, resumable)
     python3 company-db/companies.py offices     # US offices seen in our job postings (data/all_jobs.json)
@@ -33,7 +33,6 @@ from ingest import rules  # noqa: E402
 DB = REPO / "data" / "companies.db"
 WORK = REPO / "data" / "company-db"
 RESEARCH = WORK / "research"
-COHORT_DB = REPO / "linkedin-ingest" / "data" / "cohort.db"
 OVERRIDES = Path(__file__).resolve().parent / "overrides.json"
 UA = "cohort-board-companies/0.1 (private student research tool)"
 
@@ -201,29 +200,32 @@ def save_cache(name, obj):
 # ---------------------------------------------------------------- targets
 
 def cohort_companies():
-    """{root norm: {name, contacts, classmates, worked, norms}} from the local cohort database (read only)."""
-    con = sqlite3.connect(f"file:{COHORT_DB}?mode=ro", uri=True)
-    disp = dict(con.execute("SELECT company_norm, display_name FROM companies"))
-    parent = {a: b for a, b in con.execute("SELECT company_norm, parent_norm FROM companies WHERE parent_norm IS NOT NULL")}
-    aliases = dict(con.execute("SELECT alias, company_norm FROM aliases"))
+    """{root norm: {name, contacts, classmates, worked, norms}} from the cohort's cloud database (through the cohort API,
+    cohort-board/.api), read only."""
+    import store
+    db = store.make_store()
+    reg, snap = db.registry(), db.snapshot()
+    disp = {c["company_norm"]: c["display_name"] for c in reg["companies"]}
+    parent = {c["company_norm"]: c["parent_norm"] for c in reg["companies"] if c["parent_norm"]}
+    aliases = {a["alias"]: a["company_norm"] for a in reg["aliases"]}
 
     def root(n):
         n = aliases.get(n) or aliases.get(rules.compress(n)) or n
         return parent.get(n, n)
     out = defaultdict(lambda: {"contacts": 0, "who": set(), "worked": set(), "norms": set()})
-    keyed = {w for (w,) in con.execute("SELECT DISTINCT connector_id FROM contacts")}
-    for who, n, c in con.execute("SELECT connector_id, company_norm, count FROM derived_connections"):
-        if who in keyed:            # older count rows; this person's fingerprinted contacts are counted below
+    keyed = {r["connector_id"] for r in snap["contact_buckets"]}
+    for x in snap["counts"]:                 # older count rows; fingerprinted contacts are counted below
+        if x["connector_id"] in keyed:
             continue
-        r = out[root(n)]; r["contacts"] += c; r["who"].add(who); r["norms"].add(n)
-    for who, n, c in con.execute("SELECT connector_id, company_norm, COUNT(*) FROM contacts GROUP BY 1, 2"):
-        r = out[root(n)]; r["contacts"] += c; r["who"].add(who); r["norms"].add(n)
-    for who, n in con.execute("SELECT person_id, company_norm FROM positions WHERE company_norm IS NOT NULL"):
-        r = out[root(n)]; r["worked"].add(who); r["who"].add(who); r["norms"].add(n)
+        r = out[root(x["company_norm"])]; r["contacts"] += x["count"]; r["who"].add(x["connector_id"]); r["norms"].add(x["company_norm"])
+    for x in snap["contact_buckets"]:
+        r = out[root(x["company_norm"])]; r["contacts"] += x["n"]; r["who"].add(x["connector_id"]); r["norms"].add(x["company_norm"])
+    for x in snap["positions"]:
+        if x["company_norm"]:
+            r = out[root(x["company_norm"])]; r["worked"].add(x["person_id"]); r["who"].add(x["person_id"]); r["norms"].add(x["company_norm"])
     alias_of = defaultdict(set)
     for a, n in aliases.items():
         alias_of[root(n)].add(a)
-    con.close()
     return {n: {"name": disp.get(n) or n.title(), "contacts": r["contacts"], "classmates": len(r["who"]),
                 "worked": len(r["worked"]),
                 "norms": sorted(r["norms"] | {n} | alias_of[n] | {rules.normalize_company(disp.get(n) or "") or n})}

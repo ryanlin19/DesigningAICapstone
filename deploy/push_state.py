@@ -4,10 +4,9 @@
     python3 deploy/push_state.py all_jobs.json data.js descriptions.db companies.db    # after a new job download
     python3 deploy/push_state.py --pull                # back up everything the site holds into this repo's paths
 
-Files: cohort.db (classmates and their contacts), companies.db (the company directory), all_jobs.json and data.js
-(the job lists), descriptions.db (full job descriptions), sessions.json, settings.json, manual_connections.json.
-The site picks up new job files and company directories within 10 minutes. cohort.db is the site's own once it
-runs (uploads happen there): push it only for the first move, before anyone uploads on the site.
+Files: companies.db (the company directory), all_jobs.json and data.js (the job lists), descriptions.db (full job
+descriptions), sessions.json, settings.json. The site picks up new job files and company directories within 10 minutes.
+Classmates and contacts aren't files: they live in the cohort database (cohort-api + D1), not here.
 """
 import os
 import sys

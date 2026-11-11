@@ -7,10 +7,9 @@ Runs on this computer only (127.0.0.1). Nothing here is deployed or uploaded.
 It serves Ryan's private build (site/) with a connections layer added on the fly,
 so his files are never edited and a rebuild of the board shows up on refresh.
 
-Where connections come from:
-  - Cloud (when cohort-board/.api exists): the cohort API on Cloudflare (cohort-api/), which holds
-    the LinkedIn-export data and the connections added by hand.
-  - Local (otherwise): linkedin-ingest/data/cohort.db (read-only) and cohort-board/data/manual_connections.json.
+Where the cohort data lives: the cloud database (Cloudflare D1) behind the cohort API (cohort-api/), reached with the
+address and token in cohort-board/.api. Every read and write goes through store.py; uploads ingest into a temporary
+file and send the result there. Without .api the board uses a local test database (store.LocalStore).
 
 Password: the COHORT_PASSWORD environment variable, else cohort-board/.password.
 """
@@ -24,8 +23,6 @@ import sqlite3
 import sys
 import threading
 import time
-import urllib.error
-import urllib.request
 import uuid
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
@@ -38,9 +35,7 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 SITE = REPO / "site"
 STATIC = HERE / "static"
-COHORT_DB = Path(os.environ.get("COHORT_INGEST_DB") or REPO / "linkedin-ingest" / "data" / "cohort.db")
-DATA = Path(os.environ.get("COHORT_BOARD_DATA") or HERE / "data")     # logins and local hand-added connections
-MANUAL = DATA / "manual_connections.json"
+DATA = Path(os.environ.get("COHORT_BOARD_DATA") or HERE / "data")     # logins and settings
 HOST, PORT = os.environ.get("COHORT_HOST", "127.0.0.1"), int(os.environ.get("COHORT_PORT", "8765"))
 ORIGINS = {f"http://127.0.0.1:{PORT}", f"http://localhost:{PORT}"}
 HOSTED = bool(os.environ.get("COHORT_STATE_URL"))       # running in the cloud (deploy/), behind Cloudflare's HTTPS
@@ -59,7 +54,7 @@ import inbox  # noqa: E402
 import find  # noqa: E402
 import regions  # noqa: E402
 import uploads  # noqa: E402
-from sync import SyncError  # noqa: E402  (uploads puts cohort-api on the path)
+from store import RemoteStore, StoreError, make_store  # noqa: E402
 
 
 def load_password():
@@ -338,124 +333,23 @@ def board_companies():
     return names
 
 
-class LocalStore:
-    """cohort.db (read-only) plus a JSON file for hand-added connections."""
-    label = "local files"
-
-    def snapshot(self):
-        snap = {"people": [], "parents": [], "aliases": [], "counts": [], "contact_buckets": [],
-                "unique_by_company": [], "unique_by_root": [], "manual": read_manual(), "shared": [], "shared_links": []}
-        if not COHORT_DB.exists():
-            return snap
-        con = sqlite3.connect(f"file:{COHORT_DB}?mode=ro", uri=True)
-        con.row_factory = sqlite3.Row
-        rows = lambda sql: [dict(r) for r in con.execute(sql)]
-        snap["people"] = [{"person_id": r["person_id"], "updated_at": r["updated_at"],
-                           "display_name": f'{r["first_name"] or ""} {r["last_name"] or ""}'.strip() or r["person_id"],
-                           "profile_url": r["profile_url"] if "profile_url" in r.keys() else None,
-                           "has_self_key": int(bool(r["self_key"])) if "self_key" in r.keys() else 0}
-                          for r in con.execute("SELECT * FROM people")]
-        snap["parents"] = rows("SELECT company_norm, parent_norm FROM companies WHERE parent_norm IS NOT NULL")
-        snap["aliases"] = rows("SELECT alias, company_norm FROM aliases")
-        names = {r["name"] for r in con.execute("SELECT name FROM sqlite_master")}
-        if "shared_contacts" not in names:           # database from before contact keys
-            snap["counts"] = rows("SELECT connector_id, company_norm, count, top_title_bucket FROM derived_connections")
-            con.close()
-            return snap
-        # Same queries as the cloud API (cohort-api/src/index.js).
-        snap["counts"] = rows("SELECT connector_id, company_norm, count, top_title_bucket FROM derived_connections "
-                              "WHERE connector_id NOT IN (SELECT connector_id FROM contacts)")
-        snap["contact_buckets"] = rows("SELECT connector_id, company_norm, title_bucket, COUNT(*) AS n FROM contacts GROUP BY 1, 2, 3")
-        snap["unique_by_company"] = rows("SELECT company_norm, COUNT(DISTINCT contact_key) AS n FROM contacts GROUP BY 1")
-        snap["unique_by_root"] = rows(
-            "SELECT COALESCE(c.parent_norm, k.company_norm) AS company_norm, COUNT(DISTINCT k.contact_key) AS n "
-            "FROM contacts k LEFT JOIN companies c ON c.company_norm = k.company_norm GROUP BY 1")
-        snap["shared"] = rows(
-            "SELECT s.contact_key, s.company_norm, c.display_name, s.title_bucket, s.depth, s.first_connected_year "
-            "FROM shared_contacts s LEFT JOIN companies c ON c.company_norm = s.company_norm "
-            "ORDER BY s.depth DESC, s.first_connected_year")
-        snap["shared_links"] = rows("SELECT k.contact_key, k.connector_id, k.connected_year "
-                                    "FROM contacts k JOIN shared_contacts s ON s.contact_key = k.contact_key")
-        snap["knows"] = rows("SELECT p.person_id AS classmate, k.connector_id AS knower FROM people p "
-                             "JOIN contacts k ON k.contact_key = p.self_key WHERE p.self_key IS NOT NULL")
-        snap["positions"] = rows("SELECT person_id, company_norm, title, title_bucket, started_on, finished_on, is_current "
-                                 "FROM positions WHERE company_norm IS NOT NULL")
-        con.close()
-        return snap
-
-    def add(self, entry):
-        with LOCK:
-            entries = read_manual()
-            entries.append(entry)
-            write_manual(entries)
-        return entry
-
-    def delete(self, entry_id):
-        with LOCK:
-            entries = read_manual()
-            kept = [e for e in entries if e["id"] != entry_id]
-            write_manual(kept)
-        return len(kept) < len(entries)
-
-
-class RemoteStore:
-    """The cohort API on Cloudflare (cohort-api/). The token stays on this computer, never in the browser."""
-
-    def __init__(self, url, token):
-        self.url, self.token = url.rstrip("/"), token
-        self.label = self.url
-
-    def call(self, method, path, body=None, timeout=20):
-        req = urllib.request.Request(self.url + path, method=method,
-                                     data=json.dumps(body).encode() if body is not None else None,
-                                     headers={"Authorization": f"Bearer {self.token}", "Content-Type": "application/json",
-                                              "User-Agent": "cohort-board"})
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as r:
-                raw = r.read()
-                return r.status, json.loads(raw) if raw else None
-        except urllib.error.HTTPError as e:
-            return e.code, None
-
-    def snapshot(self):
-        status, data = self.call("GET", "/v1/snapshot")
-        if status != 200:
-            raise RuntimeError(f"cohort API returned {status}")
-        return data
-
-    def add(self, entry):
-        status, data = self.call("POST", "/v1/manual", {k: entry[k] for k in ("company", "classmate", "contact", "title", "note")})
-        if status != 201:
-            raise RuntimeError(f"cohort API returned {status}")
-        return data
-
-    def delete(self, entry_id):
-        status, _ = self.call("DELETE", f"/v1/manual/{entry_id}")
-        if status not in (204, 404):
-            raise RuntimeError(f"cohort API returned {status}")
-        return status == 204
-
-
-def make_store():
-    cfg = dict(os.environ)
-    if (HERE / ".api").exists():
-        for line in (HERE / ".api").read_text(encoding="utf-8").splitlines():
-            if "=" in line and not line.lstrip().startswith("#"):
-                k, v = line.split("=", 1)
-                cfg.setdefault(k.strip(), v.strip())
-    if cfg.get("COHORT_API_URL") and cfg.get("COHORT_API_TOKEN"):
-        return RemoteStore(cfg["COHORT_API_URL"], cfg["COHORT_API_TOKEN"])
-    return LocalStore()
-
-
 STORE = make_store()
-_snap = {"at": 0, "value": None}
+if HOSTED and not isinstance(STORE, RemoteStore):        # a container's disk is not a database: it goes on restart
+    sys.exit("The hosted board needs the cohort database: set COHORT_API_URL and COHORT_API_TOKEN (deploy/DEPLOY.md).")
+EMPTY_SNAPSHOT = {"people": [], "parents": [], "aliases": [], "counts": [], "contact_buckets": [], "unique_by_company": [],
+                  "unique_by_root": [], "manual": [], "shared": [], "shared_links": [], "knows": [], "positions": []}
 
 
 def get_snapshot(fresh=False):
-    if fresh or not _snap["value"] or time.time() - _snap["at"] > 30:
-        _snap.update(at=time.time(), value=STORE.snapshot())
-    return _snap["value"]
+    return STORE.snapshot(fresh)
+
+
+def snapshot_or_empty():
+    """(snapshot, warning): an empty snapshot and a warning when the cloud database can't be reached."""
+    try:
+        return get_snapshot(), None
+    except (RuntimeError, OSError) as e:
+        return EMPTY_SNAPSHOT, f"Cohort connections unavailable ({e})."
 
 
 def shared_item(row, links, people):
@@ -613,7 +507,7 @@ _cohort_map = {"key": None, "value": None}
 def find_cohort_map():
     """Cached per cohort snapshot and job set, so the same dict comes back and search's ranking cache can hold."""
     snap = get_snapshot()
-    key = (id(snap), _cache["key"], len(read_manual()))
+    key = (id(snap), _cache["key"])
     if _cohort_map["key"] != key:
         _cohort_map.update(key=key, value=_find_cohort_map())
     return _cohort_map["value"]
@@ -681,17 +575,8 @@ def directory_payload():
         jobs += [j for j in board[0].get("jobs", []) if j.get("url") not in seen]
         _dir_jobs.update(key=key, value=directory.job_index(jobs, d["names"]))
     jobs_by_id = _dir_jobs["value"]
-    warning = None
-    try:
-        snap = get_snapshot()
-        ties, _ = connections_by_board_company(snap, [c["cohort_name"] for c in d["companies"]])
-    except (RuntimeError, OSError) as e:                 # cloud down: use the local cohort.db copy, else no ties
-        try:
-            snap = LocalStore().snapshot()
-            ties, _ = connections_by_board_company(snap, [c["cohort_name"] for c in d["companies"]])
-            warning = f"Cloud cohort database unavailable ({e}); showing ties from this computer's copy."
-        except (RuntimeError, OSError, sqlite3.Error) as e2:
-            snap, ties, warning = {"manual": []}, {}, f"Cohort connections unavailable ({e}; {e2})."
+    snap, warning = snapshot_or_empty()                  # cloud down: the directory still shows, without ties
+    ties, _ = connections_by_board_company(snap, [c["cohort_name"] for c in d["companies"]])
     manual = {}
     for e in snap["manual"]:
         cid = directory.company_id(e["company"], d["names"])
@@ -791,29 +676,22 @@ def function_of(title, vertical):
     return f
 
 
+def selves():
+    """Contact keys of the classmates themselves (their own fingerprints), left out of contact lists."""
+    return {p["self_key"] for p in STORE.people() if p.get("self_key")}
+
+
 def named_contacts(norms, people_names, field=None):
     """People your cohort knows at a company, by name: [{name, position, url, bucket, known_by: [{name, since}]}].
 
-    Read from this computer's cohort.db (every upload goes through it), so names work whatever the cloud holds.
-    Classmates themselves are left out. Order: known by the most classmates, then the job's field, recruiting and
-    leadership, then name."""
-    if not norms or not COHORT_DB.exists():
+    Read from the cloud database (cached). Classmates themselves are left out. Order: known by the most classmates,
+    then the job's field, recruiting and leadership, then name."""
+    if not norms:
         return []
-    con = sqlite3.connect(f"file:{COHORT_DB}?mode=ro", uri=True)
-    con.row_factory = sqlite3.Row
-    try:
-        cols = {r[1] for r in con.execute("PRAGMA table_info(contacts)")}
-        if "full_name" not in cols:
-            return []
-        selves = {r[0] for r in con.execute("SELECT self_key FROM people WHERE self_key IS NOT NULL")}
-        rows = con.execute(f"""SELECT contact_key, connector_id, title_bucket, connected_year, full_name, position, profile_url
-                               FROM contacts WHERE company_norm IN ({','.join('?' * len(norms))})""", norms).fetchall()
-    finally:
-        con.close()
+    own = selves()
+    rows = [r for r in STORE.contacts_at(norms) if r["contact_key"] not in own]
     by = {}
     for r in rows:
-        if r["contact_key"] in selves:
-            continue
         c = by.setdefault(r["contact_key"], {"name": None, "position": None, "url": None, "bucket": r["title_bucket"], "known_by": []})
         c["name"] = c["name"] or r["full_name"]
         c["position"] = c["position"] or r["position"]
@@ -961,10 +839,7 @@ def company_detail(cid=None, name=None, field=None):
     c = next((x for x in d["companies"] if x["id"] == cid), None)
     if not c:
         return None
-    try:
-        snap = get_snapshot()
-    except (RuntimeError, OSError):
-        snap = LocalStore().snapshot()
+    snap, warning = snapshot_or_empty()
     ties, _ = connections_by_board_company(snap, [c["cohort_name"]])
     raw = ties.get(c["cohort_name"]) or {}
     manual = [e for e in snap["manual"] if directory.company_id(e["company"], d["names"]) == cid]
@@ -989,58 +864,22 @@ def company_detail(cid=None, name=None, field=None):
     row.update(people=tie["people"], contacts=tie.get("contacts", 0), shared=shared, jobs=jobs,
                knows=[[a, b] for a, b in knows if a in in_graph and b in in_graph], me=me, field=field,
                ways=best_ways_in(tie["people"], shared, knows, me, field, named),
-               named=named[:800], named_total=len(named), bucket_labels=BUCKET_LABEL, tiers=TIERS)
+               named=named[:800], named_total=len(named), bucket_labels=BUCKET_LABEL, tiers=TIERS, warning=warning)
     return row
 
 
 # ---------- the map: who's there in a region ----------
 
-_named_rows = {"key": None, "rows": []}
-
-
 def all_named_rows():
-    """Every named contact in this computer's cohort.db (cached until the file changes)."""
-    if not COHORT_DB.exists():
-        return []
-    key = COHORT_DB.stat().st_mtime
-    if _named_rows["key"] != key:
-        con = sqlite3.connect(f"file:{COHORT_DB}?mode=ro", uri=True)
-        con.row_factory = sqlite3.Row
-        try:
-            if "full_name" not in {r[1] for r in con.execute("PRAGMA table_info(contacts)")}:
-                rows = []
-            else:
-                selves = {r[0] for r in con.execute("SELECT self_key FROM people WHERE self_key IS NOT NULL")}
-                rows = [dict(r) for r in con.execute("""SELECT contact_key, connector_id, company_norm, title_bucket, connected_year,
-                                                         full_name, position, profile_url FROM contacts WHERE full_name IS NOT NULL""")
-                        if r["contact_key"] not in selves]
-        finally:
-            con.close()
-        _named_rows.update(key=key, rows=rows)
-    return _named_rows["rows"]
+    """Every named contact in the cloud database except classmates themselves (the store caches the download)."""
+    own = selves()
+    return [r for r in STORE.contacts() if r.get("full_name") and r["contact_key"] not in own]
 
 
-_pos_rows = {"key": None, "rows": None}
-
-
-def local_positions():
-    """Classmates' own jobs from this computer's cohort.db, with where each was (cached until the file changes)."""
-    if not COHORT_DB.exists():
-        return None
-    key = COHORT_DB.stat().st_mtime
-    if _pos_rows["key"] != key:
-        con = sqlite3.connect(f"file:{COHORT_DB}?mode=ro", uri=True)
-        con.row_factory = sqlite3.Row
-        try:
-            has_loc = "location" in {r[1] for r in con.execute("PRAGMA table_info(positions)")}
-            rows = [dict(r) for r in con.execute(
-                "SELECT person_id, company_norm, title, started_on, finished_on, is_current" + (", location" if has_loc else ", NULL AS location") +
-                " FROM positions WHERE company_norm IS NOT NULL")]
-            geo = dict(con.execute("SELECT person_id, geo_location FROM people").fetchall())
-        finally:
-            con.close()
-        _pos_rows.update(key=key, rows={"positions": rows, "geo": geo})
-    return _pos_rows["rows"]
+def classmate_positions():
+    """Classmates' own jobs with where each was, and where each classmate is based: {"positions", "geo"}."""
+    return {"positions": [r for r in STORE.positions() if r.get("company_norm")],
+            "geo": {p["person_id"]: p.get("geo_location") for p in STORE.people()}}
 
 
 def _years(r):
@@ -1073,16 +912,13 @@ def region_people(picked, field=None):
                     jobs_here[memo[co]] += 1
     by_co = {c["id"]: c for c in d["companies"]}
     in_region = (in_region | set(jobs_here)) & set(by_co)       # employers only (recruiters, schools stay out)
-    try:
-        snap = get_snapshot()
-    except (RuntimeError, OSError):
-        snap = LocalStore().snapshot()
+    snap = get_snapshot()
     people_names = {p["person_id"]: p["display_name"] for p in snap["people"]}
     me = people_names.get(settings().get("me") or "")
     # classmates' own jobs: at each company here (a contact known by one of them is likely a colleague), and the
     # jobs that were in this region (where each job was comes from their Positions.csv)
-    local = local_positions()
-    positions = local["positions"] if local else snap.get("positions", [])
+    local = classmate_positions()
+    positions = local["positions"]
     alumni, alumni_here, worked_in_region, based = defaultdict(dict), defaultdict(set), [], set()
     for r in positions:
         name = people_names.get(r["person_id"], r["person_id"])
@@ -1160,7 +996,7 @@ def region_people(picked, field=None):
     # an employer where a classmate's job was in this very region first
     companies.sort(key=lambda c: (not any(a["here"] for a in c["alumni"]), not any(a["current"] for a in c["alumni"]),
                                   not c["alumni"], -c["contacts"], -c["jobs"], c["name"].lower()))
-    for pid, geo in (local["geo"].items() if local else []):
+    for pid, geo in local["geo"].items():
         if geo and picked.intersection(regions.regions_for([geo])):
             based.add(people_names.get(pid, pid))
     worked_in_region.sort(key=lambda w: (not w["current"], -(_year(w["years"].split("–")[-1]) or 9999 if w["current"] else _year(w["years"].split("–")[-1]) or 0), w["name"]))
@@ -1172,23 +1008,14 @@ def region_people(picked, field=None):
 # ---------- the Cohort tab: who you're not connected to, and the people the cohort knows that you don't ----------
 
 def cohort_overview(limit=50):
-    """From this computer's cohort.db: every classmate who has uploaded, whether you're connected to them on
-    LinkedIn, and the people most of the other classmates are connected to but you aren't, best first."""
-    if not COHORT_DB.exists():
-        return {"ready": False}
-    con = sqlite3.connect(f"file:{COHORT_DB}?mode=ro", uri=True)
-    con.row_factory = sqlite3.Row
-    try:
-        people = [dict(r) for r in con.execute(
-            "SELECT person_id, TRIM(COALESCE(first_name,'') || ' ' || COALESCE(last_name,'')) AS name, profile_url, self_key, "
-            "headline, updated_at FROM people")]
-        named = "full_name" in {r[1] for r in con.execute("PRAGMA table_info(contacts)")}
-        rows = [dict(r) for r in con.execute(
-            "SELECT contact_key, connector_id, company_norm, title_bucket, connected_year" +
-            (", full_name, position, profile_url" if named else ", NULL AS full_name, NULL AS position, NULL AS profile_url") +
-            " FROM contacts")]
-    finally:
-        con.close()
+    """Every classmate who has uploaded, whether you're connected to them on LinkedIn, and the people most of the
+    other classmates are connected to but you aren't, best first. From the cloud database (cached)."""
+    people = [{"person_id": p["person_id"], "profile_url": p.get("profile_url"), "self_key": p.get("self_key"),
+               "headline": p.get("headline"), "updated_at": p.get("updated_at"),
+               "name": f'{p.get("first_name") or ""} {p.get("last_name") or ""}'.strip() or p.get("display_name")}
+              for p in STORE.people()]
+    rows = STORE.contacts()
+    named = any(r.get("full_name") for r in rows)
     me = settings().get("me")
     names = {p["person_id"]: p["name"] or p["person_id"] for p in people}
     keys_of = defaultdict(set)
@@ -1308,21 +1135,6 @@ def people_summary(snap, me=None):
     return sorted(out, key=lambda p: p["name"].lower())
 
 
-def read_manual():
-    try:
-        return json.loads(MANUAL.read_text(encoding="utf-8"))
-    except FileNotFoundError:
-        return []
-
-
-def write_manual(entries):
-    MANUAL.parent.mkdir(exist_ok=True)
-    tmp = MANUAL.with_suffix(".tmp")
-    tmp.write_text(json.dumps(entries, indent=2, ensure_ascii=False), encoding="utf-8")
-    tmp.replace(MANUAL)
-    state.push_later("manual_connections.json")
-
-
 def clean(v, limit):
     return re.sub(r"\s+", " ", str(v or "")).strip()[:limit]
 
@@ -1431,7 +1243,10 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/log":                                  # the Log tab: Muse runs, merges, uploads
                 return self.send(200, (STATIC / "log.html").read_bytes(), "text/html; charset=utf-8")
             if path == "/api/log":
-                rows = inbox.entries(COHORT_DB)
+                try:
+                    rows = inbox.entries(STORE)
+                except (RuntimeError, OSError) as e:
+                    return self.send(502, json.dumps({"error": f"Couldn't read the log: {e}"}), "application/json")
                 muse = [r for r in rows if r["source"] == "muse"]
                 return self.send(200, json.dumps({"entries": rows, "last_muse": muse[0] if muse else None,
                                                   "last_check": inbox.last_check, "cloud": isinstance(STORE, RemoteStore)},
@@ -1532,24 +1347,18 @@ class Handler(BaseHTTPRequestHandler):
         m = re.fullmatch(r"/api/people/([a-z0-9-]{1,60})/link", path)
         if m:
             try:
-                url = uploads.set_profile_link(m.group(1), json.loads(self.body()).get("profile_url"),
-                                               push_remote=isinstance(STORE, RemoteStore))
+                url = uploads.set_profile_link(STORE, m.group(1), json.loads(self.body()).get("profile_url"))
             except (uploads.UploadError, ValueError) as e:
                 return self.send(400, str(e))
-            except SyncError as e:
-                return self.send(502, f"Saved on this computer, but not in the cloud database: {e}")
-            _snap["value"] = None
-            state.push_later("cohort.db")
+            except (StoreError, OSError) as e:
+                return self.send(502, f"Couldn't save it in the cloud database: {e}")
             return self.send(200, json.dumps({"profile_url": url}), "application/json")
-        if path == "/api/log/check":                         # pull Muse's findings from the cloud now
-            if not isinstance(STORE, RemoteStore):
-                return self.send(400, "The board isn't using the cloud database.")
+        if path == "/api/log/check":                         # merge Muse's findings from the cloud now
             try:
-                res = inbox.check(COHORT_DB)
-            except (inbox.sync.SyncError, OSError, sqlite3.Error) as e:
+                res = inbox.check(STORE)
+            except (StoreError, OSError, sqlite3.Error) as e:
                 inbox.last_check.update(at=datetime.now(timezone.utc).isoformat(timespec="seconds"), error=str(e))
                 return self.send(502, f"Couldn't check the cloud: {e}")
-            _snap["value"] = None
             return self.send(200, json.dumps(res), "application/json")
         if path == "/api/connections":
             try:
@@ -1568,7 +1377,6 @@ class Handler(BaseHTTPRequestHandler):
                 saved = STORE.add(entry)
             except (RuntimeError, OSError) as e:
                 return self.send(502, f"Could not save: {e}")
-            _snap["value"] = None
             return self.send(201, json.dumps(saved), "application/json")
         self.send(404, "Not found")
 
@@ -1584,17 +1392,14 @@ class Handler(BaseHTTPRequestHandler):
                 data = uploads.zip_from_csvs(json.loads(raw).get("files"))
             else:
                 data = raw
-            result = uploads.ingest_upload(data, q.get("filename"), q.get("name"), q.get("profile_url"),
-                                           use_ai=q.get("ai") == "1" and ai_available(),
-                                           push_remote=isinstance(STORE, RemoteStore))
+            result = uploads.ingest_upload(STORE, data, q.get("filename"), q.get("name"), q.get("profile_url"),
+                                           use_ai=q.get("ai") == "1" and ai_available())
         except (uploads.UploadError, ValueError) as e:
             return self.send(400, str(e))
-        except SyncError as e:
-            return self.send(502, f"Loaded on this computer, but the upload to the cloud database failed: {e}")
-        _snap["value"] = None
-        state.push_later("cohort.db")
-        inbox.record(COHORT_DB, "upload", "upload", f"{result.get('name')} uploaded their LinkedIn data "
-                     f"({result.get('connections')} connections)", person=result.get("person_id"), remote=isinstance(STORE, RemoteStore))
+        except (StoreError, OSError) as e:
+            return self.send(502, f"The upload to the cloud database failed, nothing was saved: {e}")
+        inbox.record(STORE, "upload", "upload", f"{result.get('name')} uploaded their LinkedIn data "
+                     f"({result.get('connections')} connections)", person=result.get("person_id"))
         return self.send(200, json.dumps(result), "application/json")
 
     def do_DELETE(self):
@@ -1603,13 +1408,13 @@ class Handler(BaseHTTPRequestHandler):
         m = re.fullmatch(r"/api/people/([a-z0-9-]{1,60})", self.path)
         if m:
             try:
-                uploads.remove_person(m.group(1), push_remote=isinstance(STORE, RemoteStore))
-            except SyncError as e:
-                return self.send(502, f"Removed on this computer, but not from the cloud database: {e}")
-            _snap["value"] = None
-            state.push_later("cohort.db")
-            inbox.record(COHORT_DB, "board", "remove", f"Removed {m.group(1)} and all their data", person=m.group(1),
-                         remote=isinstance(STORE, RemoteStore))
+                removed = uploads.remove_person(STORE, m.group(1))
+            except (StoreError, OSError) as e:
+                return self.send(502, f"Couldn't remove them from the cloud database: {e}")
+            if not removed.get("people"):
+                return self.send(404, "That classmate isn't loaded.")
+            inbox.record(STORE, "board", "remove", f"Removed {m.group(1)} and all their data", person=m.group(1),
+                         details=removed)
             return self.send(204)
         m = re.fullmatch(r"/api/connections/([0-9a-f]{12})", self.path)
         if not m:
@@ -1618,7 +1423,6 @@ class Handler(BaseHTTPRequestHandler):
             found = STORE.delete(m.group(1))
         except (RuntimeError, OSError) as e:
             return self.send(502, f"Could not remove: {e}")
-        _snap["value"] = None
         self.send(204 if found else 404)
 
 
@@ -1639,8 +1443,7 @@ def main():
     if all_jobs()[0]:
         find.job_regions(all_jobs()[0])          # work out every job's map regions now, not on the first search
     state.start_refresher()
-    if isinstance(STORE, RemoteStore):                  # Muse's findings: merged now and every 15 minutes
-        inbox.start(COHORT_DB, on_change=lambda: _snap.update(value=None))
+    inbox.start(STORE)                                  # Muse's findings: merged now and every 15 minutes
     print(f"Private board: http://{HOST}:{PORT}" + ("  (hosted)" if HOSTED else "  (this computer only; Ctrl+C to stop)"), flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
 

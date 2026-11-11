@@ -1,13 +1,15 @@
 """Muse's findings into the cohort data, and the activity log behind the Log tab.
 
-Muse (Meta's browser agent) checks classmates' LinkedIn connections and reports what's new by adding rows to the
-cloud's `manual_connections` table with a note starting "Muse". check():
+Muse (Meta's browser agent) checks classmates' LinkedIn connections and delivers what changed into the cloud database:
+rows in `muse_inbox` (new_connection, job_change, location, removed_connection; docs/MUSE_WEEKLY.md), or the older
+way, rows in `manual_connections` with a note starting "Muse" (new connections only). check():
 
-  1. reads those rows (and any `activity_log` rows Muse wrote) from the cloud database,
-  2. merges each new connection as a real contact of that classmate in the local ingest database, matched to the same
-     person other classmates already know (same fingerprint and LinkedIn link), else keyed by name and company,
-  3. pushes that classmate's data back to the cloud so local and cloud stay identical (cohort-api/sync.py),
-  4. records what happened in `activity_log` (local and cloud), and clears the merged rows from `manual_connections`.
+  1. reads those rows from the cloud (GET /v1/inbox); stops there when there are none,
+  2. loads the cloud's classmates, contacts, company aliases and Muse's run entries into an in-memory SQLite copy and
+     applies the rules below to it: a contact is matched by the fingerprint of their LinkedIn link (the cohort secret
+     stays on this computer), else by name; a job change or a city updates every classmate's copy of that contact,
+  3. sends the contact rows that changed, the rows removed, the log entries and the ids of the processed rows to the
+     cloud in one transaction (POST /v1/inbox/apply), which also clears them from Muse's tables.
 
 record() adds one log entry (used for uploads and removals too). Every function is safe to call repeatedly.
 """
@@ -23,11 +25,10 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "linkedin-ingest"))
-sys.path.insert(0, str(HERE.parent / "cohort-api"))
+sys.path.insert(0, str(HERE))
 from ingest import contact_keys, db as ingest_db, rules  # noqa: E402
-import sync  # noqa: E402
+from store import CONTACT_COLS, LOG_COLS, WRITE_LOCK, StoreError  # noqa: E402
 
-_lock = threading.Lock()
 last_check = {"at": None, "result": None, "error": None}
 
 
@@ -40,41 +41,18 @@ def _entry(source, action, summary, person=None, details=None, at=None):
             "summary": summary, "details": json.dumps(details, ensure_ascii=False) if details else None}
 
 
-def _save_local(con, rows):
-    for r in rows:
-        con.execute("INSERT OR IGNORE INTO activity_log (id, at, source, action, person, summary, details) VALUES (?,?,?,?,?,?,?)",
-                    tuple(r.get(c) for c in sync.LOG_COLS))
-
-
-def record(db_path, source, action, summary, person=None, details=None, remote=False):
-    """Add one entry to the activity log (local, and the cloud when remote)."""
+def record(store, source, action, summary, person=None, details=None):
+    """Add one entry to the activity log. A failure is printed, not raised: the action itself already happened."""
     row = _entry(source, action, summary, person, details)
-    with _lock:
-        con = ingest_db.connect(str(db_path))
-        try:
-            _save_local(con, [row])
-            con.commit()
-        finally:
-            con.close()
-    if remote:
-        try:
-            sync.push_log([row])
-        except sync.SyncError as e:
-            print(f"log: couldn't save to the cloud: {e}", flush=True)
+    try:
+        store.add_log([row])
+    except (StoreError, OSError) as e:
+        print(f"log: couldn't save: {e}", flush=True)
     return row
 
 
-def entries(db_path, limit=300):
-    if not Path(db_path).exists():
-        return []
-    con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
-    con.row_factory = sqlite3.Row
-    try:
-        if not con.execute("SELECT 1 FROM sqlite_master WHERE name = 'activity_log'").fetchone():
-            return []
-        return [dict(r) for r in con.execute("SELECT * FROM activity_log ORDER BY at DESC, id LIMIT ?", (limit,))]
-    finally:
-        con.close()
+def entries(store, limit=300):
+    return store.log(limit)
 
 
 def _company_norm(con, name):
@@ -92,33 +70,53 @@ def _connected_year(note, added_at):
     return int((added_at or _now())[:4])
 
 
-def check(db_path, target="--remote"):
-    """Pull Muse's findings from the cloud and merge them. Returns a short summary dict. Raises sync.SyncError."""
-    with _lock:
-        found = sync.query("SELECT * FROM manual_connections WHERE note LIKE 'Muse%' ORDER BY added_at, id", target)
-        cloud_log = sync.query("SELECT * FROM activity_log ORDER BY at", target)
-        try:                                                    # Muse's structured deliveries (migration 0012)
-            inbox_rows = sync.query("SELECT * FROM muse_inbox ORDER BY found_at, id", target)
-        except sync.SyncError as e:
-            if "no such table" not in str(e):
-                raise
-            inbox_rows = []
-        con = ingest_db.connect(str(db_path))
+def _working_copy(people, contacts, reg, log):
+    """The cloud's data in an in-memory SQLite database with the ingest's tables, so the rules run as plain SQL."""
+    con = ingest_db.connect(":memory:")
+    con.executemany("INSERT INTO people (person_id, first_name, last_name, consent_scopes, consent_at, updated_at, self_key, profile_url) "
+                    "VALUES (?,?,?,?,?,?,?,?)",
+                    [(p["person_id"], p.get("first_name") or (p.get("display_name") or "").partition(" ")[0],
+                      p.get("last_name") if p.get("first_name") else (p.get("display_name") or "").partition(" ")[2],
+                      p.get("consent_scopes") or "", p.get("consent_at") or "", p.get("updated_at") or "",
+                      p.get("self_key"), p.get("profile_url")) for p in people])
+    con.executemany(f"INSERT OR IGNORE INTO contacts ({', '.join(CONTACT_COLS)}) VALUES ({','.join('?' * len(CONTACT_COLS))})",
+                    [[r.get(c) for c in CONTACT_COLS] for r in contacts])
+    con.executemany("INSERT OR IGNORE INTO aliases (alias, company_norm, source) VALUES (?,?,'cloud')",
+                    [(a["alias"], a["company_norm"]) for a in reg["aliases"]])
+    con.executemany(f"INSERT OR IGNORE INTO activity_log ({', '.join(LOG_COLS)}) VALUES ({','.join('?' * len(LOG_COLS))})",
+                    [[r.get(c) for c in LOG_COLS] for r in log])
+    return con
+
+
+def _contact_rows(con):
+    return {(r["contact_key"], r["connector_id"]): dict(r)
+            for r in con.execute(f"SELECT {', '.join(CONTACT_COLS)} FROM contacts")}
+
+
+def check(store):
+    """Merge Muse's findings from the cloud. Returns a short summary dict. Raises StoreError."""
+    with WRITE_LOCK:
+        delivered = store.inbox()
+        found, inbox_rows = delivered["manual"], delivered["inbox"]
+        if not found and not inbox_rows:
+            result = {"found": 0, "merged": 0, "skipped": 0, "classmates": [], "log_entries": 0}
+            last_check.update(at=_now(), result=result, error=None)
+            return result
+        cloud_log = [r for r in store.log(2000, fresh=True) if r["source"] == "muse"]
+        con = _working_copy(store.people(fresh=True), store.contacts(fresh=True), store.registry(), cloud_log)
         try:
-            have = {r[0] for r in con.execute("SELECT id FROM activity_log")}
-            _save_local(con, [r for r in cloud_log if r["id"] not in have])        # Muse's own entries come down
-            people = {r[1].strip().lower(): r[0] for r in con.execute(
-                "SELECT person_id, TRIM(COALESCE(first_name,'') || ' ' || COALESCE(last_name,'')) FROM people")}
+            before = _contact_rows(con)
+            people = {}
+            for pid, first, last in con.execute("SELECT person_id, first_name, last_name FROM people"):
+                people[f"{first or ''} {last or ''}".strip().lower()] = pid
             secret = contact_keys.load_secret()
             new_log, touched, merged_ids, skipped = [], set(), [], []
             # one "Muse ran" entry per run (rows added at the same time), unless Muse logged the run itself
             runs = {}
             for r in found:
                 runs.setdefault(r["added_at"], []).append(r)
-            logged_runs = {r["at"] for r in cloud_log if r["source"] == "muse" and r["action"] == "run"}
             for at, rows in runs.items():
-                if at not in logged_runs and not con.execute(
-                        "SELECT 1 FROM activity_log WHERE source='muse' AND action='run' AND at=?", (at,)).fetchone():
+                if not con.execute("SELECT 1 FROM activity_log WHERE source='muse' AND action='run' AND at=?", (at,)).fetchone():
                     who = sorted({r["classmate"] for r in rows})
                     new_log.append(_entry("muse", "run", f"Muse ran and found {len(rows)} new connection{'s' if len(rows) != 1 else ''} "
                                           f"for {', '.join(who)}", details={"rows": [r["id"] for r in rows]}, at=at))
@@ -159,42 +157,29 @@ def check(db_path, target="--remote"):
                     new_log.append(_entry("board", "merge", f"{r['contact']} was already one of {r['classmate']}'s contacts", person=pid,
                                           details={"manual_id": r["id"]}))
                 merged_ids.append(r["id"])
-            done_inbox = _apply_inbox(con, inbox_rows, people, secret, new_log, touched, cloud_log)
-            _save_local(con, new_log)
-            con.commit()
+            done_inbox = _apply_structured(con, inbox_rows, people, secret, new_log, touched)
+            after = _contact_rows(con)
         finally:
             con.close()
-        # the cloud: the merged classmates' data (so both copies stay identical), the log, then clear Muse's rows
-        if touched:
-            sync.push(sorted(touched), Path(db_path), target)
-        if new_log:
-            sync.push_log(new_log, target)
-        if merged_ids:
-            sync.execute([f"DELETE FROM manual_connections WHERE id IN ({','.join(sync.q(i) for i in merged_ids)});"],
-                         "clear merged Muse rows", target)
-        try:                                            # anyone pushed incomplete earlier (cloud was missing columns)
-            sync.push_pending(Path(db_path), target)
-        except sync.SyncError as e:
-            print(f"inbox: retry of an incomplete push failed: {e}", flush=True)
-        if done_inbox:
-            sync.execute([f"DELETE FROM muse_inbox WHERE id IN ({','.join(sync.q(i) for i in done_inbox)});"],
-                         "clear processed Muse inbox", target)
+        upsert = [row for k, row in after.items() if before.get(k) != row]
+        delete = [{"contact_key": k[0], "connector_id": k[1]} for k in before if k not in after]
+        store.apply_inbox(upsert, delete, new_log, done_inbox, merged_ids)
         result = {"found": len(found) + len(inbox_rows),
                   "merged": len([e for e in new_log if e["source"] == "board" and e["action"] in ("merge", "job_change", "location", "removed")]),
-                  "skipped": len(skipped), "classmates": sorted(touched), "log_entries": len(new_log)}
+                  "skipped": len(skipped), "classmates": sorted(touched), "log_entries": len(new_log),
+                  "rows_changed": len(upsert), "rows_removed": len(delete)}
         last_check.update(at=_now(), result=result, error=None)
         return result
 
 
-def _apply_inbox(con, rows, people, secret, new_log, touched, cloud_log):
-    """Apply Muse's structured findings. Returns the ids handled (cleared from the cloud afterwards)."""
+def _apply_structured(con, rows, people, secret, new_log, touched):
+    """Apply Muse's structured findings (muse_inbox) to the working copy. Returns the ids handled (cleared afterwards)."""
     ids = {r[0] for r in con.execute("SELECT person_id FROM people")}
-    logged_runs = {r["id"] for r in cloud_log if r["source"] == "muse" and r["action"] == "run"}
     runs = {}
     for r in rows:
         runs.setdefault(r.get("run_id") or r["found_at"], []).append(r)
     for run, rs in runs.items():                       # a run entry when Muse didn't write one itself
-        if run not in logged_runs and not con.execute("SELECT 1 FROM activity_log WHERE id=?", (str(run)[:64],)).fetchone():
+        if not con.execute("SELECT 1 FROM activity_log WHERE id=?", (str(run)[:64],)).fetchone():
             kinds = {}
             for r in rs:
                 kinds[r["change"]] = kinds.get(r["change"], 0) + 1
@@ -269,17 +254,17 @@ def _apply_inbox(con, rows, people, secret, new_log, touched, cloud_log):
     return handled
 
 
-def start(db_path, every=900, on_change=None):
+def start(store, every=900, on_change=None):
     """Check now (in the background) and every 15 minutes."""
     def loop():
         while True:
             try:
-                res = check(db_path)
+                res = check(store)
                 if res["found"] and on_change:
                     on_change()
                 if res["found"]:
                     print(f"inbox: merged {res['merged']} of {res['found']} Muse finding(s)", flush=True)
-            except (sync.SyncError, OSError, sqlite3.Error) as e:
+            except (StoreError, OSError, sqlite3.Error) as e:
                 last_check.update(at=_now(), error=str(e))
                 print(f"inbox: couldn't check the cloud: {e}", flush=True)
             time.sleep(every)

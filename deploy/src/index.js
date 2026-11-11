@@ -1,6 +1,8 @@
 // The hosted cohort board: one Worker in front of one container running cohort-board/serve.py unchanged.
-// The board keeps its files on the container's disk; this Worker stores them in R2 (/__state/<name>) so they
-// survive restarts and redeploys (cohort-board/state.py pulls them at start and pushes after every change).
+// Classmates and contacts live in the cohort database (the cohort-api Worker + D1, cohort-api/), which the board reaches
+// with COHORT_API_URL and COHORT_API_TOKEN. Its other files (job lists, company directory, logins) stay on the
+// container's disk; this Worker stores them in R2 (/__state/<name>) so they survive restarts and redeploys
+// (cohort-board/state.py pulls them at start and pushes after every change).
 import { Container, getContainer } from "@cloudflare/containers";
 
 export class Board extends Container {
@@ -17,7 +19,8 @@ export class Board extends Container {
       COHORT_STATE_URL: env.PUBLIC_URL || "",
       COHORT_STATE_TOKEN: env.STATE_TOKEN || "",
       ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY || "",
-      COHORT_API_URL: "",       // the board's own files are the database here
+      COHORT_API_URL: env.COHORT_API_URL || "",       // the cohort database (cohort-api Worker on this account)
+      COHORT_API_TOKEN: env.COHORT_API_TOKEN || "",
     };
   }
 }
