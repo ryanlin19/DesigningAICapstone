@@ -48,6 +48,7 @@ sys.path.insert(0, str(REPO / "linkedin-ingest"))
 from ingest import contact_keys, rules  # noqa: E402
 
 sys.path.insert(0, str(HERE))
+import directory  # noqa: E402
 import find  # noqa: E402
 import regions  # noqa: E402
 import uploads  # noqa: E402
@@ -597,25 +598,88 @@ def find_cohort_map():
     out = {}
     for name in set(payload["companies"]) | set(payload["manual"]):
         c = payload["companies"].get(name) or {}
-        people = {}
-
-        def person(n):
-            return people.setdefault(n, {"name": n, "worked": None, "count": 0, "bucket": None, "added": []})
-        for a in c.get("alumni") or []:
-            person(a["name"])["worked"] = {"title": a.get("title"), "years": a.get("years"), "current": a.get("current")}
-        for k in c.get("connectors") or []:
-            p = person(k["name"])
-            p["count"], p["bucket"] = k["count"], k["bucket"]
-        for m in payload["manual"].get(name) or []:
-            person(m["classmate"])["added"].append({"contact": m.get("contact"), "title": m.get("title"), "note": m.get("note")})
-        if not people:
-            continue
-        ranked = sorted(people.values(), key=lambda p: (p["worked"] is None, not (p["worked"] or {}).get("current"),
-                                                        -(p["count"] + len(p["added"])), p["name"].lower()))
-        out[name] = {"people": ranked, "classmates": len(ranked),
-                     "contacts": (c.get("total") or 0) + sum(len(p["added"]) for p in ranked),
-                     "alumni": [p["name"] for p in ranked if p["worked"]], "shared": len(c.get("shared") or [])}
+        tie = cohort_people(c, payload["manual"].get(name) or [])
+        if tie:
+            out[name] = tie
     return out
+
+
+def cohort_people(c, manual):
+    """Everyone tied to one company: {people, classmates, contacts, alumni, shared}, or None.
+
+    c is one entry of connections_by_board_company(); manual is the hand-added connections there. Order: classmates
+    who work or worked there first (current first), then by number of connections there."""
+    people = {}
+
+    def person(n):
+        return people.setdefault(n, {"name": n, "worked": None, "count": 0, "bucket": None, "added": []})
+    for a in c.get("alumni") or []:
+        person(a["name"])["worked"] = {"title": a.get("title"), "years": a.get("years"), "current": a.get("current")}
+    for k in c.get("connectors") or []:
+        p = person(k["name"])
+        p["count"], p["bucket"] = k["count"], k["bucket"]
+    for m in manual:
+        person(m["classmate"])["added"].append({"contact": m.get("contact"), "title": m.get("title"), "note": m.get("note")})
+    if not people:
+        return None
+    ranked = sorted(people.values(), key=lambda p: (p["worked"] is None, not (p["worked"] or {}).get("current"),
+                                                    -(p["count"] + len(p["added"])), p["name"].lower()))
+    return {"people": ranked, "classmates": len(ranked),
+            "contacts": (c.get("total") or 0) + sum(len(p["added"]) for p in ranked),
+            "alumni": [p["name"] for p in ranked if p["worked"]], "shared": len(c.get("shared") or [])}
+
+
+_dir_jobs = {"key": None, "value": None}
+
+
+def directory_payload():
+    """The Companies tab: every company in data/companies.db with its cohort ties and job counts, ranked.
+
+    Rank: a classmate works there, then a classmate worked there, then number of connections, then open roles.
+    Jobs come from the full labelled set (Find a job) plus Ryan's board; links open Find a job filtered to the company."""
+    d = directory.load()
+    if not d:
+        return {"ready": False, "companies": []}
+    everything = all_jobs()
+    board = board_data()
+    key = (d["version"], everything[1], board[2])
+    if _dir_jobs["key"] != key:
+        jobs = list((everything[0] or {}).get("jobs") or [])
+        seen = {j.get("url") for j in jobs}
+        jobs += [j for j in board[0].get("jobs", []) if j.get("url") not in seen]
+        _dir_jobs.update(key=key, value=directory.job_index(jobs, d["names"]))
+    jobs_by_id = _dir_jobs["value"]
+    warning = None
+    try:
+        snap = get_snapshot()
+        ties, _ = connections_by_board_company(snap, [c["cohort_name"] for c in d["companies"]])
+    except (RuntimeError, OSError) as e:                 # cloud down: use the local cohort.db copy, else no ties
+        try:
+            snap = LocalStore().snapshot()
+            ties, _ = connections_by_board_company(snap, [c["cohort_name"] for c in d["companies"]])
+            warning = f"Cloud cohort database unavailable ({e}); showing ties from this computer's copy."
+        except (RuntimeError, OSError, sqlite3.Error) as e2:
+            snap, ties, warning = {"manual": []}, {}, f"Cohort connections unavailable ({e}; {e2})."
+    manual = {}
+    for e in snap["manual"]:
+        cid = directory.company_id(e["company"], d["names"])
+        if cid:
+            manual.setdefault(cid, []).append(e)
+    out = []
+    for c in d["companies"]:
+        tie = cohort_people(ties.get(c["cohort_name"]) or {}, manual.get(c["id"], [])) or {}
+        row = {k: v for k, v in c.items() if k != "cohort_name"}
+        row.update(people=tie.get("people") or [], contacts=tie.get("contacts") or 0, shared=tie.get("shared") or 0,
+                   jobs=jobs_by_id.get(c["id"]))
+        out.append(row)
+    out.sort(key=directory.rank_key)
+    return {"ready": True, "companies": out, "verticals": list(directory_verticals()), "warning": warning}
+
+
+def directory_verticals():
+    sys.path.insert(0, str(REPO / "company-db"))
+    from companies import VERTICALS
+    return VERTICALS.keys()
 
 
 def ai_available():
@@ -718,6 +782,8 @@ STATIC_FILES = {
     "/map.css": (STATIC / "map.css", "text/css"),
     "/globalbar.js": (STATIC / "globalbar.js", "application/javascript"),
     "/cohort.css": (STATIC / "cohort.css", "text/css"),
+    "/companies.js": (STATIC / "companies.js", "application/javascript"),
+    "/companies.css": (STATIC / "companies.css", "text/css"),
 }
 
 
@@ -772,7 +838,11 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200, (STATIC / "map.html").read_bytes(), "text/html; charset=utf-8")
             if path == "/api/regions":
                 return self.send(200, json.dumps(regions.REGIONS), "application/json")
-            if path in ("/companies", "/index.html"):            # the company view: Ryan's page plus the cohort layer
+            if path == "/companies" and "view=" not in self.path:  # the company directory (data/companies.db)
+                return self.send(200, (STATIC / "companies.html").read_bytes(), "text/html; charset=utf-8")
+            if path == "/api/companies":
+                return self.send(200, json.dumps(directory_payload(), ensure_ascii=False), "application/json")
+            if path in ("/companies", "/index.html"):            # Cohort views: Ryan's page plus the cohort layer
                 return self.send(200, build_page(), "text/html; charset=utf-8")
             if path == "/api/description":                       # full job text, read from data/descriptions.db
                 url = parse_qs(urlsplit(self.path).query).get("url", [""])[0]

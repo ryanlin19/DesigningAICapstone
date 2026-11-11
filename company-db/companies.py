@@ -262,6 +262,9 @@ def cmd_targets():
     print(f"cohort companies: {len(co)} | S&P 500 rows: {len(sp)}")
     by_key = {sp_key(r["name"]): n for n, r in co.items()}
     by_key.update({sp_key(rules.compress(n)): n for n in co})
+    for n, r in co.items():                      # every alias the cohort database knows (Citigroup -> Citi, Alphabet -> Google)
+        for a in r["norms"]:
+            by_key.setdefault(sp_key(a), n)
     con.execute("DELETE FROM targets")
     seen = set()
     for n, r in sorted(co.items(), key=lambda kv: (-kv[1]["contacts"], kv[0])):

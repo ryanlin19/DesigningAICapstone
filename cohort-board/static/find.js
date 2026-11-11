@@ -150,7 +150,9 @@
     leadership: "leadership" };
   function tieSummary(t) {
     var parts = [];
-    if (t.alumni.length) parts.push("💼 " + (t.alumni.length === 1 ? t.alumni[0] + " worked here" : t.alumni.length + " classmates worked here"));
+    var now = t.people.filter(function (p) { return p.worked && p.worked.current; }).length;
+    if (t.alumni.length) parts.push("💼 " + (t.alumni.length === 1 ? t.alumni[0] + (now ? " works here" : " worked here")
+                                            : t.alumni.length + " classmates " + (now === t.alumni.length ? "work" : "worked") + " here"));
     var knowers = t.people.filter(function (p) { return p.count || p.added.length; }).length;
     if (knowers) parts.push("👥 " + plural(knowers, "classmate", "classmates") + " · " + plural(t.contacts, "contact", "contacts"));
     return parts.join("  ");
