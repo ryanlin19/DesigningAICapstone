@@ -187,6 +187,22 @@
       return b;
     }));
   }
+  // chips with an "All" chip first: nothing picked = all. Clicking one while on All picks just it; the last one off,
+  // or every one on, is All again.
+  function allPicker(options, picked, allLabel, setList) {
+    var all = !picked.length;
+    var a = el("button", { type: "button", class: "gb-chip", "aria-pressed": String(all), text: allLabel });
+    a.addEventListener("click", function () { setList([]); });
+    return el("div", { class: "gb-chips" }, [a].concat(options.map(function (o) {
+      var on = !all && picked.indexOf(o) >= 0;
+      var b = el("button", { type: "button", class: "gb-chip", "aria-pressed": String(on), text: o });
+      b.addEventListener("click", function () {
+        var next = on ? picked.filter(function (x) { return x !== o; }) : (all ? [] : picked).concat([o]);
+        setList(next.length >= options.length ? [] : next);
+      });
+      return b;
+    })));
+  }
   function toggleIn(list, x) { var i = list.indexOf(x); if (i >= 0) list.splice(i, 1); else list.push(x); }
   function wordList(items, placeholder, label, onAdd, onRemove) {
     var input = el("input", { type: "text", class: "gb-input", placeholder: placeholder, "aria-label": label });
@@ -330,11 +346,11 @@
     kids.push(el("div", { class: "gb-row" }, [editBtn]));
     if (editingWant) {
       kids.push(el("div", { class: "gb-label", text: "Level" }));
-      kids.push(chipPicker(LEVELS, w.levels, function (c) { setWant(function (q) { toggleIn(q.levels, c); }); }));
+      kids.push(allPicker(LEVELS, w.levels, "All levels", function (l) { setWant(function (q) { q.levels = l; }); }));
       if (meta && meta.verticals) {
         kids.push(el("div", { class: "gb-label", text: "Verticals" }));
-        kids.push(chipPicker(meta.verticals.filter(function (v) { return v !== "Other"; }), w.verticals,
-                             function (c) { setWant(function (q) { toggleIn(q.verticals, c); }); }));
+        kids.push(allPicker(meta.verticals.filter(function (v) { return v !== "Other"; }), w.verticals, "All verticals",
+                            function (l) { setWant(function (q) { q.verticals = l; }); }));
       }
       kids.push(el("div", { class: "gb-label", text: "Companies to aim for" }));
       kids.push(wordList(w.companies, "Type a company, press Enter", "Add a target company",
