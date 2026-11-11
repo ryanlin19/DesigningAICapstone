@@ -78,6 +78,20 @@ address, e.g. `https://cohort-board.<your-subdomain>.workers.dev`.
 Your answers are kept in `deploy/.deploy.env` (git-ignored, readable only by you) so you can run `setup.sh` again
 to redeploy after pulling changes. It keeps all stored data.
 
+### Putting changes live (while people are using it)
+
+```bash
+deploy/ship.sh            # code changes: live in a few seconds, nobody notices
+deploy/ship.sh --image    # after changing deploy/Dockerfile, deploy/src/index.js or wrangler.jsonc: minutes, a short gap
+```
+
+`ship.sh` packs the board's code (cohort-board/, pipeline/, site/ minus its job data, the ingest and company-db
+scripts), stores it in R2 and asks the board to reload. The container runs `cohort-board/launch.py`, which starts the
+new code next to the running copy on the same port and retires the old copy once the new one is listening: the port
+never closes, requests in progress finish, logins and everyone's filters stay. If the new code fails to start, the old
+copy keeps serving. It waits while the daily refresh or a merge is running. It prints `live in Ns` when the new code
+answers. `data/` (the pipeline's inputs) only goes out with `--image`.
+
 ## 3. Load the job lists and company directory
 
 Open the address, sign in with the board password. Classmates and contacts show already (they come from the cohort

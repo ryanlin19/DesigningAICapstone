@@ -1,5 +1,6 @@
 #!/bin/sh
-# Restart the hosted board now, so it runs the image you just deployed (otherwise it waits for 10 idle minutes).
+# Restart the hosted board now (rarely needed: deploy/ship.sh handles updates). Stops the container so the next visit
+# starts the current image.
 # Refuses while the daily refresh or a merge is running ("busy"); try again in a few minutes.
 #   deploy/restart.sh
 set -e

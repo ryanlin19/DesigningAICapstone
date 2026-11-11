@@ -35,3 +35,6 @@ deploy/node_modules/
 deploy/.deploy.env
 deploy/.dev.vars
 deploy/.wrangler/
+
+# Version of the code shipped to the hosted board (deploy/ship.py)
+cohort-board/VERSION

@@ -14,4 +14,5 @@ COPY site/ site/
 COPY data/ data/
 ENV PYTHONUNBUFFERED=1
 EXPOSE 8765
-CMD ["python3", "cohort-board/serve.py"]
+# launch.py runs serve.py and reloads code shipped by deploy/ship.sh without a new image
+CMD ["python3", "cohort-board/launch.py"]

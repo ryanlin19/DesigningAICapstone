@@ -38,14 +38,32 @@ export class Board extends Container {
     else this.renewActivityTimeout();
   }
 
-  // POST /__restart with the state token (deploy/restart.sh): after a deploy, stop now so the next visit starts the
-  // new image. Not while a task runs. Checked here, so no other way in reaches it.
+  // Operator routes, with the state token (deploy/ship.sh, deploy/restart.sh); checked here, so no other way in reaches them:
+  //   POST /__restart          stop the container now (an image deploy), unless a task is running
+  //   POST /__ship/reload      run the code just shipped to R2 (cohort-board/launch.py), in about a second
+  //   POST /__ship/version     which shipped code is running
+  // Everything else goes to the board. A code reload leaves its port closed for about a second: those requests wait
+  // and try again (up to ~10 s), so nobody sees an error page.
   async fetch(request) {
-    if (new URL(request.url).pathname === "/__restart") {
+    const path = new URL(request.url).pathname;
+    if (path === "/__restart" || path.startsWith("/__ship/")) {
       const ok = request.method === "POST" && this.env.STATE_TOKEN && request.headers.get("X-Task-Token") === this.env.STATE_TOKEN;
-      return ok ? new Response(await this.restartIfIdle()) : new Response("forbidden", { status: 403 });
+      if (!ok) return new Response("forbidden", { status: 403 });
+      if (path === "/__restart") return new Response(await this.restartIfIdle());
+      const name = path.slice("/__ship/".length);
+      if (name !== "reload" && name !== "version") return new Response("not found", { status: 404 });
+      return this.containerFetch(new Request(`http://board/__task/${name}`, {
+        method: "POST", headers: { "X-Task-Token": this.env.STATE_TOKEN } }), this.defaultPort);
     }
-    return super.fetch(request);
+    const small = request.method === "GET" || request.method === "HEAD" || Number(request.headers.get("content-length") || 0) < 1e6;
+    for (let i = 0; ; i++) {
+      const last = !small || i >= 39;
+      const r = await super.fetch(last ? request : request.clone());
+      if (last || r.status !== 500) return r;
+      const text = await r.clone().text();
+      if (!/^(Container suddenly disconnected|Error proxying request)/.test(text)) return r;
+      await new Promise((ok) => setTimeout(ok, 250));
+    }
   }
 
   async restartIfIdle() {

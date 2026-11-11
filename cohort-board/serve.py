@@ -19,6 +19,8 @@ import json
 import os
 import re
 import secrets
+import signal
+import socket
 import sqlite3
 import sys
 import threading
@@ -92,9 +94,17 @@ def _load_sessions():
     return out
 
 
+_ENDED = set()                                           # logged out here: not brought back from the file
+_last_reread = [0.0]
+
+
 def _save_sessions():
+    """Write the logins, keeping ones another copy of the board added (during a code reload two run for a moment)."""
     SESSIONS_FILE.parent.mkdir(exist_ok=True)
-    tmp = SESSIONS_FILE.with_suffix(".tmp")
+    for h, rec in _load_sessions().items():
+        if h not in SESSIONS and h not in _ENDED:
+            SESSIONS[h] = rec
+    tmp = SESSIONS_FILE.with_suffix(f".{os.getpid()}.tmp")
     tmp.write_text(json.dumps(SESSIONS), encoding="utf-8")
     os.chmod(tmp, 0o600)
     tmp.replace(SESSIONS_FILE)
@@ -114,7 +124,13 @@ def new_session():
 
 
 def session_ok(token):
-    rec = SESSIONS.get(_hash(token or ""))
+    h = _hash(token or "")
+    if token and h not in SESSIONS and h not in _ENDED and time.time() - _last_reread[0] > 1:
+        _last_reread[0] = time.time()                    # signed in on the other copy during a code reload
+        with LOCK:
+            for k, v in _load_sessions().items():
+                SESSIONS.setdefault(k, v)
+    rec = SESSIONS.get(h)
     ok = bool(rec and rec.get("exp", 0) > time.time())
     _current.key = _hash(token) if ok else None
     return ok
@@ -123,6 +139,7 @@ def session_ok(token):
 def end_session(token):
     with LOCK:
         SESSIONS.pop(_hash(token or ""), None)
+        _ENDED.add(_hash(token or ""))
         _save_sessions()
 
 
@@ -1312,7 +1329,57 @@ STATIC_FILES = {
 }
 
 
+# ---------- code reload (cohort-board/launch.py, deploy/ship.sh) ----------
+# A reload never closes the port: launch.py starts a copy with the new code next to this one (both listen, SO_REUSEPORT),
+# and once it's ready sends this one SIGTERM. This one then stops taking requests, finishes the ones in progress,
+# lets a running task and its uploads to R2 finish, and exits.
+SERVER = None
+_active = [0]
+_active_lock = threading.Lock()
+
+
+def code_version():
+    try:
+        return json.loads((HERE / "VERSION").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {"label": "unshipped", "built": 0}
+
+
+class Server(ThreadingHTTPServer):
+    def server_bind(self):
+        if os.environ.get("COHORT_LAUNCHER") == "1" and hasattr(socket, "SO_REUSEPORT"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        super().server_bind()
+
+
+def drain(*_):
+    def run():
+        SERVER.shutdown()
+        SERVER.server_close()
+        end = time.time() + 30
+        while _active[0] > 0 and time.time() < end:
+            time.sleep(0.05)
+        end = time.time() + 1800                         # the daily refresh can take a while
+        while tasks.busy() and time.time() < end:
+            time.sleep(1)
+        end = time.time() + 120
+        while state.uploads_pending() and time.time() < end:
+            time.sleep(0.2)
+        print("reload: old copy done", flush=True)
+        os._exit(0)
+    threading.Thread(target=run, daemon=True).start()
+
+
 class Handler(BaseHTTPRequestHandler):
+    def handle(self):                                    # count requests in progress, for a clean code reload
+        with _active_lock:
+            _active[0] += 1
+        try:
+            super().handle()
+        finally:
+            with _active_lock:
+                _active[0] -= 1
+
     server_version = "CohortBoard"
 
     def log_message(self, fmt, *args):
@@ -1440,6 +1507,15 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if name == "busy":
                 out = {"busy": tasks.busy(), "task": tasks.status["task"], "started": tasks.status["started"]}
+            elif name == "version":
+                out = {**code_version(), "pid": os.getpid()}
+            elif name == "reload":                       # deploy/ship.sh: new code is in R2; launch.py starts it
+                if os.environ.get("COHORT_LAUNCHER") != "1":
+                    return self.send(409, json.dumps({"error": "not started by launch.py"}), "application/json")
+                if tasks.busy():
+                    return self.send(409, json.dumps({"busy": True, "task": tasks.status["task"]}), "application/json")
+                os.kill(os.getppid(), signal.SIGUSR1)
+                out = {"reloading": True, "from": code_version()}
             elif name == "merge":
                 out = tasks.merge(STORE)
             elif name == "refresh":
@@ -1619,7 +1695,13 @@ def main():
     else:
         print("Scheduled work: " + ("Cloudflare's schedule" if HOSTED else "off (COHORT_BACKGROUND=0)"), flush=True)
     print(f"Private board: http://{HOST}:{PORT}" + ("  (hosted)" if HOSTED else "  (this computer only; Ctrl+C to stop)"), flush=True)
-    ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
+    global SERVER
+    SERVER = Server((HOST, PORT), Handler)
+    signal.signal(signal.SIGTERM, drain)
+    if os.environ.get("COHORT_READY_FILE"):                # launch.py: listening now, the old copy can go
+        Path(os.environ["COHORT_READY_FILE"]).write_text(str(os.getpid()))
+    SERVER.serve_forever()
+    threading.Event().wait()                               # stopped by drain(): it ends the process when it's done
 
 
 if __name__ == "__main__":

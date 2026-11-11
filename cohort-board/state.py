@@ -71,8 +71,26 @@ def _unpack(name):
         t.extractall(folder, filter="data")
 
 
-_etags = {}
+ETAGS = DATA / ".state-etags.json"      # which stored version each local file is, so a code reload re-downloads nothing
+try:
+    _etags = json.loads(ETAGS.read_text(encoding="utf-8"))
+except (OSError, ValueError):
+    _etags = {}
 _lock = threading.Lock()
+_pending = [0]                           # uploads still running (a code reload waits for them)
+_pending_lock = threading.Lock()
+
+
+def _save_etags():
+    try:
+        DATA.mkdir(parents=True, exist_ok=True)
+        ETAGS.write_text(json.dumps(_etags), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def uploads_pending():
+    return _pending[0]
 
 
 def enabled():
@@ -115,6 +133,7 @@ def pull(name, force=False):
                     out.write(chunk)
     tmp.replace(path)
     _etags[name] = meta[0]
+    _save_etags()
     if name in FOLDERS:
         _unpack(name)
     return True
@@ -146,12 +165,22 @@ def push(name):
                   {"Content-Type": "application/json"}):
             pass
         _etags[name] = etag
+        _save_etags()
 
 
 def push_later(*names):
     """push() in the background, so a request isn't held up by the upload."""
     if enabled():
-        threading.Thread(target=lambda: [push(n) for n in names], daemon=True).start()
+        def run():
+            try:
+                for n in names:
+                    push(n)
+            finally:
+                with _pending_lock:
+                    _pending[0] -= 1
+        with _pending_lock:
+            _pending[0] += 1
+        threading.Thread(target=run, daemon=True).start()
 
 
 def pull_all():
@@ -160,7 +189,7 @@ def pull_all():
     got = []
     for name in files():
         try:
-            if pull(name, force=True):
+            if pull(name, force=not files()[name].exists()):     # on disk already (a code reload): only if it changed
                 got.append(name)
         except (urllib.error.URLError, OSError, ValueError) as e:
             print(f"state: couldn't pull {name}: {e}", flush=True)
