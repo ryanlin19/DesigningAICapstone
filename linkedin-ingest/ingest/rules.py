@@ -77,7 +77,8 @@ TITLE_RULES = [
     ("design", r"design|\bux\b|\bui\b"),
     ("sales_gtm", r"sales|account executive|account manager|business development|\bbd\b|\bgtm\b|go-to-market|partnerships|customer success"),
     ("marketing", r"marketing|growth|brand|communications"),
-    ("finance", r"financ|investment bank|banking|private equity|venture|portfolio|trader|accountant|\bcfa\b|financial analyst"),
+    ("finance", r"financ|\binvestment|banking|private equity|venture|portfolio|trader|accountant|\bcfa\b|financial analyst|"
+                r"equity research|hedge fund|asset management|capital markets"),
     ("consulting", r"consultant|consulting"),
     ("research", r"research|professor|lecturer|\bphd\b|postdoc|faculty"),
     ("education", r"\bteacher\b|\binstructor\b"),

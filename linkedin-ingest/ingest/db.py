@@ -1,8 +1,11 @@
 """SQLite database. The schema is plain SQL so it ports to Postgres for the larger app.
 
 Contract for downstream code: read `people`, `positions`, `education`, `skills`,
-`derived_connections`, `companies`. No table holds a connection's name, email,
-profile URL or individual title.
+`derived_connections`, `contacts`, `shared_contacts`, `companies`. No table holds a
+connection's name, email, profile URL or individual title. `contacts.contact_key` is a
+keyed fingerprint of the profile link (see contact_keys.py), not the link.
+
+The `contacts` table and `shared_contacts` view match cohort-api/migrations in the cloud database.
 """
 import json
 import sqlite3
@@ -15,7 +18,9 @@ CREATE TABLE IF NOT EXISTS people (
   consent_scopes TEXT NOT NULL,            -- e.g. "profile,connections"
   consent_at TEXT NOT NULL,
   export_date TEXT,
-  updated_at TEXT NOT NULL
+  updated_at TEXT NOT NULL,
+  self_key TEXT,                           -- this classmate's own contact key, if their profile link was given
+  profile_url TEXT                         -- this classmate's own LinkedIn link (never a contact's), given with consent
 );
 CREATE TABLE IF NOT EXISTS positions (
   person_id TEXT NOT NULL REFERENCES people(person_id),
@@ -38,6 +43,17 @@ CREATE TABLE IF NOT EXISTS derived_connections (
   snapshot_date TEXT NOT NULL,
   PRIMARY KEY (connector_id, company_norm)
 );
+-- One row per contact per classmate. Same person, same key, in every classmate's export.
+CREATE TABLE IF NOT EXISTS contacts (
+  contact_key TEXT NOT NULL,
+  connector_id TEXT NOT NULL REFERENCES people(person_id),
+  company_norm TEXT NOT NULL,
+  title_bucket TEXT NOT NULL,
+  connected_year INTEGER,
+  snapshot_date TEXT,
+  PRIMARY KEY (contact_key, connector_id)
+);
+CREATE INDEX IF NOT EXISTS contacts_by_company ON contacts (company_norm);
 -- Knowledge source: the company registry, retrieved per ambiguous name.
 CREATE TABLE IF NOT EXISTS companies (
   company_norm TEXT PRIMARY KEY,
@@ -71,6 +87,30 @@ CREATE TABLE IF NOT EXISTS ingest_runs (
 );
 """
 
+# Contacts known by two or more classmates ("deep connections"). The company and job type come from the
+# newest export that has the contact, in case they changed jobs between exports. Left out: classmates
+# themselves (self_key), and students and school staff, who would otherwise dominate the list.
+SHARED_CONTACTS_VIEW = """
+CREATE VIEW IF NOT EXISTS shared_contacts AS
+WITH latest AS (
+  SELECT contact_key, company_norm, title_bucket,
+         ROW_NUMBER() OVER (PARTITION BY contact_key ORDER BY snapshot_date DESC, connector_id) AS rn
+  FROM contacts
+)
+SELECT k.contact_key, l.company_norm, l.title_bucket,
+       COUNT(DISTINCT k.connector_id) AS depth,
+       MIN(k.connected_year) AS first_connected_year
+FROM contacts k
+JOIN latest l ON l.contact_key = k.contact_key AND l.rn = 1
+WHERE k.contact_key NOT IN (SELECT self_key FROM people WHERE self_key IS NOT NULL)
+  AND l.title_bucket <> 'student_intern'
+  AND l.company_norm NOT LIKE '%university%'
+  AND l.company_norm NOT LIKE '%college%'
+  AND l.company_norm NOT LIKE '%school%'
+GROUP BY k.contact_key, l.company_norm, l.title_bucket
+HAVING COUNT(DISTINCT k.connector_id) >= 2;
+"""
+
 
 def now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -80,6 +120,12 @@ def connect(path):
     con = sqlite3.connect(path)
     con.row_factory = sqlite3.Row
     con.executescript(SCHEMA)
+    # databases made before contact keys existed
+    cols = {r["name"] for r in con.execute("PRAGMA table_info(people)")}
+    for col in ("self_key", "profile_url"):
+        if col not in cols:
+            con.execute(f"ALTER TABLE people ADD COLUMN {col} TEXT")
+    con.executescript(SHARED_CONTACTS_VIEW)
     return con
 
 

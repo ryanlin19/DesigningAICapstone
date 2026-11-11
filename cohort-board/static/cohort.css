@@ -1,0 +1,85 @@
+/* Cohort layer. Uses the board's own color tokens. */
+.cohortbar { background: var(--accent-bg); }
+.cohort-badges { margin-left: auto; display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.cohort-badges[hidden] { display: none; }
+.cohort-badge { border-radius: 999px; padding: 2px 10px; font-size: 12.5px; font-weight: 600;
+  background: var(--accent-bg); color: var(--accent); white-space: nowrap; }
+.cohort-badge.cohort-alumni, .badge.cohort-alumni-tag { background: var(--orange-bg); color: var(--orange); }
+.cohort-now { background: var(--orange-bg); color: var(--orange); }
+.cohort-private { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--text-2); margin: -8px 0 14px; }
+.cohort-pill { background: var(--orange-bg); color: var(--orange); border-radius: 999px; padding: 2px 9px; font-weight: 700; font-size: 12px; }
+
+.cohort-panel { background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+.cohort-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.cohort-sub { color: var(--muted); font-size: 13px; }
+.cohort-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.cohort-list li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px; padding: 5px 0; border-top: 1px solid var(--border); font-size: 14px; }
+.cohort-list li b { font-weight: 650; }
+.cohort-src { font-size: 11.5px; color: var(--muted); background: var(--chip); border-radius: 999px; padding: 1px 7px; }
+.cohort-note { color: var(--text-2); font-style: italic; }
+.cohort-del { margin-left: auto; background: none; border: 0; color: var(--bad); font-size: 12.5px; cursor: pointer; padding: 2px 4px; }
+.cohort-del:hover { text-decoration: underline; }
+
+.cohort-add { margin-top: 8px; }
+.cohort-open { color: var(--accent); font-weight: 600; }
+.cohort-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin-top: 6px; }
+.cohort-form[hidden] { display: none; }
+.cohort-field { display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: var(--text-2); font-weight: 600; }
+.cohort-field input { font: inherit; font-weight: 400; font-size: 14px; color: var(--text); background: var(--card);
+  border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; min-width: 0; }
+.cohort-field input:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
+.cohort-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.cohort-save { background: var(--accent); color: #fff; border-color: var(--accent); }
+.cohort-err { color: var(--bad); font-size: 13px; }
+
+.cohort-h2 { margin-top: 12px; }
+.cohort-depth { display: inline-block; min-width: 30px; text-align: center; border-radius: 999px; padding: 1px 7px;
+  font-size: 12px; font-weight: 700; background: var(--accent); color: #fff; }
+.cohort-views { margin-left: auto; display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.cohort-view-btn { font-size: 13px; padding: 4px 12px; border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.cohort-view { padding-top: 18px; padding-bottom: 40px; }
+.cohort-view[hidden], main[hidden] { display: none; }
+.cohort-view h2 { margin: 0 0 4px; font-size: 22px; }
+.cohort-view h3 { margin: 24px 0 8px; font-size: 16px; }
+.cohort-view > .cohort-sub { display: block; max-width: 72ch; margin-bottom: 12px; }
+.cohort-bridge-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-bottom: 12px; }
+.cohort-bridge-tools select { width: auto; }
+.cohort-bridge-list .cohort-list { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 4px 14px; margin: 0; }
+.cohort-bridge-list .cohort-list li:first-child { border-top: 0; }
+.cohort-co { font-weight: 700; color: var(--text); }
+button.cohort-co { color: var(--brand); text-decoration: underline; text-underline-offset: 2px; }
+
+/* Add classmates view */
+.cohort-drop { border: 2px dashed var(--border); border-radius: 14px; background: var(--card); padding: 28px 16px; text-align: center; }
+.cohort-drop.over { border-color: var(--accent); background: var(--accent-bg); }
+.cohort-drop p { margin: 0 0 12px; color: var(--text-2); }
+.cohort-drop .btn { margin: 0 4px; }
+.cohort-queue { display: grid; gap: 10px; margin-top: 14px; }
+.cohort-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+.cohort-item-h { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.cohort-item-h b { overflow-wrap: anywhere; }
+.cohort-item-h .cohort-del { margin-left: auto; }
+.cohort-item .cohort-form { margin-top: 8px; }
+.cohort-status { margin-top: 8px; font-size: 13.5px; color: var(--text-2); }
+.cohort-status.ok { color: var(--good); }
+.cohort-status.bad { color: var(--bad); }
+.cohort-run { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 14px; }
+.cohort-run .btn[disabled] { opacity: .5; cursor: not-allowed; }
+.cohort-warn { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+.cohort-people .cohort-list { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 4px 14px; margin: 0; }
+.cohort-people .cohort-list li:first-child { border-top: 0; }
+
+/* Connect on LinkedIn view */
+.cohort-connect-me { max-width: 320px; margin-bottom: 12px; }
+.cohort-note { width: 100%; max-width: 640px; resize: vertical; font: inherit; }
+.cohort-connect .cohort-field > span { margin-bottom: 2px; }
+.cohort-connect .cohort-item .cohort-run { margin-top: 8px; }
+.cohort-connect .cohort-item .cohort-run .cohort-sub { overflow-wrap: anywhere; }
+.cohort-why { margin: 6px 0 0; font-size: 12.5px; }
+
+@media (max-width: 640px) {
+  .cohort-views { margin-left: 0; }
+  .cohort-form { grid-template-columns: 1fr; }
+  .cohort-badges { margin-left: 0; justify-content: flex-start; }
+}

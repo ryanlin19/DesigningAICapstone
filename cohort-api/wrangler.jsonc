@@ -1,0 +1,16 @@
+// Cohort connections API. Separate from Ryan's public job-board Worker (the repo-root wrangler.jsonc).
+// To move to another Cloudflare account, see "Moving it" in README.md: only database_id changes.
+{
+  "name": "cohort-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-19",
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cohort",
+      "database_id": "0c94e6d9-ab63-4f41-9481-e2ef1a6a0555",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

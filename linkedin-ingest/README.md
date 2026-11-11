@@ -31,9 +31,16 @@ REPORT.md                the milestone write-up, mapped to the rubric
 ## Load an export
 
 ```
-python ingest_cli.py <export.zip> --person-id <id> --consent profile,connections            # no AI
-python ingest_cli.py <export.zip> --person-id <id> --consent profile,connections --ai haiku # with AI
+python -m ingest.contact_keys new      # once for the whole cohort; back up .contact_key
+python ingest_cli.py <export.zip> --person-id <id> --consent profile,connections --profile-url <their LinkedIn link>            # no AI
+python ingest_cli.py <export.zip> --person-id <id> --consent profile,connections --profile-url <their LinkedIn link> --ai haiku # with AI
+python ../cohort-api/sync.py push <id> # upload to the cloud database
 ```
+
+Each connection becomes a keyed fingerprint (`ingest/contact_keys.py`), so the same person counts once
+across classmates and people known by several classmates show up as shared contacts. Every export must
+be loaded with the same `.contact_key`. `--profile-url` keeps classmates from counting as each other's
+shared contacts; it is stored only as a fingerprint.
 
 Running the same person again replaces their rows. After checking the result,
 delete the original export: it contains messages, phone numbers and more that
@@ -42,7 +49,7 @@ Positions, Education and Skills.
 
 ## Finish the milestone (about 1.5 hours plus scoring)
 
-1. `python -m unittest -v` should show 9 tests passing.
+1. `python -m unittest -v` should show 15 tests passing.
 2. Set your key: `export ANTHROPIC_API_KEY=...` (Windows: `set ANTHROPIC_API_KEY=...`).
 3. Reload with AI so the database reflects the real pipeline:
    `rm data/cohort.db`, then run `ingest_cli.py` with `--ai haiku` on each export.
@@ -63,6 +70,9 @@ and the Opus judge.
 ## Privacy rules built in
 
 The model receives company names and job titles only. Connection names, emails,
-profile links and individual titles are never stored. Profile addresses, birth
-dates and phone numbers are never read. Only five files are opened from each
-export. Tests check these guarantees.
+profile links and individual titles are never stored. Each connection is kept only
+as a keyed fingerprint of their profile link, with company, job type and the year
+connected; without the secret key a fingerprint can't be traced back to a person.
+Fingerprints still stand for real people, so classmates' consent should mention
+them. Profile addresses, birth dates and phone numbers are never read. Only five
+files are opened from each export. Tests check these guarantees.

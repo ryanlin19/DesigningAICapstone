@@ -10,3 +10,11 @@ data/firm_database.csv
 # LinkedIn ingest: real classmates' data stays out of git
 linkedin-ingest/data/cohort.db
 *.zip
+# Private cohort board: password and hand-added connections stay local
+cohort-board/.password
+cohort-board/data/
+cohort-board/.api
+cohort-backup-*.sql
+.wrangler/
+.dev.vars
+linkedin-ingest/.contact_key

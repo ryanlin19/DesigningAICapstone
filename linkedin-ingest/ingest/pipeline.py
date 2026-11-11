@@ -1,16 +1,19 @@
 """Ingest one LinkedIn data export into the database.
 
 Steps (D = deterministic code, AI = model judgment):
-  D  open the export and read only the five allowed files
+  D  open the export and read only the allowed files (five, plus one column of Invitations.csv for
+     the owner's own profile link)
   D  check consent scopes
   D  parse the person's own profile, positions, education, skills
   D  read connections keeping only (company, title); names are never kept
+  D  turn each contact's profile link into a keyed fingerprint (contact_keys.py); the link is not kept
   D  normalize company names; exact, alias and compressed-key lookup in the registry
   D  retrieve registry candidates for names with no exact match
   AI decide same / subsidiary / different, only when candidates exist
   D  bucket job titles with rules
   AI bucket titles the rules left as 'other', with the company as context (batched, cached)
   D  aggregate connections to (company, count, top bucket) and write
+  D  write one row per contact (key, company, bucket, year connected) for dedup and shared contacts
 """
 import csv
 import io
@@ -21,13 +24,32 @@ import zipfile
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from . import ai_tasks, registry, rules
+from . import ai_tasks, contact_keys, registry, rules
 from .config import MODELS, TITLE_BATCH_SIZE
 from .db import now, queue_review
 from .llm import LLMError
 
-ALLOWED_FILES = {"Profile.csv", "Positions.csv", "Education.csv", "Skills.csv", "Connections.csv"}
+ALLOWED_FILES = {"Profile.csv", "Positions.csv", "Education.csv", "Skills.csv", "Connections.csv",
+                 "Invitations.csv"}   # only for the person's own profile link; see own_profile_url()
 VALID_SCOPES = {"profile", "connections"}
+
+
+def own_profile_url(invitations_text):
+    """The export owner's own profile link: the sender link on invitations they sent.
+
+    LinkedIn's Profile.csv has no link, but every OUTGOING row of Invitations.csv names the owner as
+    the inviter. Only that one column of outgoing rows is read; names, messages and the other side
+    of each invitation are ignored and nothing from this file is stored except the owner's link.
+    Returns None when there are no sent invitations (or the basic export, which lacks the file).
+    """
+    try:
+        rows = parse_csv(invitations_text)
+    except Exception:
+        return None
+    links = Counter(contact_keys.canonical_profile_url(r.get("inviterProfileUrl")) for r in rows
+                    if (r.get("Direction") or "").strip().upper() == "OUTGOING")
+    links.pop(None, None)
+    return links.most_common(1)[0][0] if links else None
 
 
 def read_export(path):
@@ -63,17 +85,21 @@ def parse_csv(text, header_start=None):
     return list(csv.DictReader(io.StringIO("\n".join(lines))))
 
 
-def connection_pairs(text):
-    """(company_raw, title) for each connection. Name, URL and email columns are dropped here."""
-    return [((r.get("Company") or "").strip(), (r.get("Position") or "").strip())
+def connection_rows(text):
+    """One dict per connection, held in memory only. Names and URLs are used for nothing except
+    computing a contact key; email is never read. Nothing here is written as-is."""
+    return [{"company": (r.get("Company") or "").strip(), "title": (r.get("Position") or "").strip(),
+             "url": r.get("URL"), "first": r.get("First Name"), "last": r.get("Last Name"),
+             "connected_on": r.get("Connected On")}
             for r in parse_csv(text, "First Name,")]
 
 
 class Ingestor:
-    def __init__(self, con, ai_model=None, caller=None):
+    def __init__(self, con, ai_model=None, caller=None, contact_secret=None):
         if ai_model and ai_model not in MODELS:
             raise ValueError(f"ai_model must be one of {sorted(MODELS)} or None")
         self.con = con
+        self.contact_secret = contact_secret  # bytes; None means no per-contact rows (counts only)
         self.model = MODELS[ai_model] if ai_model else None
         self.caller = caller  # injected in tests; None means the real API
         self.run_id = uuid.uuid4().hex[:12]
@@ -172,7 +198,7 @@ class Ingestor:
                 for b, (t, c) in zip(out, pairs)]
 
     # ---- whole export ----------------------------------------------------
-    def ingest(self, path, person_id, scopes, snapshot=None):
+    def ingest(self, path, person_id, scopes, snapshot=None, profile_url=None):
         scopes = {s.strip() for s in scopes.split(",")} if isinstance(scopes, str) else set(scopes)
         if not scopes or not scopes <= VALID_SCOPES:
             raise ValueError(f"consent scopes must be a non-empty subset of {sorted(VALID_SCOPES)}")
@@ -193,6 +219,21 @@ class Ingestor:
             " export_date=excluded.export_date, updated_at=excluded.updated_at",
             (person_id, prof.get("First Name"), prof.get("Last Name"), prof.get("Headline"),
              prof.get("Industry"), prof.get("Geo Location"), ",".join(sorted(scopes)), now(), snapshot, now()))
+        # The classmate's own link and key: the key keeps classmates out of each other's shared contacts and
+        # shows who is already connected; the link (theirs only, given with consent) lets classmates connect.
+        # A link typed in wins; otherwise it comes from invitations they sent, when the export has them.
+        if profile_url:
+            summary["profile_url_source"] = "given"
+        elif "Invitations.csv" in files:
+            profile_url = own_profile_url(files["Invitations.csv"])
+            if profile_url:
+                summary["profile_url_source"] = "Invitations.csv"
+        if profile_url:
+            summary["profile_url"] = contact_keys.canonical_profile_url(profile_url)
+        if profile_url and self.contact_secret:
+            con.execute("UPDATE people SET self_key=?, profile_url=? WHERE person_id=?",
+                        (contact_keys.contact_key(self.contact_secret, profile_url),
+                         contact_keys.canonical_profile_url(profile_url), person_id))
 
         if "profile" in scopes:
             summary.update(self._ingest_profile(files, person_id))
@@ -229,12 +270,12 @@ class Ingestor:
         return {"positions": len(positions), "education": len(edu), "skills": len(skills)}
 
     def _ingest_connections(self, text, pid, snapshot):
-        pairs = connection_pairs(text)
-        comps = [self.resolve_company(c) for c, _ in pairs]
-        kept = [(t, c) for (_, t), c in zip(pairs, comps) if c]
-        buckets = self.bucket_titles(kept)
+        rows = connection_rows(text)
+        comps = [self.resolve_company(r["company"]) for r in rows]
+        kept = [(r, c) for r, c in zip(rows, comps) if c]
+        buckets = self.bucket_titles([(r["title"], c) for r, c in kept])
         counts, by_bucket = Counter(), defaultdict(Counter)
-        for (t, c), b in zip(kept, buckets):
+        for (_, c), b in zip(kept, buckets):
             counts[c] += 1
             by_bucket[c][b] += 1
         self.con.execute("DELETE FROM derived_connections WHERE connector_id=?", (pid,))
@@ -242,5 +283,19 @@ class Ingestor:
             named = [k for k, _ in by_bucket[c].most_common() if k != "other"]
             self.con.execute("INSERT INTO derived_connections VALUES (?,?,?,?,?)",
                              (pid, c, n, named[0] if named else "other", snapshot))
-        return {"connections": len(pairs), "connections_without_company": len(pairs) - len(kept),
-                "companies": len(counts)}
+        summary = {"connections": len(rows), "connections_without_company": len(rows) - len(kept),
+                   "companies": len(counts)}
+        # One keyed row per contact: lets the database deduplicate and find contacts shared by classmates.
+        self.con.execute("DELETE FROM contacts WHERE connector_id=?", (pid,))
+        if self.contact_secret:
+            keyed = 0
+            for (r, c), b in zip(kept, buckets):
+                key = contact_keys.contact_key(self.contact_secret, r["url"], r["first"], r["last"], c)
+                if key:
+                    cur = self.con.execute("INSERT OR IGNORE INTO contacts VALUES (?,?,?,?,?,?)",
+                                           (key, pid, c, b, contact_keys.connected_year(r["connected_on"]), snapshot))
+                    keyed += cur.rowcount
+            summary["contacts_keyed"] = keyed
+        else:
+            summary["contacts_keyed"] = "off (no contact key set up)"
+        return summary
