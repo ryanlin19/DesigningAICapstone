@@ -348,6 +348,25 @@
     boardOnly.addEventListener("change", draw);
   }
 
-  window.COHORT = { headBadge: headBadge, panel: panel, hide: hide, jobTag: jobTag, el: el, plural: plural, data: D,
+  // Fit to your resume (the "Your search" panel) on each role card.
+  var BUCKET_LABEL = { ready: ["Ready", "good"], reach: ["Reach", "accent"], overqualified: ["Overqualified", "neutral"], pivot: ["Serious pivot", "orange"] };
+  function bucketBadge(j) {
+    var b = window.Global && window.Global.bucket(j);
+    return b ? el("span", { class: "badge " + BUCKET_LABEL[b][1], title: "Fit to your resume (" + j.bcat + ", " + j.blevel + ")",
+                            text: BUCKET_LABEL[b][0] }) : null;
+  }
+  // The panel applies here too: re-render on any change; "Revert to everything" also resets this page.
+  function rerender() { var p = document.getElementById("cohortPeriod"); if (p) p.dispatchEvent(new Event("change")); }
+  if (window.Global) {
+    window.Global.onChange(rerender);
+    window.Global.onRevert(function () {
+      var reset = document.getElementById("reset");
+      if (reset) reset.click(); else rerender();        // the board's own reset also clears the period and cohort checkboxes
+      if (document.querySelector("main") && document.querySelector("main").hidden) showView(null);
+      window.scrollTo(0, 0);
+    });
+  }
+
+  window.COHORT = { headBadge: headBadge, panel: panel, hide: hide, jobTag: jobTag, bucketBadge: bucketBadge, el: el, plural: plural, data: D,
                     registerView: registerView, showView: showView };
 })();

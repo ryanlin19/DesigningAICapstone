@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jobs by Region</title>
+<link rel="stylesheet" href="nav.css">
+<link rel="stylesheet" href="find.css">
+<link rel="stylesheet" href="map.css">
+</head>
+<body>
+<header class="cb-nav">
+  <div class="cb-nav-row">
+    <a class="cb-brand" href="/">Cohort Job Board</a>
+    <nav class="cb-tabs" aria-label="Sections">
+      <a href="/" data-tab="find">Find a job</a>
+      <a href="/map" data-tab="map" aria-current="page">Map</a>
+      <a href="/companies" data-tab="companies">Companies</a>
+      <a href="/companies?view=bridges" data-tab="cohort">Cohort</a>
+    </nav>
+    <span class="cb-private">Private: this computer only</span>
+    <button class="cb-logout" type="button">Log out</button>
+  </div>
+</header>
+
+<main class="wrap map-layout">
+  <section class="map-card" aria-labelledby="mapTitle">
+    <div class="map-head">
+      <div>
+        <h1 id="mapTitle">Jobs by region</h1>
+        <p class="muted tiny" id="mapSub">Click bubbles to pick regions. Your pick filters Find a job and Companies.</p>
+      </div>
+      <div class="seg" role="group" aria-label="Bubble size">
+        <button type="button" data-size="w" aria-pressed="true" title="A job listed in several regions counts as a share in each">Weighted</button>
+        <button type="button" data-size="raw" aria-pressed="false" title="Every listing counts fully in each region it names">All listings</button>
+      </div>
+    </div>
+    <div class="map-wrap"><svg id="map" role="group" aria-label="US map of jobs by region"></svg><div class="map-tip" id="tip" hidden></div></div>
+    <div class="offmap" id="offmap"></div>
+    <p class="muted tiny" id="mapNote"></p>
+  </section>
+
+  <aside class="map-side" aria-label="Your regions">
+    <section class="panel">
+      <h2>Picked regions</h2>
+      <div id="selection"></div>
+    </section>
+    <section class="panel">
+      <h2>Filters in use</h2>
+      <div id="filterSummary" class="tiny"></div>
+    </section>
+    <section class="panel">
+      <h2>Biggest regions</h2>
+      <ol class="region-list" id="regionList"></ol>
+    </section>
+  </aside>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script src="globalbar.js"></script>
+<script src="map.js"></script>
+</body>
+</html>

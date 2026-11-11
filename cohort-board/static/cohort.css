@@ -1,5 +1,10 @@
 /* Cohort layer. Uses the board's own color tokens. */
 .cohortbar { background: var(--accent-bg); }
+/* visa sponsorship is set once in the "Your search" panel, so the page's own international-students bar is hidden */
+.stickybar .intlbar:not(.cohortbar) { display: none; }
+/* the board's own filter sidebar is replaced by the "Your search" panel and the Fit row */
+#filters, #filtersToggle { display: none !important; }
+#tab-jobs .layout { grid-template-columns: minmax(0, 1fr) !important; }
 .cohort-badges { margin-left: auto; display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
 .cohort-badges[hidden] { display: none; }
 .cohort-badge { border-radius: 999px; padding: 2px 10px; font-size: 12.5px; font-weight: 600;
@@ -71,6 +76,12 @@ button.cohort-co { color: var(--brand); text-decoration: underline; text-underli
 .cohort-people .cohort-list li:first-child { border-top: 0; }
 
 .cohort-co-title { margin: 4px 0 8px; font-size: 22px; }
+.region-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 10px; font-size: 13.5px; }
+.region-bar .region-chip { border: 1px solid var(--brand); background: var(--brand-bg); color: var(--brand-dark); border-radius: 999px;
+  padding: 3px 10px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.region-bar .region-chip:hover { border-color: var(--bad); }
+.region-pick { font-weight: 600; text-decoration: none; }
+.region-pick:hover { text-decoration: underline; }
 .cohort-findlink { margin: 10px 0 0; font-size: 13.5px; font-weight: 600; }
 .cohort-findlink a { color: var(--brand); }
 

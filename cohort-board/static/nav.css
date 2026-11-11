@@ -21,6 +21,80 @@
 .cb-sub .cohort-view-btn:hover { background: #e7f0fa; color: #084e96; }
 .cb-sub .cohort-view-btn.on { background: #0a66c2; color: #fff; }
 
+/* "Your search": the panel down the left side of every tab */
+body.has-global-bar { padding-left: 272px; }
+.global-bar { position: fixed; top: 0; left: 0; bottom: 0; width: 272px; z-index: 60; display: flex; flex-direction: column;
+  background: #f3f8fd; border-right: 1px solid #c7dbf2; color: #1f2933;
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.gb-head { min-height: 57px; display: flex; flex-direction: column; justify-content: center; padding: 0 16px; border-bottom: 1px solid #c7dbf2; background: #e7f0fa; }
+.gb-head b { font-size: 15px; color: #084e96; }
+.gb-head span { font-size: 12px; color: #3e4c59; }
+.gb-body { flex: 1; overflow: auto; padding: 4px 16px 12px; }
+.gb-sec { padding: 12px 0; border-bottom: 1px solid #dbe7f4; }
+.gb-sec:last-child { border-bottom: 0; }
+.gb-sec h3 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #66727f; }
+.gb-note { margin: 6px 0 0; font-size: 12.5px; color: #66727f; }
+.gb-summary { margin: 0 0 6px; font-weight: 600; }
+.gb-status { margin: 8px 0 0; font-size: 12.5px; color: #084e96; }
+.gb-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.gb-link { background: none; border: 0; padding: 0; color: #0a66c2; cursor: pointer; font: inherit; font-size: 13.5px;
+  text-decoration: underline; text-underline-offset: 2px; display: inline-block; margin-top: 6px; }
+.gb-btn { display: inline-flex; justify-content: center; border-radius: 10px; padding: 8px 14px; font-weight: 600; cursor: pointer;
+  border: 1px solid rgba(31,41,51,.14); background: #fff; margin-top: 8px; }
+.gb-btn.primary { background: #0a66c2; border-color: #0a66c2; color: #fff; width: 100%; }
+.gb-btn.primary:hover { background: #084e96; }
+.gb-field { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 10px; font-size: 13.5px; }
+.gb-field input { width: 56px; border: 1px solid rgba(31,41,51,.18); border-radius: 8px; padding: 4px 6px; font: inherit; }
+.gb-check { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-size: 13.5px; }
+.gb-label { margin: 10px 0 6px; font-size: 13px; font-weight: 600; }
+.gb-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.gb-chip { border: 1px solid rgba(31,41,51,.16); background: #fff; border-radius: 999px; padding: 3px 9px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.gb-chip[aria-pressed="true"] { background: #0a66c2; border-color: #0a66c2; color: #fff; font-weight: 600; }
+.gb-seg { display: flex; background: #dbe7f4; border-radius: 10px; padding: 3px; gap: 2px; }
+.gb-seg button { flex: 1; border: 0; background: none; border-radius: 8px; padding: 6px 4px; font: inherit; font-size: 13px; font-weight: 600;
+  color: #3e4c59; cursor: pointer; }
+.gb-seg button[aria-pressed="true"] { background: #fff; color: #084e96; box-shadow: 0 1px 2px rgba(31,41,51,.15); }
+.global-bar select { width: 100%; margin-top: 8px; border: 1px solid rgba(31,41,51,.18); border-radius: 8px; padding: 6px 8px; font: inherit;
+  font-size: 13.5px; background: #fff; }
+.gb-revert { margin: 0; border: 0; border-top: 1px solid #b9d2ee; background: #d3e5f8; color: #084e96; padding: 18px 16px; cursor: pointer;
+  font: 800 15px/1.2 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; letter-spacing: .02em; transition: background .15s, color .15s; }
+.gb-revert:hover { background: #bfd8f3; }
+.gb-revert.done { background: #0a66c2; color: #fff; }
+.gb-toggle { display: none; }
+
+/* Fit: top right, under the tabs, on every tab */
+.cb-fitrow { border-top: 1px solid rgba(31,41,51,0.08); background: #fbfcfe; }
+.cb-fitrow .cb-nav-row { min-height: 46px; justify-content: flex-end; }
+.cb-fit { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; padding: 6px 0; }
+.cb-fit-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #66727f; margin-right: 4px; }
+.cb-fitbtn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(31,41,51,.16); background: #fff; border-radius: 999px;
+  padding: 5px 12px; font: 600 13.5px/1.2 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #3e4c59; cursor: pointer;
+  border-left-width: 4px; }
+.cb-fitbtn .n { font-weight: 700; font-variant-numeric: tabular-nums; color: #66727f; }
+.cb-fitbtn[aria-pressed="false"]:not(:disabled) { opacity: .6; }
+.cb-fitbtn:disabled { cursor: default; opacity: .45; }
+.cb-fitbtn.fit-ready { border-left-color: #15803d; } .cb-fitbtn.fit-reach { border-left-color: #0a66c2; }
+.cb-fitbtn.fit-overqualified { border-left-color: #6d28d9; } .cb-fitbtn.fit-pivot { border-left-color: #9a3412; }
+.cb-fitbtn.fit-ready[aria-pressed="true"] { background: #e3f4ea; color: #15803d; }
+.cb-fitbtn.fit-reach[aria-pressed="true"] { background: #e7f0fa; color: #084e96; }
+.cb-fitbtn.fit-overqualified[aria-pressed="true"] { background: #ede9fe; color: #6d28d9; }
+.cb-fitbtn.fit-pivot[aria-pressed="true"] { background: #ffedd5; color: #9a3412; }
+.cb-fitbtn[aria-pressed="true"] .n { color: inherit; }
+.cb-fit-hint { font-size: 12.5px; color: #66727f; }
+
+/* narrow screens: the panel slides in from the left */
+@media (max-width: 1100px) {
+  body.has-global-bar { padding-left: 0; }
+  .global-bar { transform: translateX(-100%); transition: transform .2s; box-shadow: 8px 0 24px rgba(31,41,51,.18); width: min(300px, 88vw);
+    border-right: 1px solid #c7dbf2; }
+  .global-bar.open { transform: none; }
+  .gb-toggle { display: block; position: fixed; left: 0; top: 50%; z-index: 61; transform: translateY(-50%) rotate(180deg); border: 1px solid #c7dbf2;
+    border-right: 0; border-radius: 10px 0 0 10px; background: #e7f0fa; color: #084e96; font: 800 13px/1 system-ui, -apple-system, sans-serif;
+    padding: 14px 8px; writing-mode: vertical-rl; cursor: pointer; }
+  .gb-toggle[aria-expanded="true"] { left: min(300px, 88vw); }
+  .cb-fitrow .cb-nav-row { justify-content: flex-start; }
+}
+
 /* Job description toggle (both pages) */
 .jd { margin-top: 8px; }
 .jd-btn { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 2px 0; cursor: pointer;

@@ -153,6 +153,16 @@ def skill_match(job, skills):
 # ---------- search ----------
 
 _fit_cache = {"key": None, "fits": None}
+_region_cache = {"key": None, "regions": None}
+
+
+def job_regions(data):
+    """{job id: [regions]} for a job set, worked out once per load (see regions.py)."""
+    import regions as R
+    if _region_cache["key"] != id(data):
+        _region_cache.update(key=id(data), regions={
+            j["id"]: R.regions_for([loc["name"] for loc in j.get("locations") or []], j.get("remote")) for j in data["jobs"]})
+    return _region_cache["regions"]
 
 
 def _fits(data, profile):
@@ -187,9 +197,15 @@ def search(data, profile, f, cohort=None, offset=0, limit=40):
     posted = int(f.get("posted") or 0)
     p_from, p_to = (f.get("from") or "")[:10], (f.get("to") or "")[:10]     # a period picked on the timeline (ISO dates)
     hidden = set(f.get("hidden") or [])                                      # companies the user chose to hide
+    want_regions = set(f.get("regions") or [])                               # picked on the map
+    # sponsorship from the "Your search" panel: any | not_no (hide "won't sponsor") | likely
+    visa = f.get("visa") or ("not_no" if f.get("hide_unlikely") else "any")
+    regs = job_regions(data)
 
     def passes(j, skip=None):
         if hidden and j["company"] in hidden:
+            return False
+        if skip != "regions" and want_regions and not want_regions.intersection(regs[j["id"]]):
             return False
         if skip != "period" and p_from:
             d = (j.get("posted") or "")[:10]
@@ -209,7 +225,9 @@ def search(data, profile, f, cohort=None, offset=0, limit=40):
             return False
         if f.get("mba") and not j.get("mba"):
             return False
-        if f.get("hide_unlikely") and j.get("visa") == "Unlikely":
+        if visa == "not_no" and j.get("visa") == "Unlikely":
+            return False
+        if visa == "likely" and j.get("visa") != "Likely":
             return False
         if f.get("warm") and not cohort.get(j["company"]):
             return False
@@ -218,6 +236,16 @@ def search(data, profile, f, cohort=None, offset=0, limit=40):
     counts = {"categories": Counter(j["category"] for j in data["jobs"] if passes(j, "categories")),
               "levels": Counter(j["level"] for j in data["jobs"] if passes(j, "levels")),
               "buckets": Counter(fits[j["id"]][0] for j in data["jobs"] if passes(j, "buckets")) if has_profile else {}}
+    # map: jobs per region for everything that passes the other filters; a job in n regions counts 1/n in each
+    region_raw, region_w = Counter(), Counter()
+    for j in data["jobs"]:
+        if passes(j, "regions"):
+            rs = regs[j["id"]]
+            for r in rs:
+                region_raw[r] += 1
+                region_w[r] += 1 / len(rs)
+    counts["regions"] = {r: [region_raw[r], round(region_w[r], 1)] for r in region_raw}
+
     # timeline: postings per day for everything that passes the other filters (not the period itself)
     days, undated, weekday = Counter(), 0, [0] * 7
     for j in data["jobs"]:
@@ -240,6 +268,7 @@ def search(data, profile, f, cohort=None, offset=0, limit=40):
         card = {k: j.get(k) for k in ("id", "title", "company", "category", "level", "min_years", "location", "remote",
                                      "posted", "url", "salary", "mba", "visa", "snippet", "on_classic_board")}
         card["n_locations"] = len(j.get("locations") or [])
+        card["regions"] = regs[j["id"]]
         if has_profile:
             b, why, score, top = fits[j["id"]]
             card.update(bucket=b, bucket_label=BUCKET_LABEL[b], reason=why,

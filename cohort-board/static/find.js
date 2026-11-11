@@ -1,14 +1,6 @@
 // Find a job: one card per job. Filter by broad category and level; with a resume, by fit bucket too.
+// Your resume, sponsorship and location live in the "Your search" panel (globalbar.js) and apply on every tab.
 (function () {
-  var PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-  var PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-  var MAMMOTH = "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js";
-  var BUCKETS = [
-    ["ready", "Ready", "your field, your level"],
-    ["reach", "Reach", "asks more experience, or a neighbouring field"],
-    ["overqualified", "Overqualified", "below your level"],
-    ["pivot", "Serious pivot", "a different field"]
-  ];
   var PAGE = 40;
   var $ = function (id) { return document.getElementById(id); };
 
@@ -26,63 +18,30 @@
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode */ } }
 
   var meta = null;
-  var profile = load("cohort.profile", null);
+  var profile = window.Global ? window.Global.profile() : null;
   var DEFAULT_FILTERS = { categories: [], buckets: ["ready", "reach"], levels: [], posted: "0", q: "", mba: false,
-                          hide_unlikely: false, warm: false, sort: "fit", from: "", to: "", hidden: [] };
-  var filters = Object.assign({}, DEFAULT_FILTERS, load("cohort.findFilters", {}));
-  filters.hidden = (filters.hidden || []).slice();          // never share the default's list
+                          warm: false, sort: "fit", from: "", to: "", hidden: [] };
+  function loadFilters() {
+    var f = Object.assign({}, DEFAULT_FILTERS, load("cohort.findFilters", {}));
+    f.hidden = (f.hidden || []).slice(); f.categories = (f.categories || []).slice(); f.levels = (f.levels || []).slice();
+    f.buckets = (f.buckets || []).slice();
+    return f;
+  }
+  var filters = loadFilters();
   var shown = [], total = 0, lastCounts = null, seq = 0;
 
-  // ---------- resume ----------
-  function loadScript(src) {
-    return new Promise(function (ok, bad) {
-      var s = document.createElement("script"); s.src = src; s.onload = ok;
-      s.onerror = function () { bad(new Error("Couldn't load the file reader. Check your internet connection.")); };
-      document.head.appendChild(s);
+  // The "Your search" panel: a new resume, sponsorship or location re-runs the search; Revert resets this page too.
+  if (window.Global) {
+    window.Global.onChange(function () {
+      var had = !!profile; profile = window.Global.profile();
+      if (profile && !had) filters = loadFilters();        // a new resume sets the fit view (Ready + Reach, best fit)
+      drawProfile(); refresh();
+    });
+    window.Global.onRevert(function () {
+      profile = window.Global.profile(); filters = loadFilters();
+      bindValues(); drawProfile(); window.scrollTo(0, 0); refresh();
     });
   }
-  function readFile(file) {
-    var name = file.name.toLowerCase();
-    if (name.endsWith(".txt")) return file.text();
-    if (name.endsWith(".docx")) {
-      return loadScript(MAMMOTH).then(function () { return file.arrayBuffer(); })
-        .then(function (buf) { return window.mammoth.extractRawText({ arrayBuffer: buf }); }).then(function (r) { return r.value; });
-    }
-    if (name.endsWith(".pdf")) {
-      return loadScript(PDFJS).then(function () {
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
-        return file.arrayBuffer();
-      }).then(function (buf) { return window.pdfjsLib.getDocument({ data: buf }).promise; }).then(function (pdf) {
-        var pages = [];
-        for (var i = 1; i <= pdf.numPages; i++) pages.push(pdf.getPage(i).then(function (p) { return p.getTextContent(); }));
-        return Promise.all(pages).then(function (contents) {
-          return contents.map(function (c) {
-            return c.items.map(function (it) { return it.str + (it.hasEOL ? "\n" : " "); }).join("");
-          }).join("\n");
-        });
-      });
-    }
-    return Promise.reject(new Error("Use a PDF, Word (.docx) or text file."));
-  }
-  $("resumeFile").addEventListener("change", function () {
-    var file = this.files[0]; this.value = "";
-    if (!file) return;
-    var st = $("resumeStatus"); st.className = "status"; st.textContent = "Reading " + file.name + "…";
-    readFile(file).then(function (text) {
-      return fetch("/api/resume", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: text }) });
-    }).then(function (r) { return r.ok ? r.json() : r.text().then(function (t) { throw new Error(t); }); }).then(function (p) {
-      profile = p; save("cohort.profile", p);
-      filters.buckets = ["ready", "reach"]; filters.sort = "fit"; saveFilters();
-      st.textContent = "Read " + file.name + ". Check the summary below; you can change any of it.";
-      drawProfile(); refresh();
-    }).catch(function (e) { st.className = "status bad"; st.textContent = e.message; });
-  });
-  $("clearResume").addEventListener("click", function () {
-    profile = null; try { localStorage.removeItem("cohort.profile"); } catch (e) { /* ignore */ }
-    $("resumeStatus").textContent = ""; drawProfile(); refresh();
-  });
-  $("years").addEventListener("change", function () { if (profile) { profile.years = Math.max(0, +this.value || 0); save("cohort.profile", profile); refresh(); } });
-  $("mba").addEventListener("change", function () { if (profile) { profile.mba = this.checked; save("cohort.profile", profile); refresh(); } });
 
   function drawSort() {
     Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function (b) {
@@ -93,85 +52,42 @@
     });
   }
   function drawProfile() {
-    var has = !!profile;
-    $("resumeEmpty").hidden = has; $("resumeFull").hidden = !has; $("fitPanel").hidden = !has;
-    if (!has && filters.sort === "fit") filters.sort = "newest";
+    if (!profile && filters.sort === "fit") filters.sort = "newest";
     drawSort();
-    if (!has) return;
-    $("years").value = profile.years; $("mba").checked = !!profile.mba;
-    var box = $("myCats"); box.textContent = "";
-    (meta ? meta.categories : []).filter(function (c) { return c !== "Other"; }).forEach(function (c) {
-      var on = profile.categories.indexOf(c) >= 0;
-      var b = el("button", { type: "button", class: "chip", "aria-pressed": String(on), text: c });
-      b.addEventListener("click", function () {
-        var i = profile.categories.indexOf(c);
-        if (i >= 0) profile.categories.splice(i, 1); else profile.categories.push(c);
-        save("cohort.profile", profile); drawProfile(); refresh();
-      });
-      box.appendChild(b);
-    });
-    $("skillsFound").textContent = profile.skills && profile.skills.length
-      ? "Matched " + plural(profile.skills.length, "skill", "skills") + " from your resume against job descriptions." : "";
   }
 
   // ---------- filters ----------
-  // The company box is a one-off lookup (often opened from a company link), so it isn't remembered between visits.
+  // A company opened from a link is a one-off lookup, so it isn't remembered between visits. Fit, sponsorship and
+  // location come from the "Your search" panel; this page adds only the timeline period and hidden companies.
   function saveFilters() { save("cohort.findFilters", Object.assign({}, filters, { q: "" })); }
-  function toggle(list, v) { var i = list.indexOf(v); if (i >= 0) list.splice(i, 1); else list.push(v); }
 
   function drawFacets(counts) {
     lastCounts = counts;
-    var cats = $("cats"); cats.textContent = "";
-    (meta ? meta.categories : []).forEach(function (c) {
-      var n = (counts.categories || {})[c] || 0, on = filters.categories.indexOf(c) >= 0;
-      var b = el("button", { type: "button", class: "chip", "aria-pressed": String(on) }, [c, el("span", { class: "n", text: fmtN(n) })]);
-      b.addEventListener("click", function () { toggle(filters.categories, c); refresh(); });
-      cats.appendChild(b);
-    });
-    var lv = $("levels"); lv.textContent = "";
-    (meta ? meta.levels : []).forEach(function (l) {
-      var n = (counts.levels || {})[l] || 0, on = filters.levels.indexOf(l) >= 0;
-      var b = el("button", { type: "button", class: "chip", "aria-pressed": String(on) }, [l, el("span", { class: "n", text: fmtN(n) })]);
-      b.addEventListener("click", function () { toggle(filters.levels, l); refresh(); });
-      lv.appendChild(b);
-    });
-    var bk = $("buckets"); bk.textContent = "";
-    BUCKETS.forEach(function (x) {
-      var on = filters.buckets.indexOf(x[0]) >= 0;
-      var b = el("button", { type: "button", class: "bucket b-" + x[0], "aria-pressed": String(on) }, [
-        el("b", { text: x[1] }), el("span", { class: "n", text: fmtN((counts.buckets || {})[x[0]] || 0) }), el("small", { text: x[2] })]);
-      b.addEventListener("click", function () { toggle(filters.buckets, x[0]); refresh(); });
-      bk.appendChild(b);
-    });
+    if (window.Global) window.Global.setFitCounts(profile ? counts.buckets : null);     // counts in the Fit row
+    var bar = $("companyBar"); bar.textContent = ""; bar.hidden = !filters.q;
+    if (filters.q) {
+      var chip = el("button", { type: "button", class: "chip hidden-chip", title: "Show every company" },
+                    [filters.q, el("span", { class: "x", "aria-hidden": "true", text: "×" })]);
+      chip.addEventListener("click", function () { filters.q = ""; refresh(); });
+      bar.appendChild(el("span", { class: "hidden-label", text: "Company:" }));
+      bar.appendChild(chip);
+    }
   }
   function bindInputs() {
-    bindValues();
-    $("posted").addEventListener("change", function () { filters.posted = this.value; refresh(); });
-    $("warm").addEventListener("change", function () { filters.warm = this.checked; refresh(); });
-    $("mbaOnly").addEventListener("change", function () { filters.mba = this.checked; refresh(); });
-    $("hideUnlikely").addEventListener("change", function () { filters.hide_unlikely = this.checked; refresh(); });
     Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function (b) {
       b.addEventListener("click", function () { filters.sort = b.getAttribute("data-sort"); drawSort(); refresh(); });
     });
-    var t = null;
-    $("company").addEventListener("input", function () { var v = this.value; clearTimeout(t); t = setTimeout(function () { filters.q = v; refresh(); }, 200); });
-    $("reset").addEventListener("click", function () {
-      // hidden companies stay hidden: they have their own "Show all companies" reset
-      filters = Object.assign({}, DEFAULT_FILTERS, { categories: [], buckets: ["ready", "reach"], levels: [], hidden: filters.hidden,
-                                                     sort: profile ? "fit" : "newest" });
-      bindValues(); refresh();
-    });
+    drawSort();
   }
-  function bindValues() {
-    $("posted").value = filters.posted; $("warm").checked = filters.warm; $("mbaOnly").checked = filters.mba;
-    $("hideUnlikely").checked = filters.hide_unlikely; $("company").value = filters.q; drawSort();
-  }
+  function bindValues() { drawSort(); }
 
   // ---------- results ----------
   function refresh(more) {
     saveFilters();
     var my = ++seq, offset = more ? shown.length : 0;
-    var body = { profile: profile, filters: Object.assign({}, filters, { buckets: profile ? filters.buckets : [] }), offset: offset, limit: PAGE };
+    var g = window.Global ? window.Global.state() : { visa: "any", regions: [], buckets: [] };
+    var body = { profile: profile, offset: offset, limit: PAGE,
+                 filters: Object.assign({}, filters, { buckets: profile ? g.buckets : [], visa: g.visa, regions: g.regions }) };
     return fetch("/api/find", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       .then(function (r) { return r.ok ? r.json() : r.text().then(function (t) { throw new Error(t || "error " + r.status); }); })
       .then(function (res) {
@@ -311,8 +227,8 @@
     drawHidden();
     $("count").textContent = plural(total, "job", "jobs");
     if (!shown.length) {
-      list.appendChild(el("div", { class: "empty", text: profile && filters.buckets.length === 0
-        ? "Pick at least one fit bucket on the left." : "No jobs match these filters." }));
+      list.appendChild(el("div", { class: "empty", text: profile && window.Global && window.Global.state().buckets.length === 0
+        ? "Pick at least one Fit button at the top right." : "No jobs match these filters." }));
     } else {
       var start = reset ? 0 : list.children.length;
       shown.slice(start).forEach(function (j) { list.appendChild(card(j)); });
@@ -429,7 +345,7 @@
     }
     if (!profile && filters.sort === "fit") filters.sort = "newest";
     var linked = new URLSearchParams(location.search).get("company");          // from a company page link
-    if (linked) { filters.q = linked; filters.categories = []; filters.levels = []; filters.buckets = ["ready", "reach", "overqualified", "pivot"]; }
+    if (linked) { filters.q = linked; filters.categories = []; filters.levels = []; }
     bindInputs(); drawProfile(); refresh();
   });
 })();

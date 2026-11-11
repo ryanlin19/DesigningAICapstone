@@ -49,6 +49,7 @@ from ingest import contact_keys, rules  # noqa: E402
 
 sys.path.insert(0, str(HERE))
 import find  # noqa: E402
+import regions  # noqa: E402
 import uploads  # noqa: E402
 from sync import SyncError  # noqa: E402  (uploads puts cohort-api on the path)
 
@@ -125,6 +126,7 @@ NAV_HTML = """<header class="cb-nav">
     <a class="cb-brand" href="/">Cohort Job Board</a>
     <nav class="cb-tabs" aria-label="Sections">
       <a href="/" data-tab="find">Find a job</a>
+      <a href="/map" data-tab="map">Map</a>
       <a href="/companies" data-tab="companies" aria-current="page">Companies</a>
       <a href="/companies?view=bridges" data-tab="cohort">Cohort</a>
     </nav>
@@ -142,6 +144,7 @@ PATCHES = [
     ("<title>MBA Job Board</title>", "<title>Cohort Job Board (private)</title>", 1),
     ('<script src="data.js"></script>',
      '<link rel="stylesheet" href="cohort.css">\n<script src="cohort-data.js"></script>\n'
+     '<script src="globalbar.js"></script>\n'                      # first: the others register with window.Global
      '<script src="cohort.js"></script>\n<script src="cohort-upload.js"></script>\n'
      '<script src="cohort-connect.js"></script>\n<script src="cohort-timeline.js"></script>\n<script src="describe.js"></script>\n'
      '<script src="data.js"></script>', 1),
@@ -167,7 +170,11 @@ PATCHES = [
      '        <div class="note" id="fitHint"', 1),
     ('if (skip !== "location" && place && (j.cities || []).indexOf(place) < 0) return false;',
      'if (skip !== "location" && place && (j.cities || []).indexOf(place) < 0) return false;\n'
-     '    if (skip !== "timeline" && !COHORT.inPeriod(j)) return false;', 1),
+     '    if (skip !== "timeline" && !COHORT.inPeriod(j)) return false;\n'
+     '    if (window.Global && !Global.passes(j)) return false;', 1),
+    # fit to your resume (from the "Your search" panel) on each role card
+    ('fit ? el("span", { class: "badge fit " + fitClass(fit.pct), text: "Fit " + fit.pct + "%" }) : null,',
+     'COHORT.bucketBadge(j), fit ? el("span", { class: "badge fit " + fitClass(fit.pct), text: "Fit " + fit.pct + "%" }) : null,', 1),
     ('var list = jobsTab === "new" ? newList : jobsTab === "other" ? otherList : mbaList;',
      'var list = jobsTab === "new" ? newList : jobsTab === "other" ? otherList : mbaList;\n'
      '    COHORT.drawTimeline(jobs.filter(function (j) { return inTabNow(j) && passes(j, "timeline"); }));', 1),
@@ -214,6 +221,11 @@ def normalize_dates(data):
         j["posted"] = iso(j.get("posted"))
         for loc in j.get("locations") or []:
             loc["posted"] = iso(loc.get("posted"))
+        # map regions, broad category and level, so the "Your search" panel's location and resume apply here too
+        j["regions"] = regions.regions_for([loc.get("name") for loc in j.get("locations") or []] or [j.get("location") or ""],
+                                           j.get("remote_ok"))
+        j["bcat"] = find.cats.category(j.get("title") or "", j.get("group") == "consulting")
+        j["blevel"] = find.cats.level(j.get("title") or "", j.get("min_years"))
     return data
 
 
@@ -702,6 +714,9 @@ STATIC_FILES = {
     "/find.css": (STATIC / "find.css", "text/css"),
     "/nav.css": (STATIC / "nav.css", "text/css"),
     "/describe.js": (STATIC / "describe.js", "application/javascript"),
+    "/map.js": (STATIC / "map.js", "application/javascript"),
+    "/map.css": (STATIC / "map.css", "text/css"),
+    "/globalbar.js": (STATIC / "globalbar.js", "application/javascript"),
     "/cohort.css": (STATIC / "cohort.css", "text/css"),
 }
 
@@ -753,6 +768,10 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if path in ("/", "/find"):                          # Find a job (the home page)
                 return self.send(200, (STATIC / "find.html").read_bytes(), "text/html; charset=utf-8")
+            if path == "/map":                                  # jobs by region on a US map
+                return self.send(200, (STATIC / "map.html").read_bytes(), "text/html; charset=utf-8")
+            if path == "/api/regions":
+                return self.send(200, json.dumps(regions.REGIONS), "application/json")
             if path in ("/companies", "/index.html"):            # the company view: Ryan's page plus the cohort layer
                 return self.send(200, build_page(), "text/html; charset=utf-8")
             if path == "/api/description":                       # full job text, read from data/descriptions.db
@@ -820,8 +839,9 @@ class Handler(BaseHTTPRequestHandler):
                 cohort = find_cohort_map()
             except (RuntimeError, OSError):
                 cohort = {}
+            limit = d.get("limit", 40)                 # 0: counts only (the map)
             res = find.search(data, d.get("profile") or {}, d.get("filters") or {}, cohort,
-                              offset=max(0, int(d.get("offset") or 0)), limit=min(100, int(d.get("limit") or 40)))
+                              offset=max(0, int(d.get("offset") or 0)), limit=max(0, min(100, int(limit if limit is not None else 40))))
             return self.send(200, json.dumps(res, ensure_ascii=False), "application/json")
         if path == "/api/me":
             try:
@@ -922,6 +942,8 @@ def main():
           f"{sum(len(v) for v in p['manual'].values())} added by hand.", flush=True)
     print(f"Jobs from {board_data()[3]}.", flush=True)
     print(f"Find a job uses {all_jobs()[2]}.", flush=True)
+    if all_jobs()[0]:
+        find.job_regions(all_jobs()[0])          # work out every job's map regions now, not on the first search
     print(f"Private board: http://{HOST}:{PORT}  (this computer only; Ctrl+C to stop)", flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
 

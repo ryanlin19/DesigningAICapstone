@@ -24,7 +24,7 @@ button, select, input { font: inherit; color: inherit; }
 .nav a:hover { background: var(--panel); }
 .nav a[aria-current="page"] { color: var(--brand-dark); background: var(--brand-bg); }
 
-.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; padding-top: 18px; padding-bottom: 48px; align-items: start; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; padding-top: 18px; padding-bottom: 48px; align-items: start; }
 .side { display: grid; gap: 12px; position: sticky; top: 72px; max-height: calc(100vh - 84px); overflow: auto; padding-bottom: 8px; }
 .panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
 .panel h2 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
