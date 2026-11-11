@@ -172,6 +172,10 @@ def check(db_path, target="--remote"):
         if merged_ids:
             sync.execute([f"DELETE FROM manual_connections WHERE id IN ({','.join(sync.q(i) for i in merged_ids)});"],
                          "clear merged Muse rows", target)
+        try:                                            # anyone pushed incomplete earlier (cloud was missing columns)
+            sync.push_pending(Path(db_path), target)
+        except sync.SyncError as e:
+            print(f"inbox: retry of an incomplete push failed: {e}", flush=True)
         if done_inbox:
             sync.execute([f"DELETE FROM muse_inbox WHERE id IN ({','.join(sync.q(i) for i in done_inbox)});"],
                          "clear processed Muse inbox", target)

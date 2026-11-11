@@ -106,6 +106,24 @@ def push(person_ids, db=LOCAL_DB, target="--remote", names=True):
     has = lambda t: bool(con.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?", (t,)).fetchone())
     display = lambda p: f'{p["first_name"] or ""} {p["last_name"] or ""}'.strip() or p["person_id"]
 
+    cloud_cols = {}                                     # what the cloud database has, so nothing is dropped silently
+    try:
+        for r in query("SELECT m.name AS t, p.name AS c FROM sqlite_master m JOIN pragma_table_info(m.name) p "
+                       "WHERE m.type = 'table' AND m.name IN ('people','contacts','positions','education','skills')", target):
+            cloud_cols.setdefault(r["t"], set()).add(r["c"])
+    except SyncError:
+        cloud_cols = {}
+    left_out = {}
+    if cloud_cols:
+        local_cols = cols_of
+
+        def cols_of(t):                                   # noqa: F811  (local columns the cloud also has)
+            mine = local_cols(t)
+            keep = [c for c in mine if c in cloud_cols.get(t, set())]
+            if len(keep) < len(mine):
+                left_out[t] = [c for c in mine if c not in keep]
+            return keep
+        names = names and bool(cloud_cols.get("education"))
     sql = [s for pid in ids for s in delete_person(pid, full=names)]
     if names:                                           # the mirror: every local column, plus the board's display name
         pcols = cols_of("people")
@@ -143,6 +161,10 @@ def push(person_ids, db=LOCAL_DB, target="--remote", names=True):
                        f"SELECT connector_id, company_norm, count, top_title_bucket, snapshot_date FROM derived_connections "
                        f"WHERE connector_id IN ({marks})", ids) if r["connector_id"] not in with_keys])
     con.close()
+    if left_out:
+        print("The cloud database is missing columns " + "; ".join(f"{t}: {', '.join(c)}" for t, c in left_out.items()) +
+              " (apply the latest cohort-api migrations); they'll be pushed once it has them.", flush=True)
+    _pending(ids, add=bool(left_out))
     try:
         run_sql(sql, f"push {', '.join(ids)}", target)
     except SyncError as e:
@@ -170,6 +192,30 @@ def execute(statements, label, target="--remote"):
 
 
 LOG_COLS = ["id", "at", "source", "action", "person", "summary", "details"]
+PENDING = HERE.parent / "cohort-board" / "data" / "sync_pending.json"
+
+
+def _pending(ids, add):
+    """Remember classmates pushed without every column; push_pending() retries them once the cloud catches up."""
+    try:
+        cur = set(json.loads(PENDING.read_text()))
+    except (FileNotFoundError, ValueError):
+        cur = set()
+    new = (cur | set(ids)) if add else (cur - set(ids))
+    if new != cur:
+        PENDING.parent.mkdir(parents=True, exist_ok=True)
+        PENDING.write_text(json.dumps(sorted(new)))
+
+
+def push_pending(db=LOCAL_DB, target="--remote"):
+    """Push again anyone left incomplete earlier. Returns their ids (empty when nothing was pending)."""
+    try:
+        ids = json.loads(PENDING.read_text())
+    except (FileNotFoundError, ValueError):
+        return []
+    if ids:
+        push(ids, db, target)
+    return ids
 
 
 def push_log(rows, target="--remote"):
