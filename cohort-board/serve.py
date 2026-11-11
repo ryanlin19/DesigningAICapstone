@@ -144,7 +144,7 @@ NAV_HTML = """<header class="cb-nav">
       <a href="/" data-tab="find">Find a job</a>
       <a href="/map" data-tab="map">Map</a>
       <a href="/companies" data-tab="companies" aria-current="page">Companies</a>
-      <a href="/companies?view=bridges" data-tab="cohort">Cohort</a>
+      <a href="/cohort" data-tab="cohort">Cohort</a>
     </nav>
     <a class="cb-upload" href="/companies?view=upload" title="Add a LinkedIn export (the upload page links to LinkedIn's data request)">Upload your data</a>
     <span class="cb-private">Private: this computer only</span>
@@ -769,6 +769,7 @@ def seniority(title):
     t = title or ""
     if _T_EARLY.search(t):
         return "Early career"
+    t = re.sub(r"\bchief of staff\b", "senior", t, flags=re.I)    # a chief of staff isn't a C-level officer
     if re.search(r"talent|recruit|\bhr\b|human resources|people|business partner", t, re.I):
         t = re.sub(r"\bpartner\b", "", t, flags=re.I)        # an HR or recruiting "partner" isn't a firm partner
     if _T_LEAD.search(t):
@@ -1166,6 +1167,81 @@ def region_people(picked, field=None):
             "me": me, "bucket_labels": BUCKET_LABEL}
 
 
+# ---------- the Cohort tab: who you're not connected to, and the people the cohort knows that you don't ----------
+
+def cohort_overview(limit=50):
+    """From this computer's cohort.db: every classmate who has uploaded, whether you're connected to them on
+    LinkedIn, and the people most of the other classmates are connected to but you aren't, best first."""
+    if not COHORT_DB.exists():
+        return {"ready": False}
+    con = sqlite3.connect(f"file:{COHORT_DB}?mode=ro", uri=True)
+    con.row_factory = sqlite3.Row
+    try:
+        people = [dict(r) for r in con.execute(
+            "SELECT person_id, TRIM(COALESCE(first_name,'') || ' ' || COALESCE(last_name,'')) AS name, profile_url, self_key, "
+            "headline, updated_at FROM people")]
+        named = "full_name" in {r[1] for r in con.execute("PRAGMA table_info(contacts)")}
+        rows = [dict(r) for r in con.execute(
+            "SELECT contact_key, connector_id, company_norm, title_bucket, connected_year" +
+            (", full_name, position, profile_url" if named else ", NULL AS full_name, NULL AS position, NULL AS profile_url") +
+            " FROM contacts")]
+    finally:
+        con.close()
+    me = settings().get("me")
+    names = {p["person_id"]: p["name"] or p["person_id"] for p in people}
+    keys_of = defaultdict(set)
+    for r in rows:
+        keys_of[r["connector_id"]].add(r["contact_key"])
+    selves = {p["self_key"]: p["person_id"] for p in people if p["self_key"]}
+    mine = keys_of.get(me, set())
+    my_self = next((p["self_key"] for p in people if p["person_id"] == me), None)
+    classmates = []
+    for p in people:
+        if p["person_id"] == me:
+            continue
+        if not me or not (mine or my_self):
+            connected = None                                   # can't tell without your own upload
+        else:
+            connected = bool((p["self_key"] and p["self_key"] in mine) or (my_self and my_self in keys_of.get(p["person_id"], ())))
+        classmates.append({"id": p["person_id"], "name": names[p["person_id"]], "profile_url": p["profile_url"],
+                           "headline": p["headline"], "contacts": len(keys_of.get(p["person_id"], ())), "connected": connected,
+                           "updated_at": p["updated_at"]})
+    classmates.sort(key=lambda c: (c["connected"] is True, c["name"].lower()))
+    # the overlap: people known by the most classmates (other than you), that you don't know yourself
+    others = [p["person_id"] for p in people if p["person_id"] != me and keys_of.get(p["person_id"])]
+    by = {}
+    for r in rows:
+        if r["contact_key"] in selves or r["contact_key"] in mine or r["connector_id"] == me:
+            continue
+        x = by.setdefault(r["contact_key"], {"name": None, "position": None, "url": None, "bucket": r["title_bucket"],
+                                             "company_norm": r["company_norm"], "known_by": []})
+        x["name"] = x["name"] or r["full_name"]
+        x["position"] = x["position"] or r["position"]
+        x["url"] = x["url"] or r["profile_url"]
+        x["known_by"].append({"name": names.get(r["connector_id"], r["connector_id"]), "since": r["connected_year"]})
+    d = directory.load()
+    tier_rank = {"Leadership": 0, "Senior": 1, "Mid": 2, "Early career": 3}
+    overlap = []
+    for x in by.values():
+        if len(x["known_by"]) < 2:
+            continue
+        x["known_by"].sort(key=lambda k: (k["since"] or 9999, k["name"]))
+        x["tier"] = seniority(x["position"]) if x["position"] else "Mid"
+        cid = directory.company_id(x["company_norm"], d["names"]) if d else None
+        co = next((c for c in d["companies"] if c["id"] == cid), None) if d and cid else None
+        x["company"] = co["name"] if co else (x["company_norm"] or "").title()
+        x["company_id"] = co["id"] if co else None
+        x["since"] = min((k["since"] for k in x["known_by"] if k["since"]), default=None)
+        overlap.append(x)
+    overlap.sort(key=lambda x: (-len(x["known_by"]), tier_rank.get(x["tier"], 2), x["bucket"] != "recruiting",
+                                x["since"] or 9999, (x["name"] or "~").lower()))
+    for x in overlap:
+        x.pop("company_norm", None)
+    return {"ready": True, "me": names.get(me), "me_id": me, "uploaded": len(people), "others_with_contacts": len(others),
+            "classmates": classmates, "overlap": overlap[:limit], "overlap_total": len(overlap), "named": named,
+            "choices": [{"id": p["person_id"], "name": names[p["person_id"]]} for p in sorted(people, key=lambda p: names[p["person_id"]].lower())]}
+
+
 def directory_verticals():
     sys.path.insert(0, str(REPO / "company-db"))
     from companies import VERTICALS
@@ -1283,6 +1359,7 @@ STATIC_FILES = {
     "/cohort.css": (STATIC / "cohort.css", "text/css"),
     "/companies.js": (STATIC / "companies.js", "application/javascript"),
     "/companygraph.js": (STATIC / "companygraph.js", "application/javascript"),
+    "/cohortpage.js": (STATIC / "cohortpage.js", "application/javascript"),
     "/companies.css": (STATIC / "companies.css", "text/css"),
 }
 
@@ -1348,6 +1425,10 @@ class Handler(BaseHTTPRequestHandler):
                 qs = parse_qs(urlsplit(self.path).query)
                 return self.send(200, json.dumps(region_people(qs.get("region") or [], (qs.get("field") or [None])[0]),
                                                  ensure_ascii=False), "application/json")
+            if path == "/cohort":                               # the Cohort tab
+                return self.send(200, (STATIC / "cohort-page.html").read_bytes(), "text/html; charset=utf-8")
+            if path == "/api/cohort":
+                return self.send(200, json.dumps(cohort_overview(), ensure_ascii=False), "application/json")
             if path == "/api/company":                          # one company: relationship graph and best ways in
                 qs = parse_qs(urlsplit(self.path).query)
                 one = company_detail(cid=(qs.get("id") or [None])[0], name=(qs.get("company") or [None])[0],

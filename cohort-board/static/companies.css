@@ -137,3 +137,12 @@ a.np-name:hover { color: var(--brand); text-decoration: underline; }
 .cm-card-ask { margin: 8px 0 0; font-weight: 600; color: var(--brand-dark); }
 .cm-summary { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; }
 .cm-summary .cm-ini { margin-right: 6px; }
+
+/* Cohort tab */
+.cohort-page h2 { font-size: 17px; margin: 0 0 4px; }
+.cp-pick { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.cp-pick select { border: 1px solid var(--border); border-radius: 10px; padding: 7px 10px; background: var(--card); min-width: 220px; }
+.cp-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.cp-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
+.cp-connect { white-space: nowrap; }
+.cp-done { color: var(--good); font-weight: 600; margin: 8px 0 0; }

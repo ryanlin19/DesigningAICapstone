@@ -4,6 +4,7 @@
     python cohort-api/sync.py push connector-a     # upload one person (replaces their rows)
     python cohort-api/sync.py remove connector-a   # delete one person and all their rows ("remove me")
     python cohort-api/sync.py backup [file.sql]    # download the whole cloud database as plain SQL
+    python cohort-api/sync.py verify               # check the cloud copy is identical to the local one
 
     --db PATH   read another ingest database (default linkedin-ingest/data/cohort.db)
     --local     write to the local development copy of D1 (`wrangler dev`) instead of the cloud
@@ -13,6 +14,8 @@ The generated SQL is standard (INSERT ... ON CONFLICT), so the same files load i
 The temporary SQL file holds classmates' data and is deleted after each run.
 """
 import argparse
+import json
+import re
 import os
 import sqlite3
 import subprocess
@@ -62,22 +65,31 @@ def run_sql(statements, label, target="--remote"):
         os.remove(path)
 
 
-def delete_person(pid):
-    return [f"DELETE FROM {t} WHERE {c} = {q(pid)};" for t, c in
-            (("contacts", "connector_id"), ("company_counts", "connector_id"), ("positions", "person_id"),
-             ("people", "person_id"))]
+def delete_person(pid, full=True):
+    tables = [("contacts", "connector_id"), ("company_counts", "connector_id"), ("positions", "person_id")]
+    if full:                                            # tables the mirror adds (migration 0010)
+        tables += [("education", "person_id"), ("skills", "person_id")]
+    return [f"DELETE FROM {t} WHERE {c} = {q(pid)};" for t, c in tables + [("people", "person_id")]]
 
 
 def remove(pid, target="--remote"):
-    run_sql(delete_person(pid), f"remove {pid}", target)
+    try:
+        run_sql(delete_person(pid), f"remove {pid}", target)
+    except SyncError as e:
+        if "no such table" not in str(e):
+            raise
+        run_sql(delete_person(pid, full=False), f"remove {pid}", target)
+
+
+MIRRORED = ("people", "contacts", "positions", "education", "skills")
 
 
 def push(person_ids, db=LOCAL_DB, target="--remote", names=True):
     """Upload people from the local ingest database, replacing their rows in D1. Raises SyncError.
 
-    Contacts' names, titles and links, and where classmates' jobs were, go too, unless the cloud database doesn't
-    have those columns yet (migrations 0008-0009): then the push is retried without them, and the board reads them
-    from this computer."""
+    The cloud copy mirrors the local one: every column of people, contacts (names, titles, links), positions (with
+    locations), education and skills (migrations 0008-0010). If the cloud database doesn't have those columns yet,
+    the push is retried with the older, smaller set, and the board keeps reading the rest from this computer."""
     con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
     con.row_factory = sqlite3.Row
     people = con.execute("SELECT * FROM people").fetchall()
@@ -89,14 +101,21 @@ def push(person_ids, db=LOCAL_DB, target="--remote", names=True):
     if not people:
         raise SyncError("Nobody to upload.")
     ids = [p["person_id"] for p in people]
-    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    marks = ",".join("?" * len(ids))
+    cols_of = lambda t: [r[1] for r in con.execute(f"PRAGMA table_info({t})")]
+    has = lambda t: bool(con.execute("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?", (t,)).fetchone())
+    display = lambda p: f'{p["first_name"] or ""} {p["last_name"] or ""}'.strip() or p["person_id"]
 
-    sql = [s for pid in ids for s in delete_person(pid)]
-    col = lambda p, c: p[c] if c in p.keys() else None
-    sql += inserts("people", ["person_id", "display_name", "consent_scopes", "consent_at", "updated_at", "self_key", "profile_url"],
-                   [(p["person_id"], f'{p["first_name"] or ""} {p["last_name"] or ""}'.strip() or p["person_id"],
-                     p["consent_scopes"], p["consent_at"], now, col(p, "self_key"), col(p, "profile_url"))
-                    for p in people])
+    sql = [s for pid in ids for s in delete_person(pid, full=names)]
+    if names:                                           # the mirror: every local column, plus the board's display name
+        pcols = cols_of("people")
+        sql += inserts("people", pcols + ["display_name"], [tuple(p[c] for c in pcols) + (display(p),) for p in people])
+    else:
+        now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        col = lambda p, c: p[c] if c in p.keys() else None
+        sql += inserts("people", ["person_id", "display_name", "consent_scopes", "consent_at", "updated_at", "self_key", "profile_url"],
+                       [(p["person_id"], display(p), p["consent_scopes"], p["consent_at"], now, col(p, "self_key"), col(p, "profile_url"))
+                        for p in people])
     # The registry is shared by everyone, so it is merged rather than replaced.
     sql += inserts("companies", ["company_norm", "display_name", "parent_norm"],
                    [tuple(r) for r in con.execute("SELECT company_norm, display_name, parent_norm FROM companies")],
@@ -105,37 +124,60 @@ def push(person_ids, db=LOCAL_DB, target="--remote", names=True):
     sql += inserts("aliases", ["alias", "company_norm"],
                    [tuple(r) for r in con.execute("SELECT alias, company_norm FROM aliases")],
                    "ON CONFLICT (alias) DO NOTHING")
-    marks = ",".join("?" * len(ids))
-    has_contacts = con.execute("SELECT 1 FROM sqlite_master WHERE name = 'contacts'").fetchone()
-    named = names and has_contacts and "full_name" in {r[1] for r in con.execute("PRAGMA table_info(contacts)")}
-    cols = ["contact_key", "connector_id", "company_norm", "title_bucket", "connected_year", "snapshot_date"]
-    if named:                                      # names, titles and profile links, for the relationship graph
-        cols += ["full_name", "position", "profile_url"]
-    contacts = con.execute(f"SELECT {', '.join(cols)} FROM contacts WHERE connector_id IN ({marks})", ids).fetchall() \
-        if has_contacts else []
-    with_keys = {r["connector_id"] for r in contacts}
-    sql += inserts("contacts", cols, [tuple(r) for r in contacts], "ON CONFLICT (contact_key, connector_id) DO NOTHING")
+    old = {"contacts": ["contact_key", "connector_id", "company_norm", "title_bucket", "connected_year", "snapshot_date"],
+           "positions": ["person_id", "company_norm", "title", "title_bucket", "started_on", "finished_on", "is_current"]}
+    with_keys = set()
+    for t, who in (("contacts", "connector_id"), ("positions", "person_id"), ("education", "person_id"), ("skills", "person_id")):
+        if not has(t) or (not names and t not in old):
+            continue
+        cols = cols_of(t) if names else old[t]
+        rows = con.execute(f"SELECT {', '.join(cols)} FROM {t} WHERE {who} IN ({marks})", ids).fetchall()
+        if t == "contacts":
+            with_keys = {r["connector_id"] for r in rows}
+            sql += inserts(t, cols, [tuple(r) for r in rows], "ON CONFLICT (contact_key, connector_id) DO NOTHING")
+        else:
+            sql += inserts(t, cols, [tuple(r) for r in rows])
     # Older loads without contact keys keep their per-company counts.
     sql += inserts("company_counts", ["connector_id", "company_norm", "count", "top_title_bucket", "snapshot_date"],
                    [tuple(r) for r in con.execute(
                        f"SELECT connector_id, company_norm, count, top_title_bucket, snapshot_date FROM derived_connections "
                        f"WHERE connector_id IN ({marks})", ids) if r["connector_id"] not in with_keys])
-    # Classmates' own work history, for "Classmate worked here".
-    pcols = ["person_id", "company_norm", "title", "title_bucket", "started_on", "finished_on", "is_current"]
-    if names and "location" in {r[1] for r in con.execute("PRAGMA table_info(positions)")}:
-        pcols.append("location")                  # where each job was (migration 0009), for the map
-    sql += inserts("positions", pcols,
-                   [tuple(r) for r in con.execute(
-                       f"SELECT {', '.join(pcols)} FROM positions "
-                       f"WHERE person_id IN ({marks}) AND company_norm IS NOT NULL", ids)])
     con.close()
     try:
         run_sql(sql, f"push {', '.join(ids)}", target)
     except SyncError as e:
-        if names and ("full_name" in str(e) or "location" in str(e)):
-            print("The cloud database lacks the newer columns (apply migrations 0008-0009); pushing without them.", flush=True)
+        if names and re.search(r"no such table|has no column|no column named", str(e)):
+            print("The cloud database lacks the mirror columns (apply migrations 0008-0010); pushing the older set.", flush=True)
             return push(person_ids, db, target, names=False)
         raise
+
+
+def verify(db=LOCAL_DB, target="--remote"):
+    """Compare the local ingest database with D1, table by table, on the exact SQL value of every column.
+    Returns True when every mirrored table is identical; prints one line per table."""
+    con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+    ok = True
+    for t in MIRRORED:
+        cols = [r[1] for r in con.execute(f"PRAGMA table_info({t})")]
+        if not cols:
+            continue
+        sel = ", ".join(f"quote({c}) AS {c}" for c in cols)
+        local = sorted(json.dumps(list(r)) for r in con.execute(f"SELECT {sel} FROM {t}"))
+        r = subprocess.run(["wrangler", "d1", "execute", D1_NAME, target, "--json", "--command", f"SELECT {sel} FROM {t}"],
+                           cwd=HERE, capture_output=True, text=True)
+        try:
+            out = r.stdout
+            cloud = sorted(json.dumps([row[c] for c in cols]) for row in json.loads(out[out.find("["):out.rfind("]") + 1])[0]["results"])
+        except (ValueError, IndexError, KeyError):
+            print(f"{t:10} couldn't read the cloud copy: {(r.stderr or r.stdout)[-300:]}")
+            ok = False
+            continue
+        same = local == cloud
+        ok &= same
+        print(f"{t:10} local {len(local):6} rows | cloud {len(cloud):6} rows | {'identical' if same else 'DIFFERENT'}")
+    con.close()
+    print("Local and cloud are identical." if ok else "Local and cloud differ: run `python3 cohort-api/sync.py push` to bring the cloud up to date.")
+    return ok
 
 
 def main():
@@ -146,6 +188,7 @@ def main():
     p = sub.add_parser("push"); p.add_argument("person_id", nargs="*")
     r = sub.add_parser("remove"); r.add_argument("person_id")
     b = sub.add_parser("backup"); b.add_argument("output", nargs="?")
+    sub.add_parser("verify")
     a = ap.parse_args()
     target = "--local" if a.local else "--remote"
     try:
@@ -153,6 +196,8 @@ def main():
             push(a.person_id, a.db.resolve(), target)
         elif a.cmd == "remove":
             remove(a.person_id, target)
+        elif a.cmd == "verify":
+            sys.exit(0 if verify(a.db.resolve(), target) else 1)
     except SyncError as e:
         sys.exit(str(e))
     if a.cmd == "backup":

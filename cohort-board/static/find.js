@@ -233,7 +233,7 @@
     });
     var foot = [el("a", { href: "/companies?company=" + encodeURIComponent(j.company) + "&field=" + encodeURIComponent(j.category) + "#graph",
                           text: "Go to relationship graph" }),
-                el("a", { href: "/companies?view=connect", text: "Connect with these classmates on LinkedIn" })];
+                el("a", { href: "/cohort", text: "Your cohort: who to connect with" })];
     if (t.shared) foot.unshift(el("span", { class: "muted", text: plural(t.shared, "person here is", "people here are") + " known by 2+ classmates" }));
     return el("div", { class: "tie-panel" }, [
       el("div", { class: "tie-h", text: "Your cohort at " + j.company }),

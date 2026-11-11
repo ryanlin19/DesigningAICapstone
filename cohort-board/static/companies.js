@@ -118,7 +118,7 @@
       });
       return el("li", {}, [el("b", { text: p.name })].concat(bits));
     });
-    var foot = [el("a", { href: "/companies?view=connect", text: "Connect with these classmates on LinkedIn" })];
+    var foot = [el("a", { href: "/cohort", text: "Your cohort: who to connect with" })];
     if (c.shared) foot.unshift(el("span", { class: "muted", text: plural(c.shared, "person here is", "people here are") + " known by 2+ classmates" }));
     return el("div", { class: "tie-panel" }, [
       el("div", { class: "tie-h", text: "Your cohort at " + c.name }),
@@ -274,7 +274,7 @@
         el("p", { class: "muted tiny", text: "Strongest first: a classmate who works there now, then one who worked there, then who knows the most people, " +
           "especially in the role's field, recruiting or leadership, and contacts several classmates share." }),
         list,
-        el("div", { class: "tie-foot" }, [el("a", { href: "/companies?view=connect", text: "Connect with these classmates on LinkedIn" })])]));
+        el("div", { class: "tie-foot" }, [el("a", { href: "/cohort", text: "Your cohort: who to connect with" })])]));
     } else if (c.people.length) {
       box.appendChild(el("section", { class: "co-card" }, [el("h2", { text: "Best ways in" }),
         el("p", { class: "muted", text: "Only you are tied to " + c.name + " so far." })]));
