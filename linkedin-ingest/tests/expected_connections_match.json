@@ -1,0 +1,27 @@
+{
+  "source": "fake_Connections.csv",
+  "note": "All names are invented. Rows 5, 6, 8 and 10 are traps that a correct matcher must NOT count.",
+  "expected_counts": {
+    "Anthropic": 2,
+    "Palantir": 1,
+    "Scale AI": 1,
+    "Ramp": 1,
+    "H Company": 1,
+    "ServiceNow": 2,
+    "Hebbia": 0,
+    "Middesk": 0,
+    "AssemblyAI": 0,
+    "Palona": 0
+  },
+  "must_not_match": [
+    {"row": "Eli Dummy / Scaleway", "reason": "look-alike of Scale AI"},
+    {"row": "Fay Mockdata / Rampart Security", "reason": "contains 'Ramp' but is a different company"},
+    {"row": "Hal Notreal / blank company", "reason": "company only mentioned in Position; former intern, not current"},
+    {"row": "Jon Synthetic / H&M", "reason": "look-alike of H Company"}
+  ],
+  "must_match_variants": [
+    {"row": "Cora Sample / Palantir Technologies", "counts_as": "Palantir"},
+    {"row": "Lea Stub / Servicenow Inc.", "counts_as": "ServiceNow", "reason": "case and legal-suffix differences"}
+  ],
+  "header_skip": "The first 3 lines are LinkedIn's Notes preamble and a blank line; the real header is on line 4."
+}

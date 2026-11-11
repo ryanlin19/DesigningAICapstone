@@ -1,0 +1,16 @@
+Notes:
+"When exporting your connection data, you may notice that some of the email addresses are missing. You will only see email addresses for connections who have allowed their connections to see or download their email address using this setting https://www.linkedin.com/psettings/privacy/email. You can learn more here https://www.linkedin.com/help/linkedin/answer/261"
+
+First Name,Last Name,URL,Email Address,Company,Position,Connected On
+Ada,Fictional,https://www.linkedin.com/in/fake-ada-0001,,Anthropic,Applied AI Engineer,03 Feb 2025
+Ben,Placeholder,https://www.linkedin.com/in/fake-ben-0002,,Anthropic,Recruiter,11 Mar 2024
+Cora,Sample,https://www.linkedin.com/in/fake-cora-0003,,Palantir Technologies,Forward Deployed Engineer,22 Jan 2023
+Dev,Testcase,https://www.linkedin.com/in/fake-dev-0004,,Scale AI,Director of Enterprise Deployments,09 Sep 2024
+Eli,Dummy,https://www.linkedin.com/in/fake-eli-0005,,Scaleway,Cloud Engineer,14 Jun 2022
+Fay,Mockdata,https://www.linkedin.com/in/fake-fay-0006,,Rampart Security,Analyst,01 Dec 2023
+Gus,Invented,https://www.linkedin.com/in/fake-gus-0007,,Ramp,Software Engineer,19 Apr 2025
+Hal,Notreal,https://www.linkedin.com/in/fake-hal-0008,,,Former Anthropic intern,07 Jul 2021
+Ivy,Madeup,https://www.linkedin.com/in/fake-ivy-0009,,H Company,Forward Deployed Engineer,30 May 2025
+Jon,Synthetic,https://www.linkedin.com/in/fake-jon-0010,,H&M,Store Manager,12 Aug 2020
+Kai,Fixture,https://www.linkedin.com/in/fake-kai-0011,kai@example.com,ServiceNow,VP Product Management,15 Oct 2024
+Lea,Stub,https://www.linkedin.com/in/fake-lea-0012,,Servicenow Inc.,Platform Architect,02 Feb 2024

@@ -6,3 +6,7 @@ node_modules/
 __pycache__/
 *Firm Database*.csv
 data/firm_database.csv
+.DS_Store
+# LinkedIn ingest: real classmates' data stays out of git
+linkedin-ingest/data/cohort.db
+*.zip

@@ -1,0 +1,418 @@
+{
+  "scoring_rubric": {
+    "5": "Exactly the expected output.",
+    "4": "An acceptable alternative listed in the case.",
+    "3": "Partly right: correct company matched but same/subsidiary swapped, or a neighboring bucket.",
+    "2": "Unhelpful but harmless: left as 'other' or as a new company when a match existed.",
+    "1": "Harmful: merged with the wrong company, merged unrelated companies, or a wrong bucket that would misroute an intro."
+  },
+  "cases": [
+    {
+      "id": "E1",
+      "type": "e2e",
+      "path": "rules",
+      "ai10": false,
+      "tags": [
+        "lookalike_names"
+      ],
+      "input": {
+        "file": "tests/fake_Connections.csv",
+        "scopes": "connections"
+      },
+      "expected": {
+        "counts": {
+          "anthropic": 2,
+          "palantir": 1,
+          "scale ai": 1,
+          "ramp": 1,
+          "h company": 1,
+          "servicenow": 2
+        },
+        "separate": [
+          "scaleway",
+          "rampart security",
+          "h&m"
+        ],
+        "no_personal_data": true
+      },
+      "note": "Full run on the synthetic export: correct counts, look-alikes kept apart, no names stored."
+    },
+    {
+      "id": "E2",
+      "type": "e2e",
+      "path": "rules",
+      "ai10": false,
+      "tags": [
+        "partial_export"
+      ],
+      "input": {
+        "synthetic_zip": true,
+        "scopes": "profile,connections"
+      },
+      "expected": {
+        "connections": "none in export",
+        "files_left_unopened": 1,
+        "positions": 1
+      },
+      "note": "Export without Connections.csv plus a messages file: loads the profile, skips messages, no crash."
+    },
+    {
+      "id": "C1",
+      "type": "company",
+      "path": "rules",
+      "ai10": false,
+      "tags": [
+        "legal_suffix"
+      ],
+      "input": {
+        "name": "JPMorgan Chase & Co.",
+        "registry_add": []
+      },
+      "expected": {
+        "decision": "same",
+        "match": "jpmorganchase"
+      },
+      "acceptable": [],
+      "note": "Seed alias plus suffix stripping."
+    },
+    {
+      "id": "C2",
+      "type": "company",
+      "path": "rules",
+      "ai10": false,
+      "tags": [
+        "rebrand"
+      ],
+      "input": {
+        "name": "Facebook",
+        "registry_add": []
+      },
+      "expected": {
+        "decision": "same",
+        "match": "meta"
+      },
+      "acceptable": [],
+      "note": "Rebrand handled by a seed alias."
+    },
+    {
+      "id": "C3",
+      "type": "company",
+      "path": "rules",
+      "ai10": false,
+      "tags": [
+        "lookalike_names"
+      ],
+      "input": {
+        "name": "Scaleway",
+        "registry_add": []
+      },
+      "expected": {
+        "decision": "new",
+        "match": null
+      },
+      "acceptable": [],
+      "note": "Must not reach Scale AI as a candidate."
+    },
+    {
+      "id": "C4",
+      "type": "company",
+      "path": "ai",
+      "ai10": true,
+      "tags": [
+        "regional_member_firm"
+      ],
+      "input": {
+        "name": "KPMG US",
+        "registry_add": [
+          "KPMG"
+        ]
+      },
+      "expected": {
+        "decision": "same",
+        "match": "kpmg"
+      },
+      "acceptable": [],
+      "note": "Real name from export B."
+    },
+    {
+      "id": "C5",
+      "type": "company",
+      "path": "ai",
+      "ai10": true,
+      "tags": [
+        "subsidiary"
+      ],
+      "input": {
+        "name": "Goldman Sachs Ayco",
+        "registry_add": []
+      },
+      "expected": {
+        "decision": "subsidiary",
+        "match": "goldman sachs"
+      },
+      "acceptable": [
+        {
+          "decision": "same",
+          "match": "goldman sachs"
+        }
+      ],
+      "note": "Ayco is a Goldman Sachs unit. Real name from data."
+    },
+    {
+      "id": "C6",
+      "type": "company",
+      "path": "ai",
+      "ai10": false,
+      "tags": [
+        "subsidiary"
+      ],
+      "input": {
+        "name": "Barclays Investment Bank",
+        "registry_add": [
+          "Barclays"
+        ]
+      },
+      "expected": {
+        "decision": "subsidiary",
+        "match": "barclays"
+      },
+      "acceptable": [
+        {
+          "decision": "same",
+          "match": "barclays"
+        }
+      ],
+      "note": "Division of Barclays. Real name from data."
+    },
+    {
+      "id": "C7",
+      "type": "company",
+      "path": "ai",
+      "ai10": true,
+      "tags": [
+        "shared_generic_words"
+      ],
+      "input": {
+        "name": "Huron Consulting Group",
+        "registry_add": [
+          "Huron"
+        ]
+      },
+      "expected": {
+        "decision": "same",
+        "match": "huron"
+      },
+      "acceptable": [],
+      "note": "Candidates include Huron and BCG; must pick Huron, not BCG."
+    },
+    {
+      "id": "C8",
+      "type": "company",
+      "path": "ai",
+      "ai10": true,
+      "tags": [
+        "shared_distinctive_word"
+      ],
+      "input": {
+        "name": "Hamilton Recruitment",
+        "registry_add": [
+          "Booz Allen Hamilton"
+        ]
+      },
+      "expected": {
+        "decision": "different",
+        "match": null
+      },
+      "acceptable": [],
+      "note": "Shares 'Hamilton' with Booz Allen Hamilton; unrelated. Real name from data."
+    },
+    {
+      "id": "C9",
+      "type": "company",
+      "path": "ai",
+      "ai10": true,
+      "tags": [
+        "student_org"
+      ],
+      "input": {
+        "name": "Cornell FinTech Club",
+        "registry_add": []
+      },
+      "expected": {
+        "decision": "different",
+        "match": null
+      },
+      "acceptable": [],
+      "note": "Student club is not Cornell the employer for intro purposes."
+    },
+    {
+      "id": "C10",
+      "type": "company",
+      "path": "ai",
+      "ai10": false,
+      "tags": [
+        "similar_spelling"
+      ],
+      "input": {
+        "name": "Astera Holdings",
+        "registry_add": [
+          "Solera Holdings"
+        ]
+      },
+      "expected": {
+        "decision": "different",
+        "match": null
+      },
+      "acceptable": [],
+      "note": "Trigram look-alike. Real name pair from data."
+    },
+    {
+      "id": "T1",
+      "type": "title",
+      "path": "ai",
+      "ai10": true,
+      "tags": [
+        "generic_title_needs_company"
+      ],
+      "input": {
+        "title": "Associate",
+        "company": "goldman sachs"
+      },
+      "expected": {
+        "bucket": "finance"
+      },
+      "acceptable": [],
+      "note": ""
+    },
+    {
+      "id": "T2",
+      "type": "title",
+      "path": "ai",
+      "ai10": true,
+      "tags": [
+        "generic_title_needs_company"
+      ],
+      "input": {
+        "title": "Associate",
+        "company": "mckinsey & company"
+      },
+      "expected": {
+        "bucket": "consulting"
+      },
+      "acceptable": [],
+      "note": ""
+    },
+    {
+      "id": "T3",
+      "type": "title",
+      "path": "ai",
+      "ai10": true,
+      "tags": [
+        "generic_title_needs_company"
+      ],
+      "input": {
+        "title": "Engagement Manager",
+        "company": "mckinsey & company"
+      },
+      "expected": {
+        "bucket": "consulting"
+      },
+      "acceptable": [],
+      "note": ""
+    },
+    {
+      "id": "T4",
+      "type": "title",
+      "path": "ai",
+      "ai10": true,
+      "tags": [
+        "insider_jargon"
+      ],
+      "input": {
+        "title": "Member of Technical Staff",
+        "company": "anthropic"
+      },
+      "expected": {
+        "bucket": "engineering"
+      },
+      "acceptable": [
+        {
+          "bucket": "data_ml"
+        }
+      ],
+      "note": ""
+    },
+    {
+      "id": "T5",
+      "type": "title",
+      "path": "ai",
+      "ai10": true,
+      "tags": [
+        "generic_title_needs_company"
+      ],
+      "input": {
+        "title": "Principal",
+        "company": "crestview partners"
+      },
+      "expected": {
+        "bucket": "finance"
+      },
+      "acceptable": [],
+      "note": "Crestview Partners is a private equity firm."
+    },
+    {
+      "id": "T6",
+      "type": "title",
+      "path": "rules",
+      "ai10": false,
+      "tags": [
+        "rule_order"
+      ],
+      "input": {
+        "title": "Summer Associate Law Clerk",
+        "company": "latham & watkins"
+      },
+      "expected": {
+        "bucket": "legal"
+      },
+      "acceptable": [],
+      "note": "Must not be caught by 'associate' or 'summer' as student_intern."
+    },
+    {
+      "id": "T7",
+      "type": "title",
+      "path": "rules",
+      "ai10": false,
+      "tags": [
+        "rule_coverage"
+      ],
+      "input": {
+        "title": "Medical Doctor",
+        "company": "northwell health"
+      },
+      "expected": {
+        "bucket": "healthcare"
+      },
+      "acceptable": [],
+      "note": ""
+    },
+    {
+      "id": "T8",
+      "type": "title",
+      "path": "rules",
+      "ai10": false,
+      "tags": [
+        "seniority_vs_function"
+      ],
+      "input": {
+        "title": "Director of Engineering",
+        "company": "servicenow"
+      },
+      "expected": {
+        "bucket": "engineering"
+      },
+      "acceptable": [],
+      "note": "Function beats seniority: engineering, not leadership."
+    }
+  ]
+}
