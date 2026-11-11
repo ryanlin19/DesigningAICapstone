@@ -67,3 +67,7 @@ a.who-name:hover { color: var(--brand); text-decoration: underline; }
 .who-worked li { line-height: 1.5; }
 .who-worked h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--good); margin: 0 0 6px; }
 .who-worked ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
+
+/* Who's there: only companies in one place */
+.who-single { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 8px; font-size: 13.5px; cursor: pointer; }
+.who-single input { margin: 0; }

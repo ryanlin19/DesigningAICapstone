@@ -593,6 +593,31 @@ def directory_payload():
     return {"ready": True, "companies": out, "verticals": list(directory_verticals()), "warning": warning}
 
 
+def company_ranking(profile, want, filters):
+    """{"ranks": {directory company id: {score, n, fit, why}}} from find.company_scores, for companies in the directory."""
+    d = directory.load()
+    data = all_jobs()[0]
+    if not d or not data:
+        return {"ranks": {}}
+    try:
+        cohort = find_cohort_map()
+    except (RuntimeError, OSError):
+        cohort = {}
+    per = find.company_scores(data, profile, filters, want, cohort, job_company_verticals())
+    out = {}
+    for co, x in per.items():
+        cid = directory.company_id(co, d["names"])
+        if not cid:
+            continue
+        y = out.get(cid)
+        if not y:
+            out[cid] = dict(x)
+        else:                                            # several feed names for one company: best score, all roles
+            y.update(score=max(y["score"], x["score"]), n=y["n"] + x["n"], fit=y["fit"] + x["fit"], ready=y["ready"] + x["ready"],
+                     why=list(dict.fromkeys(y["why"] + x["why"]))[:2])
+    return {"ranks": out, "has_profile": bool(profile.get("categories") or profile.get("skills"))}
+
+
 _co_vert = {"key": None, "value": {}}
 
 
@@ -676,9 +701,30 @@ def function_of(title, vertical):
     return f
 
 
+def classmate_keys():
+    """{contact key: classmate id} for contacts who are classmates themselves: their own fingerprint (from their profile
+    link), plus a contact with no link whose name is exactly a classmate's (LinkedIn sometimes leaves the link out of an
+    export, and then the contact is keyed by name and can't match the classmate's fingerprint)."""
+    people = STORE.people()
+    out = {p["self_key"]: p["person_id"] for p in people if p.get("self_key")}
+    by_name = {f'{p.get("first_name") or ""} {p.get("last_name") or ""}'.strip().lower(): p["person_id"] for p in people}
+    for r in STORE.contacts():
+        pid = by_name.get((r.get("full_name") or "").strip().lower())
+        if pid and not r.get("profile_url") and r["connector_id"] != pid:
+            out[r["contact_key"]] = pid
+    return out
+
+
+def classmate_links():
+    """{(knower, classmate)}: which classmates have each other as LinkedIn connections, read live from the contacts."""
+    keys = classmate_keys()
+    return {(r["connector_id"], keys[r["contact_key"]]) for r in STORE.contacts()
+            if r["contact_key"] in keys and r["connector_id"] != keys[r["contact_key"]]}
+
+
 def selves():
-    """Contact keys of the classmates themselves (their own fingerprints), left out of contact lists."""
-    return {p["self_key"] for p in STORE.people() if p.get("self_key")}
+    """Contact keys of the classmates themselves, left out of contact lists."""
+    return set(classmate_keys())
 
 
 def named_contacts(norms, people_names, field=None):
@@ -845,7 +891,7 @@ def company_detail(cid=None, name=None, field=None):
     manual = [e for e in snap["manual"] if directory.company_id(e["company"], d["names"]) == cid]
     tie = cohort_people(raw, manual) or {"people": [], "contacts": 0}
     names = {p["person_id"]: p["display_name"] for p in snap["people"]}
-    knows = {(names.get(r["knower"], r["knower"]), names.get(r["classmate"], r["classmate"])) for r in snap.get("knows", [])}
+    knows = {(names.get(a, a), names.get(b, b)) for a, b in {(r["knower"], r["classmate"]) for r in snap.get("knows", [])} | classmate_links()}
     in_graph = {p["name"] for p in tie["people"]}
     me = names.get(settings().get("me") or "")
     jobs = (_dir_jobs["value"] or {}).get(cid) if _dir_jobs["value"] is not None else None
@@ -887,9 +933,32 @@ def _years(r):
     return f"{a}–present" if r.get("is_current") and a else f"{a}–{b}" if a and b and a != b else str(a or b or "")
 
 
-def region_people(picked, field=None):
+# not places: a company hiring "remote" or with no location isn't in another city for it
+_NOT_A_PLACE = {"Remote / US-wide", "Location not given"}
+_co_places = {"key": None, "value": {}}
+
+
+def company_places(d, data):
+    """{directory company id: set of map regions it is in}: its HQ and offices, plus every region it posts jobs in."""
+    key = (d["version"], id(data))
+    if _co_places["key"] != key:
+        out = {c["id"]: set(c["regions"]) - _NOT_A_PLACE for c in d["companies"]}
+        if data:
+            regs, memo = find.job_regions(data), {}
+            for j in data["jobs"]:
+                co = j["company"]
+                if co not in memo:
+                    memo[co] = directory.company_id(co, d["names"])
+                if memo[co] in out:
+                    out[memo[co]].update(set(regs[j["id"]]) - _NOT_A_PLACE)
+        _co_places.update(key=key, value=out)
+    return _co_places["value"]
+
+
+def region_people(picked, field=None, single=False):
     """Who's there in some map regions: companies with an office, HQ or open roles there that your cohort is tied to,
     the people your cohort knows at them (ranked like the shared connections), and classmates based there.
+    single: leave out companies in more than one map region (offices or open roles), and the people at them.
 
     Contacts' own locations aren't in LinkedIn exports, so "there" means "at a company that's there"."""
     picked = set(picked)
@@ -912,6 +981,9 @@ def region_people(picked, field=None):
                     jobs_here[memo[co]] += 1
     by_co = {c["id"]: c for c in d["companies"]}
     in_region = (in_region | set(jobs_here)) & set(by_co)       # employers only (recruiters, schools stay out)
+    multi = {cid for cid in in_region if len(company_places(d, data).get(cid, ())) > 1}
+    if single:
+        in_region -= multi
     snap = get_snapshot()
     people_names = {p["person_id"]: p["display_name"] for p in snap["people"]}
     me = people_names.get(settings().get("me") or "")
@@ -1002,7 +1074,8 @@ def region_people(picked, field=None):
     worked_in_region.sort(key=lambda w: (not w["current"], -(_year(w["years"].split("–")[-1]) or 9999 if w["current"] else _year(w["years"].split("–")[-1]) or 0), w["name"]))
     return {"regions": sorted(picked), "people": ranked[:300], "people_total": len(ranked), "companies": companies[:150],
             "companies_total": len(companies), "classmates": sorted(based), "worked_here": worked_in_region, "jobs": jobs_total,
-            "me": me, "bucket_labels": BUCKET_LABEL}
+            "me": me, "bucket_labels": BUCKET_LABEL, "single": bool(single), "multi_location": len(multi),
+            "links": {people_names.get(p["person_id"], p["person_id"]): p["profile_url"] for p in snap["people"] if p.get("profile_url")}}
 
 
 # ---------- the Cohort tab: who you're not connected to, and the people the cohort knows that you don't ----------
@@ -1021,7 +1094,8 @@ def cohort_overview(limit=50):
     keys_of = defaultdict(set)
     for r in rows:
         keys_of[r["connector_id"]].add(r["contact_key"])
-    selves = {p["self_key"]: p["person_id"] for p in people if p["self_key"]}
+    selves = classmate_keys()
+    links = classmate_links()
     mine = keys_of.get(me, set())
     my_self = next((p["self_key"] for p in people if p["person_id"] == me), None)
     classmates = []
@@ -1031,7 +1105,7 @@ def cohort_overview(limit=50):
         if not me or not (mine or my_self):
             connected = None                                   # can't tell without your own upload
         else:
-            connected = bool((p["self_key"] and p["self_key"] in mine) or (my_self and my_self in keys_of.get(p["person_id"], ())))
+            connected = (me, p["person_id"]) in links or (p["person_id"], me) in links
         classmates.append({"id": p["person_id"], "name": names[p["person_id"]], "profile_url": p["profile_url"],
                            "headline": p["headline"], "contacts": len(keys_of.get(p["person_id"], ())), "connected": connected,
                            "updated_at": p["updated_at"]})
@@ -1116,7 +1190,7 @@ def people_summary(snap, me=None):
         keyed[r["connector_id"]] += r["n"]
     for r in snap["counts"]:
         legacy[r["connector_id"]] += r["count"]
-    knows = {(r["knower"], r["classmate"]) for r in snap.get("knows", [])}
+    knows = {(r["knower"], r["classmate"]) for r in snap.get("knows", [])} | classmate_links()
     has_key = {p["person_id"]: bool(p.get("has_self_key")) for p in snap["people"]}
     out = []
     for p in snap["people"]:
@@ -1238,7 +1312,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200, json.dumps(directory_payload(), ensure_ascii=False), "application/json")
             if path == "/api/region-people":                    # the map: who's there in the picked regions
                 qs = parse_qs(urlsplit(self.path).query)
-                return self.send(200, json.dumps(region_people(qs.get("region") or [], (qs.get("field") or [None])[0]),
+                return self.send(200, json.dumps(region_people(qs.get("region") or [], (qs.get("field") or [None])[0],
+                                                               (qs.get("single") or [""])[0] == "1"),
                                                  ensure_ascii=False), "application/json")
             if path == "/log":                                  # the Log tab: Muse runs, merges, uploads
                 return self.send(200, (STATIC / "log.html").read_bytes(), "text/html; charset=utf-8")
@@ -1335,6 +1410,13 @@ class Handler(BaseHTTPRequestHandler):
                               offset=max(0, int(d.get("offset") or 0)), limit=max(0, min(100, int(limit if limit is not None else 40))),
                               want=d.get("want") or {}, co_vertical=job_company_verticals(), with_path=bool(d.get("path")))
             return self.send(200, json.dumps(res, ensure_ascii=False), "application/json")
+        if path == "/api/companies/rank":               # the Companies tab ranked by your resume / what you want / filters
+            try:
+                d = json.loads(self.body(200_000))
+            except ValueError:
+                return self.send(400, "Bad request")
+            return self.send(200, json.dumps(company_ranking(d.get("profile") or {}, d.get("want") or {}, d.get("filters") or {})),
+                             "application/json")
         if path == "/api/me":
             try:
                 me = json.loads(self.body()).get("id") or None

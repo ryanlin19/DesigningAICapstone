@@ -49,7 +49,7 @@
   function drawWho() {
     var box = $("who"), picked = filters.regions.slice();
     var want = window.Global.want ? window.Global.want() : {};
-    var key = JSON.stringify([picked, (want.categories || [])[0] || ""]);
+    var key = JSON.stringify([picked, (want.categories || [])[0] || "", !!load("cohort.mapSingle", false)]);
     if (key === whoKey) return;
     whoKey = key;
     box.textContent = "";
@@ -63,6 +63,7 @@
     var q = new URLSearchParams();
     picked.forEach(function (r) { q.append("region", r); });
     if ((want.categories || [])[0]) q.set("field", want.categories[0]);
+    if (load("cohort.mapSingle", false)) q.set("single", "1");
     var seq = ++whoSeq;
     fetch("/api/region-people?" + q.toString()).then(function (r) { return r.json(); }).then(function (d) {
       if (seq === whoSeq) renderWho(box, d);
@@ -77,8 +78,27 @@
           "(contacts' own cities aren't in LinkedIn exports). Classmates' cities come from their own LinkedIn jobs and profile." })]),
       el("a", { class: "btn primary", href: "/", text: "See the " + fmtN(d.jobs) + " jobs here →" })]));
     var me = function (n) { return n === d.me ? "You" : n; };
-    if (d.classmates.length) box.appendChild(el("p", { class: "who-based" }, [el("b", { text: "Classmates based here: " }), d.classmates.map(me).join(", ")]));
-    drawWorked(d, me);
+    // a classmate's name, linked to their own LinkedIn profile when the board has it
+    var mate = function (n, label) {
+      var url = (d.links || {})[n], text = label == null ? me(n) : label;
+      return url ? el("a", { class: "who-mate", href: url, target: "_blank", rel: "noopener", title: n + " on LinkedIn", text: text }) : document.createTextNode(text);
+    };
+    var joined = function (names, fmt) {
+      var out = [];
+      names.forEach(function (n, i) { if (i) out.push(", "); out.push(fmt(n)); });
+      return out;
+    };
+    // hide companies in several places (offices or open roles in more than one region), which show up in every bubble
+    var single = el("input", { type: "checkbox", id: "whoSingle" });
+    single.checked = !!d.single;
+    single.addEventListener("change", function () { save("cohort.mapSingle", single.checked); drawWho(); });
+    box.appendChild(el("label", { class: "chk who-single", for: "whoSingle", title: "Companies with an office or open roles in more than one map region" }, [
+      single, " Only companies in one place",
+      el("span", { class: "muted tiny", text: d.single ? " (hiding " + plural(d.multi_location, "company", "companies") + " in several places)"
+                                                     : " (" + plural(d.multi_location, "company is", "companies are") + " in several places)" })]));
+    if (d.classmates.length) box.appendChild(el("p", { class: "who-based" }, [el("b", { text: "Classmates based here: " })]
+      .concat(joined(d.classmates, function (n) { return mate(n); }))));
+    drawWorked(d, me, mate);
     if (!d.people.length && !d.companies.length) {
       box.appendChild(el("p", { class: "muted", text: "No one in your cohort is tied to a company here yet." }));
       return;
@@ -88,7 +108,9 @@
     cols.appendChild(listBlock("Companies with cohort ties", d.companies, d.companies_total, companyRow, "company", "companies"));
     box.appendChild(cols);
     function personRow(x, i) {
-      var who = x.known_by.map(function (k) { return (k.name === d.me ? "you" : k.name) + (k.since ? " (" + k.since + ")" : ""); }).join(", ");
+      var who = joined(x.known_by, function (k) {
+        return el("span", {}, [mate(k.name, k.name === d.me ? "you" : k.name), k.since ? " (" + k.since + ")" : ""]);
+      });
       return el("li", { class: "who-row" }, [
         el("span", { class: "who-rank", text: String(i + 1) }),
         el("div", {}, [
@@ -96,7 +118,7 @@
           el("div", { class: "who-pos" }, [(x.position ? x.position + " · " : ""), el("a", { href: "/companies?id=" + encodeURIComponent(x.company_id) + "#graph", text: x.company })]),
           x.why.length ? el("div", { class: "who-why" }, x.why.map(function (w) {
             return el("span", { class: "tag" + (/^Known by \d/.test(w) ? " shared" : /who work/.test(w) ? " works" : ""), text: w }); })) : null,
-          el("div", { class: "who-by", text: "Known by " + who })])]);
+          el("div", { class: "who-by" }, ["Known by "].concat(who))])]);
     }
     function companyRow(c, i) {
       var al = c.alumni.map(function (a) {
@@ -114,7 +136,7 @@
     }
   }
   // Classmates who've worked in the picked regions: right under the map, one line per classmate with all their jobs here.
-  function drawWorked(d, me) {
+  function drawWorked(d, me, mate) {
     var box = $("whoWorked"); box.textContent = "";
     var byPerson = [], seen = {};
     (d.worked_here || []).forEach(function (w) {          // already ordered: current jobs first, then most recent
@@ -126,7 +148,7 @@
     box.appendChild(el("h3", { text: "Classmates who've worked here (" + byPerson.length + ")" }));
     function when(w) { return w.current ? "now" + (w.years ? ", since " + w.years.split("–")[0] : "") : w.years || "dates not listed"; }
     box.appendChild(el("ul", {}, byPerson.map(function (p) {
-      var parts = [el("b", { text: me(p.name) }), " · "], companies = [], at = {};
+      var parts = [el("b", {}, [mate(p.name)]), " · "], companies = [], at = {};
       p.jobs.forEach(function (w) {                       // one company, its roles together: "Senior Analyst (…), Analyst (…) at Lyft"
         if (!(w.company in at)) { at[w.company] = companies.length; companies.push({ w: w, roles: [] }); }
         companies[at[w.company]].roles.push(w);

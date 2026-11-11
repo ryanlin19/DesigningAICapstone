@@ -3,7 +3,7 @@
 // Pages read them through window.Global:
 //   Global.state()            -> {visa: "any"|"not_no"|"likely", regions: [...], buckets: [...]}
 //   Global.setFitCounts(c)    -> show {bucket: n} counts in the Fit row
-//   Global.profile()          -> resume profile ("What you are") or null
+//   Global.profile()          -> "What you are" (from a resume or filled in by hand) once it has a field or a skill, else null
 //   Global.want()             -> "What you want": {categories, levels, verticals, companies, avoid, salary_min}
 //   Global.passes(job)        -> sponsorship + location check, for pages that filter in the browser
 //   Global.bucket(job)        -> fit bucket for a job with {bcat, blevel, min_years}, or null without a resume
@@ -35,6 +35,8 @@
     return n;
   }
   function fmtN(n) { return Math.round(n || 0).toLocaleString("en-US"); }
+  // a profile counts once it says something: a field or a skill (a hand-filled one starts empty)
+  function usable(p) { return p && ((p.categories || []).length || (p.skills || []).length) ? p : null; }
 
   // ---------- state (moved over from the old per-page filters the first time) ----------
   var DEFAULT_BUCKETS = ["ready", "reach"];
@@ -66,7 +68,7 @@
   };
   var LEVEL_YEARS = { Internship: 0, Entry: 1, Mid: 3, Senior: 7, Executive: 12 };
   function bucket(job) {
-    var p = load(PROFILE, null);
+    var p = usable(load(PROFILE, null));
     if (!p || !(p.categories || []).length || !job.bcat) return null;
     var mine = p.categories, jc = job.bcat;
     var field = mine.indexOf(jc) >= 0 ? "strong" : mine.some(function (c) { return (ADJ[c] || []).indexOf(jc) >= 0; }) ? "partial" : "none";
@@ -130,6 +132,12 @@
       status = "Read " + file.name + ". Check your fields below."; editing = true; changed();
     }).catch(function (e) { status = e.message; draw(); });
   }
+  function startByHand() {                                  // the same boxes a resume fills, without one
+    save(PROFILE, { years: 0, mba: false, categories: [], category_scores: {}, skills: [], inds: [], manual: true });
+    var f = load(PAGE_FILTERS, {}); f.sort = "fit"; save(PAGE_FILTERS, f);    // Find a job sorts by fit once a field is picked
+    state.buckets = DEFAULT_BUCKETS.slice();
+    status = "Pick your fields and skills below; every tab uses them like a resume."; editing = true; changed();
+  }
   function setProfile(fn) { var p = load(PROFILE, null); if (!p) return; fn(p); save(PROFILE, p); changed(); }
   function setWant(fn) { var w = want(); fn(w); save(WANT, w); changed(); }
 
@@ -139,7 +147,7 @@
     pathTimer = setTimeout(fetchPath, 350);
   }
   function fetchPath() {
-    var p = load(PROFILE, null);
+    var p = usable(load(PROFILE, null));
     if (!p) { pathData = null; draw(); return; }
     var seq = ++pathSeq;
     fetch("/api/find", { method: "POST", headers: { "Content-Type": "application/json" },
@@ -189,16 +197,19 @@
     file.addEventListener("change", function () { var f = file.files[0]; file.value = ""; if (f) upload(f); });
     var resume;
     if (!p) {
+      var byHand = el("button", { type: "button", class: "gb-link", text: "No resume? Fill it in yourself" });
+      byHand.addEventListener("click", startByHand);
       resume = [el("p", { class: "gb-note", text: "Upload it once: every tab sorts jobs by how well they fit you." }),
-                el("label", { class: "gb-btn primary", for: "gbResumeFile", text: "Upload resume" }), file];
+                el("label", { class: "gb-btn primary", for: "gbResumeFile", text: "Upload resume" }), file,
+                el("div", { class: "gb-row" }, [byHand])];
     } else {
-      var summary = "About " + p.years + " yr" + (p.years === 1 ? "" : "s") + (p.mba ? " + MBA" : "") +
+      var summary = (p.manual ? "Filled in by hand · " : "") + "About " + p.years + " yr" + (p.years === 1 ? "" : "s") + (p.mba ? " + MBA" : "") +
         (p.categories.length ? " · " + p.categories.map(short).join(", ") : " · no fields picked") +
         ((p.skills || []).length ? " · " + p.skills.length + " skill" + (p.skills.length === 1 ? "" : "s") : "");
       var editBtn = el("button", { type: "button", class: "gb-link", "aria-expanded": String(editing), text: editing ? "Done" : "Edit" });
       editBtn.addEventListener("click", function () { editing = !editing; draw(); });
       resume = [el("p", { class: "gb-summary", text: summary }), el("div", { class: "gb-row" }, [
-        editBtn, el("label", { class: "gb-link", for: "gbResumeFile", text: "Replace" }), removeBtn()]), file];
+        editBtn, el("label", { class: "gb-link", for: "gbResumeFile", text: p.manual ? "Upload resume" : "Replace" }), removeBtn(p)]), file];
       if (editing) {
         var yrs = el("input", { type: "number", min: "0", max: "40", value: String(p.years), "aria-label": "Years of work experience" });
         yrs.addEventListener("change", function () { setProfile(function (q) { q.years = Math.max(0, +yrs.value || 0); }); });
@@ -229,7 +240,7 @@
     }
     if (status) resume.push(el("p", { class: "gb-status", role: "status", text: status }));
     body.appendChild(section("What you are", resume));
-    if (p) body.appendChild(wantSection(p));
+    body.appendChild(wantSection());
 
     // sponsorship
     body.appendChild(section("Visa sponsorship", [el("div", { class: "gb-seg", role: "group", "aria-label": "Visa sponsorship" }, VISA.map(function (v) {
@@ -259,7 +270,7 @@
     body.appendChild(section("Location", loc));
   }
   var editingWant = false;
-  function wantSection(p) {
+  function wantSection() {
     var w = want(), kids = [];
     var bits = [];
     if (w.categories.length) bits.push(w.categories.map(short).join(", "));
@@ -308,10 +319,10 @@
       el("p", { class: "gb-note", text: "Across " + fmtN(pathData.n) + " of " + pathData.basis + "." })]);
   }
 
-  function removeBtn() {
+  function removeBtn(p) {
     var b = el("button", { type: "button", class: "gb-link", text: "Remove" });
     b.addEventListener("click", function () {
-      if (!confirm("Remove your resume from this browser?")) return;
+      if (!confirm(p && p.manual ? "Clear what you filled in?" : "Remove your resume from this browser?")) return;
       try { localStorage.removeItem(PROFILE); } catch (e) { /* ignore */ }
       status = ""; editing = false; changed();
     });
@@ -323,7 +334,7 @@
     var row = document.querySelector(".cb-fitrow");
     if (!row) return;
     var box = row.querySelector(".cb-fit"); box.textContent = "";
-    var has = !!load(PROFILE, null);
+    var raw = load(PROFILE, null), has = !!usable(raw);
     box.appendChild(el("span", { class: "cb-fit-label", text: "Fit" }));
     BUCKETS.forEach(function (x) {
       var on = state.buckets.indexOf(x[0]) >= 0;
@@ -337,13 +348,14 @@
       });
       box.appendChild(b);
     });
-    if (!has) box.appendChild(el("span", { class: "cb-fit-hint", text: "Upload your resume on the left to filter by fit" }));
+    if (!has) box.appendChild(el("span", { class: "cb-fit-hint", text: raw ? "Pick your fields on the left to filter by fit"
+                                                                          : "Upload your resume (or fill it in) on the left to filter by fit" }));
   }
 
   function revert() {
     state = { visa: "any", regions: [], buckets: DEFAULT_BUCKETS.slice() };
     save(PAGE_FILTERS, { categories: [], levels: [], posted: "0", q: "", mba: false, warm: false,
-                         sort: load(PROFILE, null) ? "fit" : "newest", from: "", to: "", hidden: [] });   // every tab's filters
+                         sort: usable(load(PROFILE, null)) ? "fit" : "newest", from: "", to: "", hidden: [] });   // every tab's filters
     save(KEY, state); draw();
     if (revertFn) revertFn(); else listeners.forEach(function (fn) { fn(state); });
     var b = bar.querySelector(".gb-revert"); b.classList.add("done"); setTimeout(function () { b.classList.remove("done"); }, 700);
@@ -386,7 +398,7 @@
   window.Global = {
     state: function () { return { visa: state.visa, regions: state.regions.slice(), buckets: state.buckets.slice() }; },
     setFitCounts: function (c) { fitCounts = c || null; drawFit(); },
-    profile: function () { return load(PROFILE, null); },
+    profile: function () { return usable(load(PROFILE, null)); },
     want: want,
     setRegions: function (list) { state.regions = list.slice(); changed(); },
     toggleRegion: function (r) { var i = state.regions.indexOf(r); if (i >= 0) state.regions.splice(i, 1); else state.regions.push(r); changed(); },

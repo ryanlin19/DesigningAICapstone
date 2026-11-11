@@ -152,3 +152,8 @@ a.np-name:hover { color: var(--brand); text-decoration: underline; }
 .log-row { display: grid; grid-template-columns: 70px 1fr; gap: 10px; padding: 9px 0; border-top: 1px solid var(--border); align-items: start; }
 .tag.log-muse { background: var(--violet-bg); color: var(--violet); }
 .tag.log-upload { background: var(--good-bg); color: var(--good); }
+
+/* "For you": why a company ranks where it does */
+.co-foryou { margin: 6px 0 0; font-size: 13px; color: var(--text, #1f2933); }
+.co-foryou b { color: var(--brand, #0a66c2); font-weight: 600; }
+#rankSeg button:disabled { opacity: .45; cursor: not-allowed; }

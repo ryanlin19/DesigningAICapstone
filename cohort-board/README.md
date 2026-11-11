@@ -24,7 +24,7 @@ python cohort-board/serve.py      # then open http://127.0.0.1:8765
   From a folder the browser sends only the five files the ingest reads. Loading someone again replaces their data
   (contacts' cities found by Muse are kept); Remove deletes them from the cloud. Needs the contact key
   (`linkedin-ingest/.contact_key` or `COHORT_CONTACT_KEY`). The AI option appears when `ANTHROPIC_API_KEY` is set.
-- **Muse's weekly findings** (`inbox.py`, `docs/MUSE_WEEKLY.md`): merged from the cloud every 15 minutes and on
+- **Muse's weekly findings** (`inbox.py`, `muse/WEEKLY.md`): merged from the cloud every 15 minutes and on
   "Check now" in the Log tab.
 - **Logins** last 30 days and survive restarts (`data/sessions.json`, hashed, not in git).
 - **Testing without touching real data:** point the board at `wrangler dev` (`COHORT_API_URL=http://127.0.0.1:8787`,

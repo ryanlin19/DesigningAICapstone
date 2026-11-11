@@ -31,7 +31,11 @@
     <div class="results-head">
       <div>
         <h1 id="count">Companies</h1>
-        <p class="muted tiny dir-sub">Classmates who work or worked there come first, then most connections.</p>
+        <p class="muted tiny dir-sub" id="dirSub">Classmates who work or worked there come first, then most connections.</p>
+      </div>
+      <div class="seg" role="group" aria-label="Rank by" id="rankSeg">
+        <button type="button" data-rank="you" title="Open roles that fit you and match what you want (resume or filled in, plus Your search)">For you</button>
+        <button type="button" data-rank="ties" title="Classmates who work or worked there, then most connections">Cohort ties</button>
       </div>
       <div class="seg" role="group" aria-label="Show">
         <button type="button" data-show="all">All</button>

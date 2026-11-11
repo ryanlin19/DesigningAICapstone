@@ -14,6 +14,7 @@ Repo: `github.com/ryanlin19/DesigningAICapstone`, branch `peter_stuff` (Peter's)
 | `company-db/` | The company directory `data/companies.db`: ~1,650 companies (classmates' connections + S&P 500) with vertical, description, HQ, offices, size. Built from Wikidata, Wikipedia and research. |
 | `cohort-board/` | The web app (Python standard library only, `serve.py`). Tabs: Find a job, Map, Companies (each company has a who's-who map of people the cohort knows), Cohort (classmates you're not connected to; people most of the cohort knows that you don't), Log (Muse runs, merges, uploads). All cohort data goes through `store.py`. |
 | `cohort-api/` | **The cohort database**: Cloudflare D1 `cohort` behind the `cohort-api` Worker (token-protected JSON routes, no raw SQL). The only copy of classmates, contacts, Muse's deliveries and the activity log. |
+| `muse/` | Instructions for Muse (Meta's browser agent): the weekly connection-change run and company research, both delivered through D1 tables. |
 | `deploy/` | Hosting the board on any Cloudflare account: one container running the app (job and company files kept in R2), plus `cohort-api` + D1 on the same account. See `deploy/DEPLOY.md`. |
 
 ## How data flows

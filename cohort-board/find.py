@@ -527,3 +527,59 @@ def _days_ago_key(j):
         return date.fromisoformat(p[:10]).toordinal()
     except ValueError:
         return 0
+
+
+# ---------- companies, ranked by your search ----------
+
+_neutral_fits = {"key": None, "fits": None}
+
+
+def company_scores(data, profile, f, want=None, cohort=None, co_vertical=None):
+    """How well each company's open roles fit you and match what you want, for ranking the Companies tab.
+
+    Uses the same per-job score as Find a job (rank(): target company, field, level and vertical, how reachable the job
+    is, skills, cohort warmth, freshness), over the jobs that pass your hard filters (sponsorship, location, avoid list,
+    pay floor, and the Fit buttons when you have a profile). A company's score is its best role plus a share of its next
+    two, plus a little for how many roles fit. Without a profile every job counts as equally reachable, so "What you
+    want" alone still ranks companies.
+
+    -> {job feed company name: {"score", "n": roles that pass, "fit": roles Ready or Reach and "ready": Ready (with a profile), "why": [...]}}"""
+    import math
+    has_profile = bool(profile and (profile.get("categories") or profile.get("skills")))
+    if has_profile:
+        fits = _fits(data, profile)
+    else:
+        if _neutral_fits["key"] != id(data):
+            _neutral_fits.update(key=id(data), fits={j["id"]: ("reach", "", 0.0, []) for j in data["jobs"]})
+        fits = _neutral_fits["fits"]
+    w = clean_want(want)
+    cohort = cohort or {}
+    ranked = _ranks(data, profile or {}, w, cohort, co_vertical or {}, data.get("vocab", {}).get("inds", []), fits, date.today())
+    regs = job_regions(data)
+    want_regions, buckets = set(f.get("regions") or []), set(f.get("buckets") or [])
+    visa = f.get("visa") or "any"
+    per = {}
+    for j in data["jobs"]:
+        if blocked(j, w) or (visa == "not_no" and j.get("visa") == "Unlikely") or (visa == "likely" and j.get("visa") != "Likely"):
+            continue
+        if want_regions and not want_regions.intersection(regs[j["id"]]):
+            continue
+        b = fits[j["id"]][0]
+        if has_profile and buckets and b not in buckets:
+            continue
+        x = per.setdefault(j["company"], {"scores": [], "n": 0, "fit": 0, "ready": 0, "why": Counter()})
+        s, reasons = ranked[j["id"]]
+        x["scores"].append(s)
+        x["n"] += 1
+        x["fit"] += has_profile and b in ("ready", "reach")
+        x["ready"] += has_profile and b == "ready"
+        for r in reasons:
+            if not r.startswith(("Target field", "Target vertical", "Target company")):
+                continue
+            x["why"][r] += 1
+    out = {}
+    for co, x in per.items():
+        top = sorted(x["scores"], reverse=True)[:3]
+        score = sum(s * wt for s, wt in zip(top, (1.0, 0.5, 0.25))) + 0.15 * math.log2(1 + (x["fit"] if has_profile else x["n"]))
+        out[co] = {"score": round(score, 3), "n": x["n"], "fit": x["fit"], "ready": x["ready"], "why": [r for r, _ in x["why"].most_common(2)]}
+    return out

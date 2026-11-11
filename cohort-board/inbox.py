@@ -1,7 +1,7 @@
 """Muse's findings into the cohort data, and the activity log behind the Log tab.
 
 Muse (Meta's browser agent) checks classmates' LinkedIn connections and delivers what changed into the cloud database:
-rows in `muse_inbox` (new_connection, job_change, location, removed_connection; docs/MUSE_WEEKLY.md), or the older
+rows in `muse_inbox` (new_connection, job_change, location, removed_connection; muse/WEEKLY.md), or the older
 way, rows in `manual_connections` with a note starting "Muse" (new connections only). check():
 
   1. reads those rows from the cloud (GET /v1/inbox); stops there when there are none,
@@ -129,11 +129,18 @@ def check(store):
                     merged_ids.append(r["id"])
                     continue
                 norm = _company_norm(con, r["company"])
+                # a classmate: their own fingerprint and link (these notes carry no link, so a name key wouldn't match them)
+                mate = con.execute("SELECT self_key, profile_url FROM people WHERE self_key IS NOT NULL AND "
+                                   "LOWER(TRIM(COALESCE(first_name,'') || ' ' || COALESCE(last_name,''))) = LOWER(TRIM(?))",
+                                   (r["contact"] or "",)).fetchone()
                 # the same person other classmates already know: by name, preferring the same company
                 cands = con.execute("SELECT contact_key, company_norm, title_bucket, profile_url, position FROM contacts "
                                     "WHERE LOWER(full_name) = LOWER(?)", (r["contact"],)).fetchall()
                 best = next((c for c in cands if c[1] == norm), cands[0] if cands else None)
-                if best:
+                if mate:
+                    key, url, bucket = mate[0], mate[1], rules.title_bucket(r["title"])
+                    norm = norm or (best[1] if best else None)
+                elif best:
                     key, norm, bucket, url = best[0], best[1], best[2], best[3]
                 else:
                     parts = (r["contact"] or "").split()

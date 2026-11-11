@@ -1,5 +1,7 @@
 // Companies: the company directory (data/companies.db), organized by vertical.
-// Ranked by classmates who work or worked there, then by number of connections, then by open roles.
+// Ranked "For you" when you have a resume (or filled it in) or targets in Your search: open roles that fit you and match
+// what you want, scored like Find a job (find.company_scores). Otherwise, or with "Cohort ties", by classmates who work or
+// worked there, then by number of connections, then by open roles.
 // Each company links to its open roles on Find a job. The Location pick in "Your search" keeps companies with
 // their HQ or an office in a picked region.
 (function () {
@@ -20,10 +22,45 @@
   function load(k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode */ } }
 
-  var DEFAULTS = { vertical: "", show: "all" };
+  var DEFAULTS = { vertical: "", show: "all", rank: "you" };
   var filters = Object.assign({}, DEFAULTS, load(KEY, {}));
   var query = new URLSearchParams(location.search).get("q") || "";      // from a "company page" link on Find a job
   var all = [], verticals = [], limit = PAGE;
+  var ranks = null, rankSeq = 0;                          // {company id: {score, n, fit, why}} for "For you"
+
+  // ---------- "For you": ranked by your resume or hand-filled profile, what you want, and Your search ----------
+  function canRank() {
+    var g = window.Global;
+    if (!g) return false;
+    var w = g.want() || {};
+    return !!g.profile() || ["categories", "levels", "verticals", "companies"].some(function (k) { return (w[k] || []).length; });
+  }
+  function rankingOn() { return filters.rank === "you" && canRank() && !!ranks; }
+  function fetchRanks() {
+    if (!canRank()) { ranks = null; render(); return; }
+    var g = window.Global, st = g.state(), seq = ++rankSeq, p = g.profile();
+    fetch("/api/companies/rank", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ profile: p, want: g.want(), filters: { visa: st.visa, regions: st.regions, buckets: p ? st.buckets : [] } }) })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (seq === rankSeq && d) { ranks = d.ranks || {}; render(); } })
+      .catch(function () { /* stays on the cohort-ties order */ });
+  }
+  function ranked(list) {
+    if (!rankingOn()) return list;
+    var pos = new Map(list.map(function (c, i) { return [c, i]; }));
+    return list.slice().sort(function (a, b) {
+      var x = ranks[a.id], y = ranks[b.id];
+      return ((y ? y.score : -1) - (x ? x.score : -1)) || pos.get(a) - pos.get(b);
+    });
+  }
+  function forYouLine(c) {
+    var r = rankingOn() && ranks[c.id];
+    if (!r) return null;
+    var hasProfile = !!window.Global.profile();
+    var bits = [hasProfile ? plural(r.fit, "role fits you", "roles fit you") + (r.ready ? " (" + fmtN(r.ready) + " Ready)" : "")
+                           : plural(r.n, "matching role", "matching roles")];
+    return el("p", { class: "co-foryou" }, [el("b", { text: "For you: " }), bits.concat(r.why || []).join(" · ")]);
+  }
 
   function regions() { return window.Global ? (window.Global.state().regions || []) : []; }
   function hasTies(c) { return c.people.length > 0 || c.contacts > 0; }
@@ -45,9 +82,20 @@
 
   // ---------- controls ----------
   function drawSeg() {
-    Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function (b) {
+    Array.prototype.forEach.call(document.querySelectorAll(".seg button[data-show]"), function (b) {
       b.setAttribute("aria-pressed", String(b.getAttribute("data-show") === filters.show));
     });
+    var can = canRank();
+    Array.prototype.forEach.call(document.querySelectorAll("#rankSeg button"), function (b) {
+      var mode = b.getAttribute("data-rank");
+      b.setAttribute("aria-pressed", String(mode === (can ? filters.rank : "ties")));
+      b.disabled = mode === "you" && !can;
+      if (mode === "you") b.title = can ? "Open roles that fit you and match what you want, plus Your search's filters"
+                                        : "Upload a resume, fill it in yourself, or set targets in Your search to rank for you";
+    });
+    $("dirSub").textContent = rankingOn()
+      ? "Ranked for you: open roles that fit you and match what you want, under Your search's filters."
+      : "Classmates who work or worked there come first, then most connections.";
   }
   function drawVerticals() {
     var counts = {}, total = 0;
@@ -162,6 +210,7 @@
     article = el("article", { class: "co-card" }, [
       el("div", { class: "co-head" }, head),
       el("div", { class: "tags" }, tags),
+      forYouLine(c),
       c.desc ? el("p", { class: "co-desc", text: c.desc.length > 360 ? c.desc.slice(0, 360).replace(/\s+\S*$/, "") + "…" : c.desc }) : null,
       officesLine(c),
       el("div", { class: "co-foot" }, foot)]);
@@ -171,7 +220,7 @@
   // ---------- page ----------
   function render() {
     drawSeg(); drawVerticals(); drawRegionBar();
-    var list = all.filter(function (c) { return matches(c); });
+    var list = ranked(all.filter(function (c) { return matches(c); }));
     $("count").textContent = plural(list.length, "company", "companies");
     var box = $("list"); box.textContent = "";
     if (!list.length) box.appendChild(el("p", { class: "muted", text: "No companies match. Try another vertical, clear the search, or change Location." }));
@@ -182,8 +231,11 @@
   }
 
   function bind() {
-    Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function (b) {
+    Array.prototype.forEach.call(document.querySelectorAll(".seg button[data-show]"), function (b) {
       b.addEventListener("click", function () { filters.show = b.getAttribute("data-show"); limit = PAGE; persist(); render(); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("#rankSeg button"), function (b) {
+      b.addEventListener("click", function () { filters.rank = b.getAttribute("data-rank"); limit = PAGE; persist(); render(); });
     });
     var q = $("q"); q.value = query;
     var t = null;
@@ -193,8 +245,8 @@
     });
     $("more").addEventListener("click", function () { limit += PAGE; render(); });
     if (window.Global) {
-      window.Global.onChange(function () { limit = PAGE; render(); });
-      window.Global.onRevert(function () { filters = Object.assign({}, DEFAULTS); query = ""; q.value = ""; persist(); limit = PAGE; render(); });
+      window.Global.onChange(function () { limit = PAGE; render(); fetchRanks(); });
+      window.Global.onRevert(function () { filters = Object.assign({}, DEFAULTS); query = ""; q.value = ""; persist(); limit = PAGE; render(); fetchRanks(); });
     }
   }
 
@@ -396,6 +448,7 @@
       }
       if (d.warning) { banner.hidden = false; banner.textContent = d.warning; }
       all = d.companies; verticals = d.verticals || [];
+      fetchRanks();
       if (filters.vertical && verticals.indexOf(filters.vertical) < 0) filters.vertical = "";
       bind(); render();
     })

@@ -6,6 +6,9 @@ headquarters and US offices. It's a directory: no job fetching here.
     python3 company-db/companies.py wikipedia   # two-sentence descriptions for tier 1-2 (cached, resumable)
     python3 company-db/companies.py offices     # US offices seen in our job postings (data/all_jobs.json)
     python3 company-db/companies.py batches N   # write research batches for agents (tier 1-2, N per batch)
+    python3 company-db/companies.py muse-push   # put every unresearched company in D1's company_research table for Muse
+    python3 company-db/companies.py muse-pull   # merge what Muse researched (status 'done') into research/muse.json, then merge
+                                                # (both take --local to use the `wrangler dev` copy of D1)
     python3 company-db/companies.py merge       # build the companies / names / offices tables from everything
     python3 company-db/companies.py stats
 
@@ -463,6 +466,17 @@ def cmd_offices():
 
 # ---------------------------------------------------------------- research batches
 
+def research_item(t, wd, po):
+    """What a researcher gets for one company: its names, an automatic Wikidata guess (may be wrong), where it posts jobs."""
+    m = pick(wd[t["id"]], t["name"]) if t["id"] in wd else None
+    return {
+        "id": t["id"], "name": t["name"], "linkedin_names": json.loads(t["norms"]), "sp500": bool(t["sp500"]),
+        "gics": [t["gics_sector"], t["gics_sub"]] if t["gics_sector"] else None, "sp500_hq": t["sp_hq"],
+        "wikidata_guess": None if not m else {k: m.get(k) for k in ("id", "label", "desc", "hq", "hqRegion", "hqCountry", "inds", "website", "employees")},
+        "offices_seen_in_our_job_postings": [o["metro"] for o in po.get(t["id"], [])][:15],
+    }
+
+
 def cmd_batches(size=25, prefix="batch", tiers=(1, 2)):
     con = db()
     wd = cache("wikidata")
@@ -475,17 +489,93 @@ def cmd_batches(size=25, prefix="batch", tiers=(1, 2)):
     for f in bdir.glob(f"{prefix}_*.json"):
         f.unlink()
     for b in range(0, len(rows), size):
-        items = []
-        for t in rows[b:b + size]:
-            m = pick(wd[t["id"]], t["name"]) if t["id"] in wd else None
-            items.append({
-                "id": t["id"], "name": t["name"], "linkedin_names": json.loads(t["norms"]), "sp500": bool(t["sp500"]),
-                "gics": [t["gics_sector"], t["gics_sub"]] if t["gics_sector"] else None, "sp500_hq": t["sp_hq"],
-                "wikidata_guess": None if not m else {k: m.get(k) for k in ("id", "label", "desc", "hq", "hqRegion", "hqCountry", "inds", "website", "employees")},
-                "offices_seen_in_our_job_postings": [o["metro"] for o in po.get(t["id"], [])][:15],
-            })
+        items = [research_item(t, wd, po) for t in rows[b:b + size]]
         (bdir / f"{prefix}_{b // size + 1:02d}.json").write_text(json.dumps(items, indent=1, ensure_ascii=False))
     print(f"{len(rows)} companies in {(len(rows) + size - 1) // size} batches of {size} -> {bdir}")
+
+
+# ---------------------------------------------------------------- Muse: research through the cohort database (D1)
+
+MUSE_FILE = RESEARCH / "muse.json"
+
+
+def _d1(target):
+    sys.path.insert(0, str(REPO / "cohort-api"))
+    import sync
+
+    def query(sql):
+        import subprocess
+        r = subprocess.run(["npx", "wrangler", "d1", "execute", sync.D1_NAME, target, "--json", "--command", sql],
+                           cwd=REPO / "cohort-api", capture_output=True, text=True)
+        out = r.stdout
+        try:
+            return json.loads(out[out.find("["):out.rfind("]") + 1])[0]["results"]
+        except (ValueError, IndexError, KeyError):
+            raise sync.SyncError((r.stderr or out)[-800:].strip() or "wrangler failed")
+    return sync, query
+
+
+def cmd_muse_push(target="--remote"):
+    """Add every company nobody has researched to company_research (status 'todo'). Rows already there are kept."""
+    sync, _ = _d1(target)
+    con = db()
+    wd, po = cache("wikidata"), cache("posting_offices")
+    done = {r["id"] for f in RESEARCH.glob("*.json") for r in json.loads(f.read_text())} if RESEARCH.exists() else set()
+    rows = [dict(t) for t in con.execute("SELECT * FROM targets ORDER BY tier, contacts DESC, name") if t["id"] not in done]
+    at = now()
+    vals = []
+    for t in rows:
+        item = research_item(t, wd, po)
+        info = {k: v for k, v in item.items() if k not in ("id", "name")}
+        vals.append(f"({sync.q(t['id'])},{sync.q(t['name'])},{sync.q(json.dumps(info, ensure_ascii=False))},{int(t['tier'] or 3)},'todo',{sync.q(at)})")
+    stmts = ["INSERT INTO company_research (id, name, info, tier, status, added_at) VALUES\n" + ",\n".join(vals[i:i + 50]) +
+             "\nON CONFLICT (id) DO NOTHING;" for i in range(0, len(vals), 50)]
+    if stmts:
+        sync.run_sql(stmts, f"company_research: {len(vals)} companies to research", target)
+    print(f"{len(vals)} unresearched companies offered to Muse (rows already in the table were left alone).")
+
+
+def cmd_muse_pull(target="--remote"):
+    """Merge Muse's finished rows (status 'done') into research/muse.json, rebuild the directory, mark them 'merged'.
+    A result that isn't usable JSON for its company is marked 'needs_fix' with the reason, for Muse to redo."""
+    sync, query = _d1(target)
+    rows = query("SELECT id, name, result FROM company_research WHERE status = 'done'")
+    have = {r["id"]: r for r in json.loads(MUSE_FILE.read_text())} if MUSE_FILE.exists() else {}
+    good, bad = [], []
+    for r in rows:
+        try:
+            res = json.loads(r["result"] or "")
+            if not isinstance(res, dict):
+                raise ValueError("result is not a JSON object")
+        except ValueError as e:
+            bad.append((r["id"], f"result isn't valid JSON ({e})"))
+            continue
+        res["id"] = r["id"]
+        notes = [res.get("notes")] if res.get("notes") else []
+        if res.get("kind") not in KINDS:
+            res.pop("kind", None)
+        if res.get("vertical") not in VERTICALS:
+            notes.append(f"vertical {res.pop('vertical', None)!r} isn't on the list")
+            res.pop("sub_vertical", None)
+        elif res.get("sub_vertical") not in VERTICALS[res["vertical"]]:
+            notes.append(f"sub_vertical {res.pop('sub_vertical', None)!r} isn't under {res['vertical']}")
+        if notes:
+            res["notes"] = "; ".join(str(n) for n in notes)
+        have[r["id"]] = res
+        good.append(r["id"])
+    if good:
+        RESEARCH.mkdir(parents=True, exist_ok=True)
+        MUSE_FILE.write_text(json.dumps(list(have.values()), indent=1, ensure_ascii=False))
+        cmd_merge()
+    at = sync.q(now())
+    stmts = [f"UPDATE company_research SET status = 'merged', error = NULL WHERE id IN ({','.join(sync.q(i) for i in good[k:k + 200])});"
+             for k in range(0, len(good), 200)]
+    stmts += [f"UPDATE company_research SET status = 'needs_fix', error = {sync.q(msg)}, researched_at = COALESCE(researched_at, {at}) "
+              f"WHERE id = {sync.q(i)};" for i, msg in bad]
+    if stmts:
+        sync.run_sql(stmts, f"company_research: {len(good)} merged, {len(bad)} need fixing", target)
+    print(f"Merged {len(good)} researched compan{'y' if len(good) == 1 else 'ies'}; {len(bad)} marked needs_fix." +
+          ("" if good else " Nothing new to merge."))
 
 
 # ---------------------------------------------------------------- merge
@@ -655,4 +745,6 @@ if __name__ == "__main__":
     {"targets": cmd_targets, "wikidata": lambda: cmd_wikidata(int(args[0]) if args else None), "wikipedia": lambda: cmd_wikipedia(int(args[0]) if args else 2),
      "offices": cmd_offices, "batches": lambda: cmd_batches(int(args[0]) if args else 25, args[1] if len(args) > 1 else "batch",
                                     tuple(int(x) for x in args[2].split(",")) if len(args) > 2 else (1, 2)), "merge": cmd_merge,
-     "stats": cmd_stats}[cmd]()
+     "stats": cmd_stats,
+     "muse-push": lambda: cmd_muse_push("--local" if "--local" in args else "--remote"),
+     "muse-pull": lambda: cmd_muse_pull("--local" if "--local" in args else "--remote")}[cmd]()
