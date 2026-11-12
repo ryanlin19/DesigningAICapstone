@@ -1,0 +1,1059 @@
+[
+  {
+    "api": null,
+    "blockers": "No Workday tenant 'jefferies' exists on wd1/wd3/wd5/wd10/wd12/wd102/wd103/wd105 (CXS returns 422 for an unknown tenant; a real tenant with a wrong site returns 404, verified against Unity). The experienced-hire portal careers.jefferies.com is Oracle Recruiting Cloud (site CX_1, seen in a LinkedIn redirect URL) and returned HTTP 522 (down) at check time. Talnet list tiles carry no location field, so fetched rows have blank locations.",
+    "careers_url": "https://www.jefferies.com/careers/",
+    "confidence": "medium",
+    "config": {
+      "boards": [
+        "https://jefferies.tal.net/vx/mobile-0/appcentre-1/brand-4/candidate/jobboard/vacancy/2/adv/"
+      ],
+      "country_suffix": "United States",
+      "platform": "talnet"
+    },
+    "firm": "Jefferies",
+    "notes": "Jefferies runs two systems: experienced hires on Oracle (CX_1, currently down) and campus/entry-level on Talnet (Oleeo), which the pipeline's talnet fetcher reads fine — but the classifier drops all 50 campus titles as early-career, so this config yields 0 board jobs under current rules. The experienced board (vacancy/3) itself reports 'no active opportunities' on Talnet.",
+    "platform": "talnet",
+    "supported": true,
+    "verified": {
+      "how": "Talnet campus board fetch (50 tiles; 24 US-indicated by title) + probe_firm.py in a /tmp repo copy",
+      "probe": "kept 0 of 50",
+      "sample_titles": [
+        "2027 Investment Banking Summer Associate Program – New York, Financial Institutions Group",
+        "2027 Investment Banking Analyst - Houston, Energy Group (February Start)",
+        "2026 Campus Recruiting Analyst - New York"
+      ],
+      "us_postings_seen": 24
+    }
+  },
+  {
+    "api": null,
+    "blockers": "fetch_avature's regexes do not match Bloomberg's Avature theme: title links are <a class=\"link\" href=\".../JobDetail/...\"> (fetcher requires <a href=...) and locations are <span class=\"list-item-location\"> (fetcher requires bare <span>), so the fetcher parses 0 articles. Fix: allow attributes in the two regexes (<a[^>]*href=... and <span[^>]*>...); with that change the same page parses 12/12 articles with titles and locations. No login or bot wall encountered.",
+    "careers_url": "https://bloomberg.avature.net/careers",
+    "confidence": "medium",
+    "config": {
+      "base": "https://bloomberg.avature.net/careers",
+      "country_suffix": "United States",
+      "platform": "avature"
+    },
+    "firm": "Bloomberg",
+    "notes": "Confirmed Avature at bloomberg.avature.net/careers — note there is no locale prefix (Deloitte uses /en_US/careers). The config is exact and the board returns real US postings; only the fetcher's two regexes need loosening before it yields jobs.",
+    "platform": "avature",
+    "supported": true,
+    "verified": {
+      "how": "Avature SearchJobs page fetch: 'strategy' returns 114 results, 10 of 12 US on page 1; ~340 jobs total on the board; probe_firm.py in a /tmp repo copy",
+      "probe": "kept 0 of 0 (probe fetched 0 — see blockers)",
+      "sample_titles": [
+        "Bloomberg Intelligence - Credit Strategy Research Associate",
+        "Product Manager – Multi-Asset Index Solutions",
+        "Technical Product Manager - Content Platform"
+      ],
+      "us_postings_seen": 10
+    }
+  },
+  {
+    "api": {
+      "endpoint": "https://jobs.intuit.com/search-jobs?k=<keyword> (server-rendered HTML, 15 jobs/page) + POST https://jobs.intuit.com/search-jobs/resultspost (AJAX paging)",
+      "example_request": "GET https://jobs.intuit.com/search-jobs?k=strategy — HTML with 15 job tiles; totals in the #search-results data-total-results attribute (397 for 'strategy', 614 overall, 41 pages)",
+      "fields": {
+        "description": "Job detail page HTML",
+        "location": "<span class=\"job-location\"> in the tile (often just 'Multiple Locations'); exact locations on the detail page (data-job-location)",
+        "posted": "Not shown on list tiles; check the detail page",
+        "title": "<h2> inside each result <li> tile (also data-title on the link)",
+        "url": "/job/<city>/<slug>/27595/<id> relative to jobs.intuit.com"
+      },
+      "filters": {
+        "keyword": "Server-side via ?k=<term> (verified: 'strategy' -> 397 results with real strategy titles)",
+        "us": "No server-side US filter found on the search page; US jobs are identified by the location text on each job's detail page (data-job-location attribute on the Apply button). The site's own facet reports 557 United States jobs."
+      },
+      "method": "GET (search page) + POST (paging)",
+      "paging": "15 per page; ?page=N does not work — paging goes through POST /search-jobs/resultspost, which returned HTTP 302 in a plain test (needs the site's form fields/tokens from its JS). Location/category facet pages (e.g. /location/india-jobs/27595/1269750/2) also exist."
+    },
+    "blockers": "Avature behind the front end has no public SearchJobs page (404 on /en_US/externalCareers/SearchJobs, /en_US/careers/SearchJobs and /externalCareers/SearchJobs; the Avature root is a login page) — Avature is application-only here, so the existing avature fetcher cannot be used. TalentBrew paging POST needs reverse-engineering from the site's JS.",
+    "careers_url": "https://jobs.intuit.com/search-jobs",
+    "confidence": "medium",
+    "config": null,
+    "firm": "Intuit",
+    "notes": "The system behind the Radancy/TalentBrew front end is Avature (apply links go to intuit.avature.net/externalCareers), independently confirmed by airecruiter.co's S&P 500 ATS survey. A new TalentBrew fetcher would read the server-rendered search pages.",
+    "platform": "unsupported:talentbrew",
+    "supported": false,
+    "verified": {
+      "how": "TalentBrew search page fetch (?k=strategy: 397 results; 614 jobs total) + job detail page (Apply button links to intuit.avature.net); site facet reports 557 United States jobs",
+      "probe": null,
+      "sample_titles": [
+        "Finance Strategy Lead",
+        "Principal, Corporate Strategy",
+        "Manager 2, Corporate Strategy"
+      ],
+      "us_postings_seen": 557
+    }
+  },
+  {
+    "api": {
+      "endpoint": "https://jpmc.fa.oraclecloud.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
+      "example_request": "?onlyData=true&expand=requisitionList.secondaryLocations&finder=findReqs;siteNumber=CX_1001,keyword=strategy,limit=25,offset=0",
+      "fields": {
+        "description": "ShortDescriptionStr in the list response (short only); full HTML description is ExternalDescriptionStr from GET .../recruitingCEJobRequisitionDetails/{Id}?onlyData=true",
+        "location": "PrimaryLocation (+ secondaryLocations[] when expanded)",
+        "posted": "PostedDate (YYYY-MM-DD)",
+        "title": "Title",
+        "url": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/job/{Id}"
+      },
+      "filters": {
+        "keyword": "Server-side: keyword=<term> in the finder (verified: 'strategy' -> 5,297 jobs)",
+        "us": "Client-side: keep PrimaryLocationCountry == 'US' (4,300 US jobs per the locationsFacet). The locationId finder parameter returns no requisitionList and is unreliable."
+      },
+      "method": "GET",
+      "paging": "limit/offset inside the finder parameter (25/page tested); response carries TotalJobsCount (7,055) and hasMore"
+    },
+    "blockers": null,
+    "careers_url": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/jobs",
+    "confidence": "high",
+    "config": null,
+    "firm": "JPMorgan Chase",
+    "notes": "Oracle Recruiting Cloud, site CX_1001. The public REST API needs no auth and returns everything a fetcher needs; only the full description needs a second call per job (recruitingCEJobRequisitionDetails).",
+    "platform": "unsupported:oracle",
+    "supported": false,
+    "verified": {
+      "how": "Oracle REST API, no auth: unfiltered TotalJobsCount 7,055; locationsFacet reports 4,300 United States jobs; keyword 'strategy' 5,297 with 19 of 25 US on page 1; detail endpoint and job URL pattern both HTTP 200",
+      "probe": null,
+      "sample_titles": [
+        "Corporate Strategy Associate",
+        "Strategy Associate",
+        "Senior Associate, Payments Strategy & Planning"
+      ],
+      "us_postings_seen": 4300
+    }
+  },
+  {
+    "api": {
+      "endpoint": "https://enterpriseplatform.dell.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
+      "example_request": "?onlyData=true&expand=requisitionList.secondaryLocations&finder=findReqs;siteNumber=careers,keyword=strategy,limit=25,offset=0",
+      "fields": {
+        "description": "ShortDescriptionStr in the list response (short only); full HTML description is ExternalDescriptionStr from GET .../recruitingCEJobRequisitionDetails/{Id}?onlyData=true",
+        "location": "PrimaryLocation (+ secondaryLocations[] when expanded)",
+        "posted": "PostedDate (YYYY-MM-DD)",
+        "title": "Title",
+        "url": "https://enterpriseplatform.dell.com/hcmUI/CandidateExperience/en/sites/careers/job/{Id}"
+      },
+      "filters": {
+        "keyword": "Server-side: keyword=<term> in the finder (verified: 'strategy' -> 386 jobs)",
+        "us": "Client-side: keep PrimaryLocationCountry == 'US' (212 US jobs per the locationsFacet)"
+      },
+      "method": "GET",
+      "paging": "limit/offset inside the finder parameter (25/page tested); response carries TotalJobsCount (545) and hasMore"
+    },
+    "blockers": null,
+    "careers_url": "https://enterpriseplatform.dell.com/hcmUI/CandidateExperience/en/sites/careers/jobs",
+    "confidence": "high",
+    "config": null,
+    "firm": "Dell Technologies",
+    "notes": "Oracle Recruiting Cloud on Dell's own domain (enterpriseplatform.dell.com); jobs.dell.com 301s there. Same public REST API as JPMorgan; the site is 'careers' (third-party reports say this tenant ignores siteNumber, returning the same requisitions for CX_1/CX_1001 — I used 'careers', the site jobs.dell.com redirects to). Requisition Ids can be numeric (302334) or R-prefixed (R283586).",
+    "platform": "unsupported:oracle",
+    "supported": false,
+    "verified": {
+      "how": "Oracle REST API, no auth: 545 total jobs, 212 US (locationsFacet); keyword 'strategy' 386 with 14 of 25 US on page 1; detail endpoint (42KB description) and job URL pattern both HTTP 200",
+      "probe": null,
+      "sample_titles": [
+        "US Consumer Integrated Marketing Strategy",
+        "Consultant, Strategic Business Development",
+        "Senior Principal Engineer-Thermal Controls Strategy and Architecture"
+      ],
+      "us_postings_seen": 212
+    }
+  },
+  {
+    "api": {
+      "endpoint": "https://egug.fa.us2.oraclecloud.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
+      "example_request": "?onlyData=true&expand=requisitionList.secondaryLocations&finder=findReqs;siteNumber=CX_1,keyword=strategy,location=United States&limit=25&offset=0",
+      "fields": {
+        "description": "requisitionList[].ShortDescriptionStr, plus ExternalResponsibilitiesStr and ExternalQualificationsStr",
+        "location": "requisitionList[].PrimaryLocation (e.g. \"New York, NY, United States\"); PrimaryLocationCountry is the ISO code (\"US\")",
+        "posted": "requisitionList[].PostedDate (YYYY-MM-DD)",
+        "title": "requisitionList[].Title",
+        "url": "https://careers.americanexpress.com/en/sites/CX_1/job/<Id>/ (verified HTTP 200 for one job)"
+      },
+      "filters": {
+        "keyword": "keyword=<term> inside the finder (echoed back in the response's Keyword field)",
+        "us": "location=United States inside the finder (server-side; 103 of the 160 strategy matches are US)"
+      },
+      "method": "GET",
+      "paging": "offset/limit query params; the response's TotalJobsCount gives the total (317 jobs on the whole board)"
+    },
+    "blockers": null,
+    "careers_url": "https://careers.americanexpress.com/",
+    "confidence": "high",
+    "config": null,
+    "firm": "American Express",
+    "notes": "Oracle Recruiting Cloud, site CX_1 on egug.fa.us2.oraclecloud.com; no Eightfold front end on the public careers site. Gotcha: adding language=EN to the finder returns HTTP 400 — omit it. Paging the unfiltered keyword search counted 133 US of 175 matches, vs 103 with the location filter, so the location filter may drop multi-location postings.",
+    "platform": "unsupported:oracle",
+    "supported": false,
+    "verified": {
+      "how": "Oracle Recruiting Cloud REST API, keyword=strategy, location=United States",
+      "probe": null,
+      "sample_titles": [
+        "Director, Design Strategy",
+        "Manager, Organic Social Strategy",
+        "Director, Strategy and Analytics- Global Real Estate and Workplace Experience",
+        "Senior Manager – Business Strategy & Sales Performance",
+        "Senior Manager - Agentic Partnerships and Strategy, Payments"
+      ],
+      "us_postings_seen": 103
+    }
+  },
+  {
+    "api": {
+      "endpoint": "https://apply.careers.microsoft.com/api/apply/v2/jobs/<id>?domain=microsoft.com",
+      "example_request": "Two steps: (1) GET https://apply.careers.microsoft.com/careers/sitemap.xml for the full job list (2,404 URLs, each with a lastmod); (2) GET the detail endpoint above, one call per job id parsed from the sitemap URL.",
+      "fields": {
+        "description": "job_description (HTML)",
+        "location": "location (e.g. \"United States, Washington, Redmond\"); locations[] for multi-location",
+        "posted": "t_create (Unix seconds, e.g. 1793724729 = 2026-11-03); cross-checks against the JSON-LD datePosted on the job page",
+        "title": "name (also posting_name)",
+        "url": "canonicalPositionUrl, or https://apply.careers.microsoft.com/careers/job/<id>"
+      },
+      "filters": {
+        "keyword": "Sitemap URL slug contains the keyword (slug is '<id>-<title>-<location>'); no server-side keyword search.",
+        "us": "Sitemap URL slug contains 'united-states'; or detail JSON locations[] starts with 'United States'. No server-side filter (list API disabled)."
+      },
+      "method": "GET",
+      "paging": "No working list API; enumerate via the sitemap (2,404 job URLs, 1,325 US) and fetch details one by one."
+    },
+    "blockers": "Public positions list API GET /api/apply/v2/jobs returns 403 'Not authorized for PCSX' (Microsoft disabled it); POST /api/apply/search returns 401. Sitemap + per-job detail API is the working route.",
+    "careers_url": "https://careers.microsoft.com/us/en",
+    "confidence": "high",
+    "config": null,
+    "firm": "Microsoft",
+    "notes": "Eightfold (SmartApply/PCSX) on apply.careers.microsoft.com; the main careers site redirects there. Sample titles are from sitemap URL slugs. us_postings_seen counts sitemap URLs whose slug contains both 'united-states' and 'strategy'.",
+    "platform": "unsupported:eightfold",
+    "supported": false,
+    "verified": {
+      "how": "Sitemap listing (2,404 job URLs, 1,325 US) plus a live detail-API call for one job (Software Engineer II, Redmond)",
+      "probe": null,
+      "sample_titles": [
+        "Senior Director, Telecom Media Strategy and Value",
+        "Director of Sales Strategy Enablement",
+        "Senior Corporate Strategy Development Manager",
+        "Director, Strategic Account Technology Strategy",
+        "Growth Channel Incubation, Product Strategy Director"
+      ],
+      "us_postings_seen": 26
+    }
+  },
+  {
+    "api": {
+      "endpoint": "https://api-higher.gs.com/gateway/api/v1/graphql",
+      "example_request": "{\"operationName\":\"GetRoles\",\"variables\":{\"searchQueryInput\":{\"page\":{\"pageSize\":20,\"pageNumber\":0},\"experiences\":[\"EARLY_CAREER\",\"PROFESSIONAL\"],\"searchTerm\":\"strategy\",\"filters\":[{\"filterCategoryType\":\"LOCATION\",\"filters\":[{\"filter\":\"United States\",\"subFilters\":[]}]}]}},\"query\":\"query GetRoles($searchQueryInput: RoleSearchQueryInput!) { roleSearch(searchQueryInput: $searchQueryInput) { totalCount items { roleId corporateTitle jobTitle jobFunction locations { primary state country city } status division jobType { code description } } } }\"}",
+      "fields": {
+        "description": null,
+        "location": "roleSearch.items[].locations[] {city, state, country, primary}",
+        "posted": null,
+        "title": "roleSearch.items[].jobTitle (corporateTitle is the level, e.g. Associate)",
+        "url": "https://higher.gs.com/roles/<roleId> (verified HTTP 200 for one role)"
+      },
+      "filters": {
+        "keyword": "searchTerm in RoleSearchQueryInput",
+        "us": "filters:[{filterCategoryType:\"LOCATION\",filters:[{filter:\"United States\",subFilters:[]}]}] (server-side)"
+      },
+      "method": "POST",
+      "paging": "page.pageNumber is 0-based, page.pageSize 20; roleSearch.totalCount gives the total"
+    },
+    "blockers": null,
+    "careers_url": "https://higher.gs.com/",
+    "confidence": "high",
+    "config": null,
+    "firm": "Goldman Sachs",
+    "notes": "Custom Next.js site backed by a public GraphQL gateway (api-higher.gs.com). GetRoles returns no posting date and no description — both need the role detail page (a GetOpportunityOverview query exists in the frontend). 257 strategy matches worldwide, 142 US.",
+    "platform": "unsupported:own-site",
+    "supported": false,
+    "verified": {
+      "how": "GraphQL roleSearch, searchTerm=strategy + LOCATION filter United States",
+      "probe": null,
+      "sample_titles": [
+        "Executive Office, Firmwide Strategy, Associate, New York",
+        "Corporate Treasury-Resource Deployment & Strategy-Salt Lake City-Analyst",
+        "The Core Management & Strategy, Divisional CFO, Associate, Salt Lake City"
+      ],
+      "us_postings_seen": 142
+    }
+  },
+  {
+    "api": {
+      "endpoint": "https://www.google.com/about/careers/applications/jobs/results/?q=<keyword>&location=United States&page=<n>",
+      "example_request": "GET the results URL above; jobs are server-rendered into the HTML as AF_initDataCallback data (no JSON API). Parse job records of the form [\"<18-digit id>\",\"<title>\",\"<apply url>\",[null,\"<description HTML>\"],...,\"<company>\",\"en-US\",[[\"<location text>\",[\"<location text>\"],\"<city>\",null,\"<state>\",\"<country code>\"]],...].",
+      "fields": {
+        "description": "record[3][1] (HTML)",
+        "location": "record[8]: [[text,[text],city,null,state,countryCode]]",
+        "posted": "Unix timestamp in the record (first timestamp pair, e.g. 1793967268 = 2026-11-06) — inferred from position, not confirmed",
+        "title": "record[1]",
+        "url": "https://www.google.com/about/careers/applications/jobs/results/<id>-<slugified-title>"
+      },
+      "filters": {
+        "keyword": "q=<term> query param",
+        "us": "location=United States query param (server-side)"
+      },
+      "method": "GET",
+      "paging": "page=N (1-based); ~10-19 jobs per page; an empty page ends the list (32 pages for strategy+US)"
+    },
+    "blockers": null,
+    "careers_url": "https://www.google.com/about/careers/applications/jobs/results",
+    "confidence": "medium",
+    "config": null,
+    "firm": "Google",
+    "notes": "Own site (careers.google.com redirects here); no working JSON API — careers.google.com/api/v3/search/ returns 404. Search, titles, locations and descriptions are all verified from the rendered pages; only the posted-date field is inferred, hence medium confidence.",
+    "platform": "unsupported:own-site",
+    "supported": false,
+    "verified": {
+      "how": "Server-rendered results pages, q=strategy, location=United States, paged 1-33 until empty",
+      "probe": null,
+      "sample_titles": [
+        "Senior Strategy and Operations Manager, YouTube Marketing",
+        "Global Strategy and Operations Manager, YouTube Business",
+        "Strategy and Operations Manager, YouTube Trust and Safety Operations",
+        "Strategy Associate, YouTube",
+        "Strategy and Operations Principal Lead, GBO Chief of Staff Team"
+      ],
+      "us_postings_seen": 393
+    }
+  },
+  {
+    "api": {
+      "endpoint": "https://www.amazon.jobs/en/search.json",
+      "example_request": "?base_query=strategy&country=USA&offset=0",
+      "fields": {
+        "description": "jobs[].description (HTML); description_short also available",
+        "location": "jobs[].location (e.g. \"US, VA, Arlington\"); also city, state, country_code",
+        "posted": "jobs[].posted_date (e.g. \"August 24, 2026\")",
+        "title": "jobs[].title",
+        "url": "\"https://www.amazon.jobs\" + jobs[].job_path"
+      },
+      "filters": {
+        "keyword": "base_query=<term>",
+        "us": "country=USA (server-side; all 10 jobs on the first page had country_code USA)"
+      },
+      "method": "GET",
+      "paging": "offset in steps of 10 (page size is 10; the page= param is ignored — verified: page=2 returned the same 10 jobs as page=1, offset=10 returned 10 new ones); hits gives the total"
+    },
+    "blockers": null,
+    "careers_url": "https://www.amazon.jobs/en",
+    "confidence": "high",
+    "config": null,
+    "firm": "Amazon",
+    "notes": "Own site with a clean public search.json. loc_query does not filter (the echoed request shows location:null) — use country=USA. 5,316 strategy hits worldwide, 3,219 US.",
+    "platform": "unsupported:own-site",
+    "supported": false,
+    "verified": {
+      "how": "search.json, base_query=strategy, country=USA",
+      "probe": null,
+      "sample_titles": [
+        "Infrastructure Edge Strategy, TPM, Strategy and Planning",
+        "Trade Strategy Manager",
+        "Sr. Content Strategy Product Manager, Tools & Content Strategy",
+        "Content Strategy Manager, TV",
+        "Sr. Civil Engineer, DC Land Development Strategy, Global Engineering Strategy"
+      ],
+      "us_postings_seen": 3219
+    }
+  },
+  {
+    "api": {
+      "endpoint": "https://www.metacareers.com/api/jobs",
+      "example_request": {
+        "filters": {
+          "divisions": [],
+          "is_in_page": true,
+          "leadership_levels": [],
+          "offices": [],
+          "roles": [],
+          "saved_jobs": false,
+          "saved_searches": false
+        },
+        "page": 1,
+        "results_per_page": 50,
+        "sort_by": "newest"
+      },
+      "fields": {
+        "description": "jobs[].description",
+        "location": "jobs[].locations[].label (+ country, region)",
+        "posted": "jobs[].posted_date",
+        "title": "jobs[].title",
+        "url": "jobs[].url"
+      },
+      "filters": {
+        "keyword": "no keyword field in the documented REST body; the site's keyword search uses the GraphQL endpoint (unverified)",
+        "us": "offices filter takes office locations; no country-level filter documented — filter client-side on locations[].country == 'United States'"
+      },
+      "method": "POST",
+      "paging": "page is 1-indexed; results_per_page up to 50; total_results gives the total"
+    },
+    "blockers": "metacareers.com returns HTTP 400 (Meta generic error page) to every request from this VM — homepage, /api/jobs and /graphql, with full browser headers, HTTP/1.1, and facebook.com cookies; facebook.com itself also returns 400. Meta's edge blocks this environment (likely TLS fingerprint and/or egress proxy IP). Needs a real browser or different egress to verify.",
+    "careers_url": "https://www.metacareers.com/jobs",
+    "confidence": "medium",
+    "config": null,
+    "firm": "Meta",
+    "notes": "Meta runs its own single-tenant careers stack behind Cloudflare. The public POST /api/jobs endpoint is documented by a third-party scraper project but could not be confirmed live from this environment.",
+    "platform": "unsupported:own-site",
+    "supported": false,
+    "verified": {
+      "how": "Could not verify live — see blockers. Endpoint and response shape documented by open-source project datascry/openroles (scraper/src/ats/metacareers.ts); an alternative GraphQL endpoint at https://www.metacareers.com/graphql is documented in the same source. Neither could be confirmed from this VM.",
+      "probe": null,
+      "sample_titles": [],
+      "us_postings_seen": null
+    }
+  },
+  {
+    "api": {
+      "endpoint": "https://jobs.apple.com/api/v1/search",
+      "example_request": {
+        "filters": {
+          "locations": [
+            "postLocation-USA"
+          ]
+        },
+        "format": {
+          "longDate": "MMMM D, YYYY",
+          "mediumDate": "MMM D, YYYY"
+        },
+        "locale": "en-us",
+        "page": 1,
+        "query": "strategy",
+        "sort": "newest"
+      },
+      "fields": {
+        "description": "res.searchResults[].jobSummary",
+        "location": "res.searchResults[].locations[].name (+ city, stateProvince, countryName)",
+        "posted": "res.searchResults[].postDateInGMT (ISO) / postingDate (formatted, e.g. 'Nov 12, 2026')",
+        "title": "res.searchResults[].postingTitle",
+        "url": "https://jobs.apple.com/en-us/details/{positionId} (301s to the slugged detail URL)"
+      },
+      "filters": {
+        "keyword": "query free-text field (broad match — 'strategy' returned 1,857 total, 1,262 US)",
+        "us": "filters.locations: [\"postLocation-USA\"] (location IDs; the US country ID appears in the page JS)"
+      },
+      "method": "POST",
+      "paging": "page is 1-indexed; 20 results per page; res.totalRecords gives the total"
+    },
+    "blockers": null,
+    "careers_url": "https://jobs.apple.com/en-us/search",
+    "confidence": "high",
+    "config": null,
+    "firm": "Apple",
+    "notes": "Apple's current search API is /api/v1/search (endpoint and exact request body read from the site's own JS bundle); the older /api/role/search endpoint documented by third-party scrapers now 301s to a not-found page. No auth or CSRF token needed for search.",
+    "platform": "unsupported:own-site",
+    "supported": false,
+    "verified": {
+      "how": "POST jobs.apple.com/api/v1/search, query 'strategy', locations filter postLocation-USA",
+      "probe": null,
+      "sample_titles": [
+        "Software Engineering Technical Lead, Apple Card & Savings",
+        "Business Planning Functional Analyst, IT Governance & Planning, IS&T",
+        "AIML - Machine Learning Manager - Responsible AI and Safety",
+        "Marketing Insights Lead, Apple Services"
+      ],
+      "us_postings_seen": 1262
+    }
+  },
+  {
+    "api": {
+      "endpoint": "https://www-api.ibm.com/search/api/v2",
+      "example_request": {
+        "_source": [
+          "_id",
+          "title",
+          "url",
+          "description",
+          "language",
+          "field_keyword_05",
+          "field_keyword_08",
+          "field_keyword_17",
+          "field_keyword_18",
+          "field_keyword_19"
+        ],
+        "appId": "careers",
+        "from": 0,
+        "lang": "zz",
+        "localeSelector": {},
+        "post_filter": {
+          "bool": {
+            "must": [
+              {
+                "term": {
+                  "field_keyword_05": "United States"
+                }
+              }
+            ]
+          }
+        },
+        "query": {
+          "bool": {
+            "must": [
+              {
+                "multi_match": {
+                  "fields": [
+                    "title",
+                    "description"
+                  ],
+                  "query": "strategy"
+                }
+              }
+            ]
+          }
+        },
+        "scopes": [
+          "careers2"
+        ],
+        "size": 30,
+        "sm": {
+          "lang": "zz",
+          "query": "strategy"
+        },
+        "sort": [
+          {
+            "_score": "desc"
+          },
+          {
+            "pageviews": "desc"
+          }
+        ]
+      },
+      "fields": {
+        "description": "hits.hits[]._source.description",
+        "location": "hits.hits[]._source.field_keyword_19 (city/region text; 'Multiple Cities' is common) + field_keyword_17 (work mode: Hybrid/Remote/Onsite)",
+        "posted": "not exposed by this API (no date field in _source; requesting unknown _source fields returns 400)",
+        "title": "hits.hits[]._source.title",
+        "url": "hits.hits[]._source.url (https://careers.ibm.com/careers/JobDetail?jobId=...)"
+      },
+      "filters": {
+        "keyword": "multi_match on title/description inside query.bool.must (sm.query alone does NOT filter — verified: total stayed 477 with sm.query='strategy')",
+        "us": "post_filter term field_keyword_05 = 'United States' (477 US jobs)"
+      },
+      "method": "POST",
+      "paging": "size/from (Elasticsearch-style); paginate from=0,30,60... until a short page; hits.total.value gives the total but is sometimes capped, so don't trust it as a loop bound"
+    },
+    "blockers": "careers.ibm.com returns empty HTTP 202 to curl (bot mitigation), so job detail pages can't be fetched from this VM; the search API on www-api.ibm.com works fine. Requires Origin: https://www.ibm.com header.",
+    "careers_url": "https://www.ibm.com/careers/search",
+    "confidence": "high",
+    "config": null,
+    "firm": "IBM",
+    "notes": "IBM's public job search is its own Elasticsearch-style API (appId 'careers', scope 'careers2'); the underlying ATS is IBM Kenexa BrassRing. No posted-date field is exposed, so the board would need to stamp its own first-seen date. 2,996 jobs total, 477 US.",
+    "platform": "unsupported:own-site",
+    "supported": false,
+    "verified": {
+      "how": "POST www-api.ibm.com/search/api/v2, appId 'careers', US filter + multi_match 'strategy'",
+      "probe": null,
+      "sample_titles": [
+        "Strategy Consultant",
+        "Senior Managing Consultant - Enterprise Strategy",
+        "Corporate Strategy Summer Consultant – Internship",
+        "Modern Data & Strategy Architect"
+      ],
+      "us_postings_seen": 31
+    }
+  },
+  {
+    "api": {
+      "endpoint": "https://eeho.fa.us2.oraclecloud.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
+      "example_request": "?onlyData=true&expand=requisitionList&finder=findReqs;siteNumber=CX_45001,location=United%20States,keyword=strategy,limit=25,offset=0",
+      "fields": {
+        "description": "items[0].requisitionList[].ShortDescriptionStr (+ ExternalResponsibilitiesStr / ExternalQualificationsStr)",
+        "location": "items[0].requisitionList[].PrimaryLocation (+ PrimaryLocationCountry)",
+        "posted": "items[0].requisitionList[].PostedDate (YYYY-MM-DD; null on some postings)",
+        "title": "items[0].requisitionList[].Title",
+        "url": "https://careers.oracle.com/en/sites/jobsearch/requisition/{Id} (verified HTTP 200)"
+      },
+      "filters": {
+        "keyword": "keyword=strategy in the finder (1,572 matches; 1,231 combined with the US filter)",
+        "us": "location=United States in the finder (2,118 US jobs)"
+      },
+      "method": "GET",
+      "paging": "limit/offset inside the finder string (e.g. limit=25,offset=0,25,50...); response has hasMore and TotalJobsCount"
+    },
+    "blockers": null,
+    "careers_url": "https://careers.oracle.com/en/sites/jobsearch",
+    "confidence": "high",
+    "config": null,
+    "firm": "Oracle",
+    "notes": "Oracle runs its own product, Oracle Recruiting Cloud: pod eeho.fa.us2.oraclecloud.com, candidate site CX_45001 (both read from the careers page HTML). The public hcmRestApi endpoint needs no auth. Same API shape as other Oracle Recruiting Cloud firms, so one oracle fetcher would serve several firms.",
+    "platform": "unsupported:oracle",
+    "supported": false,
+    "verified": {
+      "how": "GET hcmRestApi recruitingCEJobRequisitions, pod eeho.fa.us2.oraclecloud.com, site CX_45001, keyword 'strategy' + US location filter",
+      "probe": null,
+      "sample_titles": [
+        "Lead Product Manager, Growth and Strategy - Oracle AI Lakehouse",
+        "Principal Program Manager (OCI Energy Strategy)",
+        "Sr. Director, Global RE&F Strategy",
+        "Principal Program Manager, Carbon Strategy & Innovation"
+      ],
+      "us_postings_seen": 1231
+    }
+  },
+  {
+    "api": {
+      "endpoint": "https://api.lifeattiktok.com/api/v1/public/supplier/search/job/posts",
+      "example_request": {
+        "job_category_id_list": [],
+        "keyword": "strategy",
+        "limit": 50,
+        "location_code_list": [],
+        "offset": 0,
+        "subject_id_list": []
+      },
+      "fields": {
+        "description": "data.job_post_list[].description (+ requirement)",
+        "location": "data.job_post_list[].city_info.en_name (city) + city_info.parent.en_name (state) + city_info.parent.parent.en_name (country, 'United States of America')",
+        "posted": "not returned by the list API (no publish_time field in the current response; GET on the detail endpoint /job/posts/{id} returns 400)",
+        "title": "data.job_post_list[].title",
+        "url": "https://lifeattiktok.com/search/{id} (canonical; /position/{id}/detail 302s there)"
+      },
+      "filters": {
+        "keyword": "keyword free-text field",
+        "us": "no country filter — location_code_list takes city codes only (country code CN_6 returned 0 results); filter client-side on city_info.parent.parent.en_name == 'United States of America'. City codes come from GET https://lifeattiktok.com/api/v1/config/job/filters (verified working)."
+      },
+      "method": "POST",
+      "paging": "limit/offset; data.count gives the total"
+    },
+    "blockers": "careers.tiktok.com now redirects to lifeattiktok.com, and POSTing to lifeattiktok.com/api/v1/search/job/posts returns 405 — the working API host is api.lifeattiktok.com (found in the site's JS bundle). Requires Origin and website-path headers; no auth needed.",
+    "careers_url": "https://lifeattiktok.com/search",
+    "confidence": "high",
+    "config": null,
+    "firm": "TikTok",
+    "notes": "TikTok (ByteDance) runs its own careers stack. The public search API works with plain POSTs; 'strategy' returned 1,876 postings and all 10 in the first page were US-based (Seattle, Los Angeles, New York).",
+    "platform": "unsupported:own-site",
+    "supported": false,
+    "verified": {
+      "how": "POST api.lifeattiktok.com/api/v1/public/supplier/search/job/posts, keyword 'strategy'",
+      "probe": null,
+      "sample_titles": [
+        "TikTok Shop - Senior Strategy Associate, Market Intelligence",
+        "Monetization Strategy & Operations Associate",
+        "Strategy and Operations Manager - US Governance & Experience",
+        "TikTok Shop - Strategy & Analytics Analyst"
+      ],
+      "us_postings_seen": 10
+    }
+  },
+  {
+    "firm": "Snap Inc.",
+    "careers_url": "https://careers.snap.com/jobs",
+    "platform": "workday",
+    "supported": true,
+    "config": {
+      "platform": "workday",
+      "tenant": "snapchat",
+      "host": "wd1",
+      "site": "snap",
+      "group": "tech",
+      "us_only": true
+    },
+    "api": null,
+    "verified": {
+      "how": "Workday CXS search API + probe_firm.py run in a private repo copy under /tmp",
+      "us_postings_seen": 20,
+      "sample_titles": [
+        "Lead, Strategy & Operations",
+        "Creative Strategy Lead",
+        "Lead, SMC Advertiser Growth (Brand Ads)",
+        "Manager, Finance",
+        "Product Manager, Ad Tech"
+      ],
+      "probe": "kept 14 of 21"
+    },
+    "blockers": null,
+    "confidence": "high",
+    "notes": "Workday board behind a custom front end; apply URLs are wd1.myworkdaysite.com/recruiting/snapchat/snap. CXS API 'strategy' search returned 116 postings; 215 jobs total. Probe fetched 21, 20 of them US."
+  },
+  {
+    "firm": "Uber",
+    "careers_url": "https://www.uber.com/us/en/careers/list/",
+    "platform": "unsupported:own-site",
+    "supported": false,
+    "config": null,
+    "api": {
+      "endpoint": "https://www.uber.com/api/loadSearchJobsResults?localeCode=en",
+      "method": "POST",
+      "example_request": "{\"params\":{\"query\":\"strategy\"},\"page\":0,\"limit\":50}",
+      "paging": "page (0-based) + limit; one POST returns up to 1,000 jobs",
+      "filters": {
+        "us": "No server-side country filter documented; filter client-side on location/allLocations",
+        "keyword": "params.query"
+      },
+      "fields": {
+        "title": "title",
+        "location": "location (structured) / allLocations",
+        "posted": "creationDate",
+        "url": "https://www.uber.com/global/en/careers/list/{id}/",
+        "description": "description (markdown, reported in search results — unverified live)"
+      }
+    },
+    "verified": {
+      "how": "Search API returns 403 'Missing csrf token' from this VM; verified instead via jobs.uber.com sitemap (807 jobs) + JSON-LD on 15 sampled job pages, 5 of them US",
+      "us_postings_seen": 5,
+      "sample_titles": [
+        "Associate Actuary / Sr. Actuarial Analyst, Specialty & International Pricing",
+        "Manager II, Analytics - Financial Operations"
+      ],
+      "probe": null
+    },
+    "blockers": "Search API requires a CSRF token (403 'Missing csrf token' without one); www.uber.com careers page returns 406 to curl. The jobs.uber.com sitemap + JSON-LD job pages are accessible without auth and are the practical route.",
+    "confidence": "medium",
+    "notes": "Custom first-party careers API, not a supported ATS. Two routes: the search API (needs CSRF token handling) or the jobs.uber.com sitemap (807 jobs) + JSON-LD job pages, verified accessible."
+  },
+  {
+    "firm": "Tesla",
+    "careers_url": "https://www.tesla.com/careers/search/",
+    "platform": "unsupported:own-site",
+    "supported": false,
+    "config": null,
+    "api": {
+      "endpoint": "https://www.tesla.com/cua-api/apps/careers/state",
+      "method": "GET",
+      "example_request": "GET with Accept: application/json; no body or params — returns the entire global dataset",
+      "paging": "none — one call returns all postings plus lookup tables",
+      "filters": {
+        "us": "none server-side; filter client-side via lookup-resolved location",
+        "keyword": "none server-side; filter client-side on title/department"
+      },
+      "fields": {
+        "title": "title (response.listings[])",
+        "location": "l — location id, resolved via response.lookup",
+        "posted": "not documented in listings",
+        "url": "https://www.tesla.com/careers/search/job/{id}",
+        "description": "jobDescription from GET /cua-api/careers/job/{id}"
+      }
+    },
+    "verified": {
+      "how": "State endpoint returns HTTP 403 Akamai 'Access Denied' from this VM; endpoint shape documented by multiple public sources (ever-jobs, jobseek, crawlora)",
+      "us_postings_seen": null,
+      "sample_titles": [],
+      "probe": null
+    },
+    "blockers": "Akamai Bot Manager blocks plain-HTTP access from datacenter IPs (403 on both the careers page and the API). Public sources report a real browser session or residential proxy is required; the pipeline's plain-HTTP fetcher cannot reach it.",
+    "confidence": "medium",
+    "notes": "Tesla runs its own in-house careers system (cua-api); apply links hand off to tesla.avature.net. One state call returns the whole global board (~5,900 postings per public sources), but Akamai blocks this VM."
+  },
+  {
+    "firm": "Palo Alto Networks",
+    "careers_url": "https://jobs.paloaltonetworks.com/en/search-jobs",
+    "platform": "unsupported:talentbrew",
+    "supported": false,
+    "config": null,
+    "api": {
+      "endpoint": "https://jobs.paloaltonetworks.com/en/search-jobs/<keyword>/47263/<page>",
+      "method": "GET",
+      "example_request": "GET /en/search-jobs/strategy/47263/1 — server-rendered HTML, not JSON",
+      "paging": "page number in path (/1, /2, ...), 15 results per page",
+      "filters": {
+        "us": "GET /en/location/united-states-jobs/47263/6252001/2 (527 jobs)",
+        "keyword": "keyword in path, e.g. /en/search-jobs/strategy/47263/1 (685 results)"
+      },
+      "fields": {
+        "title": "job card title / JSON-LD title",
+        "location": "job card location text / JSON-LD jobLocation",
+        "posted": "JSON-LD datePosted (not on list page)",
+        "url": "/en/job/<city>/<slug>/47263/<id>",
+        "description": "JSON-LD description on detail page"
+      }
+    },
+    "verified": {
+      "how": "Fetched search pages directly: 1,234 total jobs, 527 US via location filter, 685 for keyword 'strategy'; detail page has JSON-LD JobPosting",
+      "us_postings_seen": 527,
+      "sample_titles": [
+        "Lead, NetSec Product Strategy",
+        "Director Strategy, Industry Solutions",
+        "Principal, LatAm GTM Strategy & Ops",
+        "Lead, Strategy and AI Transformation",
+        "Principal, Strategy & AI Transformation"
+      ],
+      "probe": null
+    },
+    "blockers": null,
+    "confidence": "high",
+    "notes": "TalentBrew (Radancy) site — no fetcher exists for it. Search pages are server-rendered HTML with clean URL filters; job pages carry JSON-LD, so a fetcher would be straightforward HTML/JSON-LD parsing."
+  },
+  {
+    "firm": "L'Oréal",
+    "careers_url": "https://careers.loreal.com/en/search-jobs",
+    "platform": "unsupported:talentbrew",
+    "supported": false,
+    "config": null,
+    "api": {
+      "endpoint": "https://careers.loreal.com/en/search-jobs/<keyword>/3456/<page>",
+      "method": "GET",
+      "example_request": "GET /en/search-jobs/strategy/3456/1 — server-rendered HTML, not JSON",
+      "paging": "page number in path, ~16 results per page",
+      "filters": {
+        "us": "GET /en/location/united-states-jobs/3456/6252001/2 (517 jobs)",
+        "keyword": "keyword in path (unconfirmed — one test returned unfiltered-looking titles; filter client-side instead)"
+      },
+      "fields": {
+        "title": "search-results-list__job-title / JSON-LD title",
+        "location": "job-location span / JSON-LD jobLocation",
+        "posted": "JSON-LD datePosted (not on list page)",
+        "url": "/en/job/<city>/<slug>/3456/<id>",
+        "description": "JSON-LD description on detail page"
+      }
+    },
+    "verified": {
+      "how": "Fetched search pages directly: US location filter returns 517 jobs (results-count attribute); page-1 jobs all US; detail page has JSON-LD JobPosting with datePosted",
+      "us_postings_seen": 517,
+      "sample_titles": [
+        "Manager, Brand Engagement - L'Oreal Paris (Face Cosmetics) US",
+        "Senior Analyst – Commercial Finance (CPD)",
+        "Manager - TikTok Shop Performance Insights (CDMO)",
+        "Director, Trade Marketing - Redken (Haircare) US",
+        "Director - Product Development, Skincare - Kiehls DMI"
+      ],
+      "probe": null
+    },
+    "blockers": null,
+    "confidence": "high",
+    "notes": "TalentBrew (Radancy), same platform as Palo Alto Networks — one fetcher would cover both. List by US location and filter titles client-side; keyword-in-path filtering looked unfiltered in one test."
+  },
+  {
+    "firm": "Lockheed Martin",
+    "careers_url": "https://lockheedmartin.eightfold.ai/careers",
+    "platform": "unsupported:eightfold",
+    "supported": false,
+    "config": null,
+    "api": {
+      "endpoint": "https://lockheedmartin.eightfold.ai/api/pcsx/search",
+      "method": "GET",
+      "example_request": "?domain=lockheedmartin.com&query=strategy&location=United%20States&start=0",
+      "paging": "start=0,10,20,...; 10 jobs per page regardless of request; total in .data.count",
+      "filters": {
+        "us": "location=United States (6672 postings)",
+        "keyword": "query=strategy (711 postings)"
+      },
+      "fields": {
+        "title": "name",
+        "location": "locations[] (also standardizedLocations[], e.g. 'Sunnyvale, CA, US')",
+        "posted": "postedTs (Unix seconds, e.g. 1790794086 = 2026-09-30)",
+        "url": "positionUrl (relative, e.g. /careers/job/996476617535 on lockheedmartin.eightfold.ai)",
+        "description": "jobDescription (HTML) from GET /api/pcsx/position_details?position_id=<id>&domain=lockheedmartin.com&hl=en (.data.jobDescription); .data.publicUrl is the job link"
+      }
+    },
+    "verified": {
+      "how": "Eightfold search API, location=United States; paging (start=10), keyword (query=strategy) and position_details all checked live",
+      "us_postings_seen": 6672,
+      "sample_titles": [
+        "Systems Engineer",
+        "Systems Engineer Sr",
+        "Systems Engineer Stf - E4",
+        "Dev Sec Engineering - E2",
+        "Systems Engineer-IT Stf - E4"
+      ],
+      "probe": null
+    },
+    "blockers": "Rate limiting: HTTP 429 after a burst of requests a few seconds apart; cleared after a ~65s pause. Eightfold's shared front end can also return 405 'Human Verification' on bursts. A fetcher must pace requests several seconds apart.",
+    "confidence": "high",
+    "notes": "Lockheed's careers site is Eightfold and its search API is public JSON. Pay ranges are in the search results themselves (efcustomTextCustpayrange, e.g. '$88,100.00 - $163,700.00')."
+  },
+  {
+    "firm": "Corning Incorporated",
+    "careers_url": "https://careers.corning.com/us/en/search-results",
+    "platform": "phenom",
+    "supported": true,
+    "config": {
+      "platform": "phenom",
+      "base": "https://careers.corning.com",
+      "locale": "us/en",
+      "lang": "en_us",
+      "country": "us",
+      "countries": [
+        "United States"
+      ]
+    },
+    "api": null,
+    "verified": {
+      "how": "Phenom widgets API (refineSearch), country=United States",
+      "us_postings_seen": 641,
+      "sample_titles": [
+        "Automation Engineer",
+        "IT Controls Engineer",
+        "Account Manager",
+        "Shipping Shift Technician",
+        "Field Service Technician"
+      ],
+      "probe": "kept 6 of 7"
+    },
+    "blockers": "Phenom widgets responses intermittently truncate under urllib (http.client.IncompleteRead); the stock _get_json does not catch it, so the probe crashed twice. A patched copy that catches IncompleteRead and retries completed the probe. The fetcher needs that one-line robustness fix.",
+    "confidence": "high",
+    "notes": "Corning's front end is Phenom (over a SuccessFactors ATS). The widgets call needs lang en_us / country us: the BCG-style en_global/global body returns 0 hits. Job URLs are https://careers.corning.com/us/en/job/<jobId> (verified 200)."
+  },
+  {
+    "firm": "DaVita",
+    "careers_url": "https://careers.davita.com/",
+    "platform": "phenom",
+    "supported": true,
+    "config": {
+      "platform": "phenom",
+      "base": "https://careers.davita.com",
+      "countries": [
+        "United States of America"
+      ]
+    },
+    "api": null,
+    "verified": {
+      "how": "Phenom widgets API (refineSearch), country=United States of America",
+      "us_postings_seen": 3338,
+      "sample_titles": [
+        "Licensed Practical Nurse LPN",
+        "Registered Nurse",
+        "Manager, IKC Program Management",
+        "Patient Care Technician"
+      ],
+      "probe": null
+    },
+    "blockers": "Two issues. (1) DaVita's Phenom site has locale-less job URLs (https://careers.davita.com/job/<id>); every locale-prefixed variant the stock fetcher builds (/global/en, /us/en, /en_US, /en, /us, empty) returns 404, so stock fetch_phenom would produce broken job links and teaser-only descriptions — it needs a locale-less URL mode. (2) Widgets responses (~175KB) truncate under urllib (IncompleteRead) on every attempt in this session, though curl reads them fine; fetch_phenom returned None in both probe runs.",
+    "confidence": "medium",
+    "notes": "Phenom front end over a Workday ATS (apply links go to davita.wd1.myworkdayjobs.com/DKC_External). 3,338 US postings, mostly clinical roles."
+  },
+  {
+    "firm": "M&T Bank",
+    "careers_url": "https://www.mtb.com/careers",
+    "platform": "workday",
+    "supported": true,
+    "config": {
+      "platform": "workday",
+      "tenant": "mtb",
+      "host": "wd5",
+      "site": "MTB"
+    },
+    "api": null,
+    "verified": {
+      "how": "Workday search API, 'strategy'",
+      "us_postings_seen": 154,
+      "sample_titles": [
+        "Business Strategy Lead",
+        "Strategic Initiatives Enablement Lead (Hybrid - Buffalo, NY)",
+        "Strategic Initiatives Organization Change Management Lead",
+        "Strategic Initiatives Analyst II- Hybrid w/in M&T footprint"
+      ],
+      "probe": "kept 27 of 33"
+    },
+    "blockers": null,
+    "confidence": "high",
+    "notes": "US-only bank; the whole board is US postings. Job board is https://mtb.wd5.myworkdayjobs.com/MTB (linked from mtb.com/careers)."
+  },
+  {
+    "firm": "Guggenheim Securities",
+    "careers_url": "https://guggenheim.wd1.myworkdayjobs.com/Guggenheim_Careers",
+    "platform": "workday",
+    "supported": true,
+    "config": {
+      "platform": "workday",
+      "tenant": "guggenheim",
+      "host": "wd1",
+      "site": "Guggenheim_Careers",
+      "us_only": true
+    },
+    "api": null,
+    "verified": {
+      "how": "Workday search API, 'strategy'",
+      "us_postings_seen": 25,
+      "sample_titles": [
+        "Experienced Associate – Investment Banking, Digital Infrastructure",
+        "Vice President – Investment Banking, Digital Infrastructure",
+        "Experienced Associate – Investment Banking, Commercial Services",
+        "Associate - Investment Banking, Industrials"
+      ],
+      "probe": "kept 3 of 3"
+    },
+    "blockers": null,
+    "confidence": "high",
+    "notes": "Main site has 37 postings (all match 'advisory'), but only 4 of the 32 distinct titles seen pass the pipeline's title filter, so the feed yields few roles. A separate campus site (Guggenheim_Careers_Campus) holds 5 2027 summer associate roles and is not covered by this entry."
+  },
+  {
+    "firm": "RBC Capital Markets",
+    "careers_url": "https://jobs.rbc.com/ca/en/capital-markets",
+    "platform": "phenom",
+    "supported": true,
+    "config": {
+      "platform": "phenom",
+      "base": "https://jobs.rbc.com",
+      "locale": "ca/en",
+      "lang": "en_us",
+      "country": "us",
+      "countries": [
+        "United States of America"
+      ]
+    },
+    "api": null,
+    "verified": {
+      "how": "Phenom widgets API with US country filter: 123 postings. probe_firm.py failed 3x with urllib IncompleteRead on the widgets response, so keep/drop was simulated by running the repo's classify() over all 123 API-fetched postings (teaser descriptions): 21 pass the title filter, all 21 kept.",
+      "us_postings_seen": 123,
+      "sample_titles": [
+        "Associate, Global Investment Banking, Energy Group (Houston)",
+        "Associate, Global Investment Banking, Consumer & Retail",
+        "Associate, Equity Derivatives Structurer"
+      ],
+      "probe": null
+    },
+    "blockers": "probe_firm.py could not complete from this VM: urllib raises http.client.IncompleteRead reading the widgets response (3 attempts); curl reads the same endpoint fine, so it looks like a transport/proxy quirk rather than a feed problem. Note the fetcher's _get_json does not retry IncompleteRead.",
+    "confidence": "high",
+    "notes": "The feed covers all of RBC's US roles (no business-segment facet exists to isolate Capital Markets); the classifier narrows it to 21 MBA-relevant roles, mostly Global Investment Banking. Job pages live at /ca/en/ (/us/en/ job URLs 303-redirect), hence locale ca/en. Behind Phenom, RBC's ATS is Workday (rbc.wd3.myworkdayjobs.com/RBCGLOBAL1), but Phenom is the supported path."
+  },
+  {
+    "firm": "Santander Corporate & Investment Banking",
+    "careers_url": "https://www.santandercareers.com/",
+    "platform": "workday",
+    "supported": true,
+    "config": {
+      "platform": "workday",
+      "tenant": "santander",
+      "host": "wd3",
+      "site": "SantanderCareers",
+      "us_only": true
+    },
+    "api": null,
+    "verified": {
+      "how": "Workday CXS search API ('strategy': 376 postings globally) + probe_firm.py in a /tmp repo copy.",
+      "us_postings_seen": 11,
+      "sample_titles": [
+        "Corporate Strategy - Associate",
+        "Senior Associate, Sponsor and Specialty Finance - Technology & Infrastructure",
+        "Associate, Transaction Management"
+      ],
+      "probe": "kept 11 of 14"
+    },
+    "blockers": null,
+    "confidence": "high",
+    "notes": "The careers front end is TalentBrew/Radancy, but apply links go to Workday (santander.wd3.myworkdayjobs.com/SantanderCareers). The board is worldwide, hence us_only. Caveat: NYC roles listed at 'Madison Ave Corp' (Santander's HQ building) carry no US-identifying location in list or detail JSON, so the classifier drops them - 2 of the 5 US roles in the strategy sample. A location mapping for that value would recover them."
+  },
+  {
+    "firm": "Strategy&",
+    "careers_url": "https://jobs-us.pwc.com/",
+    "platform": "phenom",
+    "supported": true,
+    "config": {
+      "platform": "phenom",
+      "base": "https://jobs-us.pwc.com",
+      "locale": "us/en",
+      "lang": "en_us",
+      "country": "us",
+      "countries": [
+        "United States"
+      ],
+      "country_suffix": "United States",
+      "split": {
+        "Strategy&": "Strategy&"
+      },
+      "exclude": "\\b(Audit|Assurance|Tax|Taxes|Actuarial|Intern|Internship|Cyber|Cybersecurity|Accounting Advisory|Managed Services|Grant Administration)\\b"
+    },
+    "api": null,
+    "verified": {
+      "how": "PwC Phenom widgets API: keyword 'Strategy&' returns 25 US postings; classified all 25 with the repo's classify(): 17 kept, 8 dropped (5 summer-2027 interns, 3 Directors). Also verified the existing PwC entry's country filter is broken: 'United States of America' returns 0 hits, 'United States' returns 642.",
+      "us_postings_seen": 25,
+      "sample_titles": [
+        "Strategy& Pharma and Life Sciences Consulting Manager",
+        "Strategy& PEVC Operational Due Diligence - Manager, TMT",
+        "Strategy& Corporate Strategy Consulting Manager - Technology Sector"
+      ],
+      "probe": null
+    },
+    "blockers": "The existing PwC entry's countries value ('United States of America') matches no facet on PwC's Phenom instance and returns 0 jobs; it must change to 'United States' (verified 642 hits) or the countries key dropped, or no PwC/Strategy& jobs flow at all.",
+    "confidence": "high",
+    "notes": "No new entry needed: Strategy& roles are posted on PwC's US board (jobs-us.pwc.com, 642 postings) and the existing PwC entry already splits 'Strategy&' titles to a Strategy& sub-brand. All 25 Strategy& postings carry the brand in the title."
+  }
+]
