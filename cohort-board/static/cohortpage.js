@@ -97,7 +97,7 @@
       el("h1", { text: "Your cohort" }),
       el("p", { class: "muted tiny dir-sub" }, [plural(d.uploaded, "classmate has", "classmates have") + " uploaded their LinkedIn data" +
         (d.me ? " · You are " + d.me + " (" : ""), d.me ? change : null, d.me ? ")" : ""])]),
-      el("a", { class: "btn", href: "/companies?view=upload", text: "Add or update classmates" })]));
+      el("a", { class: "btn", href: "/cohort?view=upload", text: "Add or update classmates" })]));
     if (!d.me) { page.appendChild(whoAreYou(d, page)); return; }
     var picker = whoAreYou(d, page, true); picker.hidden = true;
     change.addEventListener("click", function () { picker.hidden = !picker.hidden; });

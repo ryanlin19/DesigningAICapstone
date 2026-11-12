@@ -291,7 +291,7 @@
         c.named && c.named.length ? el("span", { class: "muted tiny", text: "People your cohort knows, by function and seniority" }) : null])]);
     if (!c.people.length) {
       g.appendChild(el("p", { class: "muted", text: "No one in your cohort is tied to " + c.name + " yet. Ties appear when classmates add their LinkedIn exports." }));
-      g.appendChild(el("a", { href: "/companies?view=upload", text: "Add classmates' exports →" }));
+      g.appendChild(el("a", { href: "/cohort?view=upload", text: "Add classmates' exports →" }));
     } else {
       var holder = el("div", { class: "cm" });
       g.appendChild(holder);

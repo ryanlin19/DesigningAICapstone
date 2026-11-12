@@ -1,5 +1,5 @@
 // "Add classmates": drop LinkedIn exports (zips or unzipped folders, several at once), load each one,
-// and manage who is loaded. Each export goes to this computer's server, which runs the ingest, uploads
+// and manage who is loaded. Each export goes to the board's server, which runs the ingest, uploads
 // the result to the cohort database and deletes the export.
 (function () {
   // Invitations.csv is only for the classmate's own profile link (the sender link on invitations they sent).
@@ -30,7 +30,7 @@
 
     var view = el("section", { class: "wrap cohort-view cohort-upload" }, [
       el("h2", { text: "Add classmates" }),
-      el("p", { class: "cohort-sub", text: "Each export is read on this computer: only Connections, Profile, Positions, " +
+      el("p", { class: "cohort-sub", text: "Each export is read by the board's own server: only Connections, Profile, Positions, " +
         "Education and Skills are opened, plus Invitations for one thing only, the classmate's own profile link (taken " +
         "from invitations they sent, when you don't type it in). The export is deleted as soon as it's loaded, and from a " +
         "folder only those files are sent at all. Contacts' names, job titles and LinkedIn links are kept for the " +

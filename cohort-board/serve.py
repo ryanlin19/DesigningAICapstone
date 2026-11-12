@@ -1,6 +1,6 @@
 """Private, password-protected copy of the job board with cohort connections.
 
-Runs on this computer only (127.0.0.1). Nothing here is deployed or uploaded.
+Runs on this computer (127.0.0.1), or hosted on Cloudflare through deploy/ (launch.py, deploy/ship.sh).
 
     python cohort-board/serve.py            # then open http://127.0.0.1:8765
 
@@ -31,7 +31,7 @@ from datetime import datetime, timezone
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, quote, urlsplit
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
@@ -141,105 +141,6 @@ def end_session(token):
         SESSIONS.pop(_hash(token or ""), None)
         _ENDED.add(_hash(token or ""))
         _save_sessions()
-
-
-# ---------- the page: Ryan's private build plus small hooks ----------
-
-COHORT_FILTER = ('<div class="intl intlbar cohortbar"><label class="chk"><input type="checkbox" id="onlyConnected"> '
-                 '<b>Cohort:</b> only companies where a classmate has connections</label>'
-                 '<label class="chk"><input type="checkbox" id="onlyAlumni"> only companies where a classmate worked</label>'
-                 '</div>\n        ')
-
-# The top bar shared with Find a job (static/find.html has the same markup).
-NAV_HTML = """<header class="cb-nav">
-  <div class="cb-nav-row">
-    <a class="cb-brand" href="/">Cohort Job Board</a>
-    <nav class="cb-tabs" aria-label="Sections">
-      <a href="/" data-tab="find">Find a job</a>
-      <a href="/map" data-tab="map">Map</a>
-      <a href="/companies" data-tab="companies" aria-current="page">Companies</a>
-      <a href="/cohort" data-tab="cohort">Cohort</a>
-      <a href="/log" data-tab="log">Log</a>
-    </nav>
-    <a class="cb-upload" href="/companies?view=upload" title="Add a LinkedIn export (the upload page links to LinkedIn's data request)">Upload your data</a>
-    <span class="cb-private">Private: this computer only</span>
-    <button class="cb-logout" type="button">Log out</button>
-  </div>
-  <div class="cb-sub" hidden><div class="cb-nav-row cohort-views" aria-label="Cohort tools"></div></div>
-</header>
-"""
-
-# (find, replace, expected count). The build stops with a clear message if Ryan's page changes shape.
-PATCHES = [
-    ("</head>", '<link rel="stylesheet" href="nav.css">\n</head>', 1),
-    ("<body>", "<body>\n" + NAV_HTML, 1),
-    ("<title>MBA Job Board</title>", "<title>Cohort Job Board (private)</title>", 1),
-    ('<script src="data.js"></script>',
-     '<link rel="stylesheet" href="cohort.css">\n<script src="cohort-data.js"></script>\n'
-     '<script src="globalbar.js"></script>\n'                      # first: the others register with window.Global
-     '<script src="cohort.js"></script>\n<script src="cohort-upload.js"></script>\n'
-     '<script src="cohort-connect.js"></script>\n<script src="cohort-timeline.js"></script>\n<script src="describe.js"></script>\n'
-     '<script src="data.js"></script>', 1),
-    # "Job description" toggle on each role card
-    ('badges, fit ? el("div", { class: "fitline", text: fit.why.join(" \\u00b7 ") }) : null, reasons',
-     'badges, fit ? el("div", { class: "fitline", text: fit.why.join(" \\u00b7 ") }) : null, reasons, JobDescription.toggle(j.url)', 1),
-    ('<div class="searchbar card">', COHORT_FILTER + '<div class="searchbar card">', 1),
-    # badge in each company's header
-    ('el("span", { class: "gname", text: company }),',
-     'el("span", { class: "gname", text: company }), COHORT.headBadge(company),', 1),
-    # connections panel at the top of each opened company
-    ('function groupBody(rolesList, direct) {\n    var body = el("div", { class: "gbody" });',
-     'function groupBody(rolesList, direct) {\n    var body = el("div", { class: "gbody" });\n'
-     '    body.appendChild(COHORT.panel(rolesList.length ? rolesList[0].company : direct.co));', 1),
-    # the "only companies with connections" filter
-    ('if ($("hideUnlikely").checked && j.visa === "Unlikely") return false;',
-     'if (COHORT.hide(j.company)) return false;\n    if ($("hideUnlikely").checked && j.visa === "Unlikely") return false;', 1),
-    ('DIRECT.forEach(function (f) {\n      if (jobsTab === "new"',
-     'DIRECT.forEach(function (f) {\n      if (COHORT.hide(f.co)) return;\n      if (jobsTab === "new"', 1),
-    ('["q", "hideUnlikely", "posted",', '["q", "hideUnlikely", "onlyConnected", "onlyAlumni", "cohortPeriod", "posted",', 1),
-    # posting timeline: the histogram panel, its period filter, and "Newest" ordering roles inside a company
-    ('<div class="note" id="fitHint"', '<div id="cohortTimeline"><input type="hidden" id="cohortPeriod" value=""></div>\n'
-     '        <div class="note" id="fitHint"', 1),
-    ('if (skip !== "location" && place && (j.cities || []).indexOf(place) < 0) return false;',
-     'if (skip !== "location" && place && (j.cities || []).indexOf(place) < 0) return false;\n'
-     '    if (skip !== "timeline" && !COHORT.inPeriod(j)) return false;\n'
-     '    if (window.Global && !Global.passes(j)) return false;', 1),
-    # fit to your resume (from the "Your search" panel) on each role card
-    ('fit ? el("span", { class: "badge fit " + fitClass(fit.pct), text: "Fit " + fit.pct + "%" }) : null,',
-     'COHORT.bucketBadge(j), fit ? el("span", { class: "badge fit " + fitClass(fit.pct), text: "Fit " + fit.pct + "%" }) : null,', 1),
-    ('var list = jobsTab === "new" ? newList : jobsTab === "other" ? otherList : mbaList;',
-     'var list = jobsTab === "new" ? newList : jobsTab === "other" ? otherList : mbaList;\n'
-     '    COHORT.drawTimeline(jobs.filter(function (j) { return inTabNow(j) && passes(j, "timeline"); }));', 1),
-    ('return VISA_ORDER[a.visa] - VISA_ORDER[b.visa]',
-     'if (s === "new") return (b.posted || "").localeCompare(a.posted || "") || VISA_ORDER[a.visa] - VISA_ORDER[b.visa];\n'
-     '      return VISA_ORDER[a.visa] - VISA_ORDER[b.visa]', 1),
-    ('el("span", { class: "gcount", text: rolesList.length',
-     'COHORT.newestNote(rolesList), el("span", { class: "gcount", text: rolesList.length', 1),
-    ('$("hidePassed").checked = true; $("closingWithin").value = "0";',
-     '$("hidePassed").checked = false; $("closingWithin").value = "0"; COHORT.clearPeriod(true);', 1),
-    # every filter starts on everything (Peter, 2026-11-11): roles past their deadline and Account Executive roles show
-    # until you choose to hide them
-    ('<input type="checkbox" id="hidePassed" checked>', '<input type="checkbox" id="hidePassed">', 1),
-    ('if (!$("hidePassed").checked) tag("Showing roles whose deadline has passed", function () { $("hidePassed").checked = true; });',
-     'if ($("hidePassed").checked) tag("Hiding roles whose deadline has passed", function () { $("hidePassed").checked = false; });', 1),
-    (', ["Account Executive"]);   // starts unticked (user decision 2026-11-09): about a third of the board', ');', 1),
-    ('$("hideUnlikely").checked = false;',
-     '$("hideUnlikely").checked = false; $("onlyConnected").checked = false; $("onlyAlumni").checked = false;', 1),
-    # "Classmate worked here" tag on each job card
-    ('el("span", { class: "badge " + dl.cls, text: "Deadline: " + dl.text }),',
-     'COHORT.jobTag(j.company), el("span", { class: "badge " + dl.cls, text: "Deadline: " + dl.text }),', 1),
-]
-
-
-def build_page():
-    html = (SITE / "index.html").read_text(encoding="utf-8")
-    for find, repl, n in PATCHES:
-        found = html.count(find)
-        if found != n:
-            raise RuntimeError(f"site/index.html changed: expected {n} of {find[:60]!r}, found {found}. "
-                               "Update PATCHES in cohort-board/serve.py.")
-        html = html.replace(find, repl)
-    return html
 
 
 # ---------- connection data ----------
@@ -484,7 +385,7 @@ def connections_by_board_company(snap, names):
 
 
 def cohort_payload(fresh=False):
-    key = (board_data()[2], all_jobs()[1], (SITE / "index.html").stat().st_mtime)
+    key = (board_data()[2], all_jobs()[1])
     if _cache["key"] != key:
         _cache.update(key=key, value={"names": board_companies()})
     snap = get_snapshot(fresh)
@@ -1303,16 +1204,14 @@ input{width:100%;box-sizing:border-box;font:inherit;padding:9px 11px;border:1px 
 button{width:100%;font:inherit;font-weight:600;padding:9px;border:0;border-radius:8px;background:var(--brand);color:#fff;cursor:pointer}
 .err{color:var(--bad);margin:0 0 12px}
 </style></head><body><form method="post" action="/login">
-<h1>Cohort Job Board</h1><p>Private test version. Runs on this computer only.</p>
+<h1>Cohort Job Board</h1><p>Private to the cohort. Sign in with the cohort password.</p>
 %ERR%<input type="password" name="password" placeholder="Password" autofocus aria-label="Password" required>
 <button type="submit">Open</button></form></body></html>"""
 
 STATIC_FILES = {
-    "/match_index.js": (SITE / "match_index.js", "application/javascript"),
-    "/cohort.js": (STATIC / "cohort.js", "application/javascript"),
+    "/cohort-tools.js": (STATIC / "cohort-tools.js", "application/javascript"),
     "/cohort-upload.js": (STATIC / "cohort-upload.js", "application/javascript"),
     "/cohort-connect.js": (STATIC / "cohort-connect.js", "application/javascript"),
-    "/cohort-timeline.js": (STATIC / "cohort-timeline.js", "application/javascript"),
     "/find.js": (STATIC / "find.js", "application/javascript"),
     "/find.css": (STATIC / "find.css", "text/css"),
     "/nav.css": (STATIC / "nav.css", "text/css"),
@@ -1432,7 +1331,16 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200, (STATIC / "map.html").read_bytes(), "text/html; charset=utf-8")
             if path == "/api/regions":
                 return self.send(200, json.dumps(regions.REGIONS), "application/json")
-            if path == "/companies" and "view=" not in self.path:  # the company directory (data/companies.db)
+            if path == "/companies" and ("view=" in self.path or "q=" in self.path):
+                # old links into the retired job-board page: its tools are on the Cohort tab, a company search is a company
+                qs = parse_qs(urlsplit(self.path).query)
+                view, q = (qs.get("view") or [""])[0], (qs.get("q") or [""])[0]
+                to = ("/cohort?view=" + view) if view in ("upload", "connect", "bridges") else \
+                     ("/companies?company=" + quote(q)) if q else "/cohort"
+                return self.send(302, headers={"Location": to})
+            if path == "/index.html":
+                return self.send(302, headers={"Location": "/"})
+            if path == "/companies":                            # the company directory (data/companies.db)
                 return self.send(200, (STATIC / "companies.html").read_bytes(), "text/html; charset=utf-8")
             if path == "/api/companies":
                 return self.send(200, json.dumps(directory_payload(), ensure_ascii=False), "application/json")
@@ -1467,8 +1375,6 @@ class Handler(BaseHTTPRequestHandler):
                 if not one:
                     return self.send(404, json.dumps({"error": "Company not found in the directory."}), "application/json")
                 return self.send(200, json.dumps(one, ensure_ascii=False), "application/json")
-            if path in ("/companies", "/index.html"):            # Cohort views: Ryan's page plus the cohort layer
-                return self.send(200, build_page(), "text/html; charset=utf-8")
             if path == "/api/description":                       # full job text, read from data/descriptions.db
                 url = parse_qs(urlsplit(self.path).query).get("url", [""])[0]
                 found = job_description(url)
@@ -1678,7 +1584,6 @@ def cohort_payload_names():
 
 
 def main():
-    build_page()                       # fail fast if Ryan's page no longer fits the hooks
     p = cohort_payload(fresh=True)
     print(f"Connections from {p['source']}: {len(p['companies'])} board companies matched; "
           f"{len(p['bridges'])} shared contacts; "
