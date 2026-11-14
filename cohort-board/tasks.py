@@ -97,6 +97,20 @@ def start_timer(store, every=900, on_change=None):
 
 # ---------- daily ----------
 
+class RefreshFailed(RuntimeError):
+    """A refresh failure that carries what's needed to see why (logged as the activity entry's details)."""
+    def __init__(self, msg, details):
+        super().__init__(msg)
+        self.details = details
+
+
+def _problems():
+    try:
+        return json.loads((REPO / "data" / "fetch_problems.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
 def _step(cmd, log_lines, timeout=7200):
     t = time.time()
     r = subprocess.run([sys.executable, "-u"] + cmd, cwd=REPO, capture_output=True, text=True, timeout=timeout)
@@ -119,39 +133,55 @@ def _refresh(store):
     lines, t0 = [], time.time()
     site = REPO / "site" / "data.js"
     before = _roles(site)
+    (REPO / "data" / "fetch_problems.json").unlink(missing_ok=True)      # so an old run's reasons are never shown
     keep = {n: (REPO / "data" / n).read_bytes() for n in ("history.json", "boards.json") if (REPO / "data" / n).exists()}
     old_site = site.read_bytes() if site.exists() else None
     try:
         _step(["pipeline/build.py"], lines)
         after = _roles(site)
         total_b, total_a = sum(before.values()), sum(after.values())
+        problems = _problems()
         if total_b and total_a < 0.75 * total_b:
-            raise RuntimeError(f"role count fell from {total_b} to {total_a}")
-        collapsed = [f"{c} {n} -> {after.get(c, 0)}" for c, n in before.items() if n >= 15 and after.get(c, 0) < 0.4 * n]
+            lost = sorted(before, key=lambda c: after.get(c, 0) - before[c])[:8]
+            raise RuntimeError(f"role count fell from {total_b} to {total_a}; biggest losses: " + "; ".join(
+                f"{c} {before[c]} -> {after.get(c, 0)}" + (f" ({problems[c]})" if c in problems else "") for c in lost if after.get(c, 0) < before[c]))
+        collapsed = [f"{c} {n} -> {after.get(c, 0)}" + (f" ({problems[c]})" if c in problems else "")
+                     for c, n in before.items() if n >= 15 and after.get(c, 0) < 0.4 * n]
         if collapsed:
             raise RuntimeError("these firms lost most of their roles (a feed reader may have broken): " + "; ".join(collapsed[:8]))
-    except Exception:
+    except Exception as e:
         for n, b in keep.items():                    # a failed download isn't trusted: the previous files stay
             (REPO / "data" / n).write_bytes(b)
         if old_site is not None:
             site.write_bytes(old_site)
-        raise
-    _step(["pipeline/expand.py"], lines)
-    _step(["pipeline/descriptions.py"], lines)
-    board_id, n_board = push_jobs.push_api(store, site, "board")
-    all_id, n_all = push_jobs.push_api(store, REPO / "data" / "all_jobs.json", "all")
-    for name in ("data.js", "all_jobs.json", "descriptions.db", "history.json", "boards.json"):
-        state.push(name)
+        raise RefreshFailed(str(e), {"error": str(e), "steps": lines, "failed_after_min": round((time.time() - t0) / 60, 1),
+                                     "firms_with_no_jobs": _problems()}) from e
+    stage = "expand"
+    try:
+        _step(["pipeline/expand.py"], lines)
+        stage = "descriptions"
+        _step(["pipeline/descriptions.py"], lines)
+        stage = "push to the cohort database"
+        board_id, n_board = push_jobs.push_api(store, site, "board")
+        all_id, n_all = push_jobs.push_api(store, REPO / "data" / "all_jobs.json", "all")
+        stage = "upload of the job files"
+        for name in ("data.js", "all_jobs.json", "descriptions.db", "history.json", "boards.json"):
+            state.push(name)
+    except Exception as e:
+        raise RefreshFailed(f"{stage}: {e}", {"error": str(e), "stage": stage, "steps": lines,
+                                               "failed_after_min": round((time.time() - t0) / 60, 1)}) from e
     moves = sorted(((after.get(c, 0) - before.get(c, 0), c) for c in set(before) | set(after)), key=lambda x: -abs(x[0]))
     return {"board_roles": n_board, "board_before": total_b, "all_roles": n_all, "board_build": board_id, "all_build": all_id,
-            "minutes": round((time.time() - t0) / 60, 1), "biggest_changes": [f"{c} {d:+d}" for d, c in moves[:8] if d], "steps": lines}
+            "minutes": round((time.time() - t0) / 60, 1), "biggest_changes": [f"{c} {d:+d}" for d, c in moves[:8] if d], "steps": lines,
+            "firms_with_no_jobs": _problems()}
 
 
 def refresh(store):
     try:
         out = _run("refresh", _refresh, store)
     except Exception as e:
-        _log(store, "job_refresh", f"Daily job refresh failed, the board keeps yesterday's jobs: {str(e)[:240]}", {"error": str(e)})
+        _log(store, "job_refresh", f"Daily job refresh failed, the board keeps yesterday's jobs: {str(e)[:400]}",
+             getattr(e, "details", None) or {"error": str(e)})
         raise
     if "skipped" not in out:
         _log(store, "job_refresh", f"Daily job refresh: {out['board_roles']:,} roles on the board (was {out['board_before']:,}), "

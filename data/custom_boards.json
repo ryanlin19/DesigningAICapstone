@@ -332,5 +332,172 @@
   "host": "careers.amd.com",
   "group": "tech",
   "country": "United States"
+ },
+ "Ankura": {
+  "platform": "workday",
+  "tenant": "ankura",
+  "host": "wd5",
+  "site": "Ankura"
+ },
+ "Snap Inc.": {
+  "platform": "workday",
+  "tenant": "snapchat",
+  "host": "wd1",
+  "site": "snap",
+  "group": "tech",
+  "us_only": true
+ },
+ "M&T Bank": {
+  "platform": "workday",
+  "tenant": "mtb",
+  "host": "wd5",
+  "site": "MTB",
+  "group": "tech",
+  "exclude": "\\b(Branch Manager|Financial\\s+Consultant)\\b"
+ },
+ "Guggenheim Securities": {
+  "platform": "workday",
+  "tenant": "guggenheim",
+  "host": "wd1",
+  "site": "Guggenheim_Careers",
+  "us_only": true,
+  "group": "tech"
+ },
+ "Santander Corporate & Investment Banking": {
+  "platform": "workday",
+  "tenant": "santander",
+  "host": "wd3",
+  "site": "SantanderCareers",
+  "us_only": true,
+  "group": "tech",
+  "exclude": "\\b(Branch Manager|Financial Advisor|Customer Service|Customer Experience)\\b"
+ },
+ "Capital One": {
+  "platform": "workday",
+  "tenant": "capitalone",
+  "host": "wd12",
+  "site": "Capital_One",
+  "us_only": true,
+  "group": "tech"
+ },
+ "Citi": {
+  "platform": "workday",
+  "tenant": "citi",
+  "host": "wd5",
+  "site": "2",
+  "us_only": true,
+  "group": "tech"
+ },
+ "Morgan Stanley": {
+  "platform": "workday",
+  "tenant": "ms",
+  "host": "wd5",
+  "site": "External",
+  "us_only": true,
+  "group": "tech",
+  "exclude": "\\bMortgage\\b"
+ },
+ "Blackstone": {
+  "platform": "workday",
+  "tenant": "blackstone",
+  "host": "wd1",
+  "site": "Blackstone_Careers",
+  "us_only": true,
+  "group": "tech"
+ },
+ "Wells Fargo": {
+  "platform": "workday",
+  "tenant": "wf",
+  "host": "wd1",
+  "site": "WellsFargoJobs",
+  "us_only": true,
+  "group": "tech",
+  "exclude": "\\b(Mortgage|Customer Service|Branch Manager|Sales Consultant|Teller|Personal Banker)\\b"
+ },
+ "Procter & Gamble": {
+  "platform": "workday",
+  "tenant": "pg",
+  "host": "wd5",
+  "site": "1000",
+  "us_only": true,
+  "group": "tech"
+ },
+ "General Motors": {
+  "platform": "workday",
+  "tenant": "generalmotors",
+  "host": "wd5",
+  "site": "Careers_GM",
+  "us_only": true,
+  "group": "tech"
+ },
+ "Baker Hughes": {
+  "platform": "workday",
+  "tenant": "bakerhughes",
+  "host": "wd5",
+  "site": "BakerHughes",
+  "us_only": true,
+  "group": "tech"
+ },
+ "Mastercard": {
+  "platform": "workday",
+  "tenant": "mastercard",
+  "host": "wd1",
+  "site": "CorporateCareers",
+  "us_only": true,
+  "group": "tech"
+ },
+ "Novartis": {
+  "platform": "workday",
+  "tenant": "novartis",
+  "host": "wd3",
+  "site": "Novartis_Careers",
+  "us_only": true,
+  "group": "tech"
+ },
+ "Medtronic": {
+  "platform": "workday",
+  "tenant": "medtronic",
+  "host": "wd1",
+  "site": "MedtronicCareers",
+  "us_only": true,
+  "group": "tech"
+ },
+ "GE Aerospace": {
+  "platform": "workday",
+  "tenant": "geaerospace",
+  "host": "wd5",
+  "site": "GE_ExternalSite",
+  "us_only": true,
+  "group": "tech"
+ },
+ "GE Vernova": {
+  "platform": "workday",
+  "tenant": "gevernova",
+  "host": "wd5",
+  "site": "Vernova_ExternalSite",
+  "us_only": true,
+  "group": "tech"
+ },
+ "Corning Incorporated": {
+  "platform": "phenom",
+  "base": "https://careers.corning.com",
+  "locale": "us/en",
+  "lang": "en_us",
+  "country": "us",
+  "countries": [
+   "United States"
+  ],
+  "group": "tech"
+ },
+ "RBC Capital Markets": {
+  "platform": "phenom",
+  "base": "https://jobs.rbc.com",
+  "locale": "ca/en",
+  "lang": "en_us",
+  "country": "us",
+  "countries": [
+   "United States of America"
+  ],
+  "group": "tech"
  }
 }

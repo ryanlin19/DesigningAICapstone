@@ -3,13 +3,38 @@
 Each fetcher returns a list of normalized job dicts, or None if the company has
 no board on that platform. Standard library only.
 """
+import http.client
 import json
 import re
+import threading
 import time
 import urllib.error
 import urllib.request
 
 UA = "Mozilla/5.0 (compatible; job-board/0.1)"
+
+# Why the last request on this thread failed ("HTTP 403 at <url>"), so build.py can say why a firm came back empty.
+_why = threading.local()
+
+
+def _note(url, problem):
+    _why.last = f"{problem} at {url}"
+
+
+def why(clear=True):
+    """The last failure noted on this thread (None if there was none). build.py calls it after each firm."""
+    out = getattr(_why, "last", None)
+    if clear:
+        _why.last = None
+    return out
+
+
+def _err(e):
+    if isinstance(e, urllib.error.HTTPError):
+        return f"HTTP {e.code}"
+    if isinstance(e, urllib.error.URLError):
+        return f"unreachable ({e.reason})"
+    return f"{type(e).__name__}" + (f" ({e})" if str(e) else "")
 TIMEOUT = 20
 
 
@@ -26,11 +51,12 @@ def _get_json(url, retries=2, data=None, headers=None):
             with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
                 return json.loads(r.read().decode("utf-8", "replace"))
         except urllib.error.HTTPError as e:
+            _note(url, _err(e))
             if e.code in (404, 400, 410):
                 return None
             # 429 / 5xx: back off and retry
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, ConnectionError):
-            pass
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, ConnectionError, http.client.IncompleteRead) as e:
+            _note(url, _err(e))   # IncompleteRead: a large reply cut off mid-way (Phenom widgets at Corning, RBC); try again
         time.sleep(1.5 * (attempt + 1))
     return None
 
@@ -296,10 +322,11 @@ def _get_text(url, opener=None, retries=2, limit=1500000):
             with (opener or urllib.request.build_opener()).open(req, timeout=TIMEOUT) as r:
                 return r.read(limit).decode("utf-8", "replace")
         except urllib.error.HTTPError as e:
+            _note(url, _err(e))
             if e.code in (400, 403, 404, 410):
                 return None
-        except (urllib.error.URLError, TimeoutError, ConnectionError):
-            pass
+        except (urllib.error.URLError, TimeoutError, ConnectionError, http.client.IncompleteRead) as e:
+            _note(url, _err(e))
         time.sleep(1.5 * (attempt + 1))
     return None
 
@@ -507,6 +534,10 @@ def fetch_kpmg(cfg, want=None):
                 break
             reachable = True
             blocks = re.findall(r'<div class="search--item.*?</a>\s*</div>', page, re.S)
+            if not blocks and pg == 1 and not found:            # a bot check or a new page layout, not "no jobs"
+                t = re.search(r"<title[^>]*>(.*?)</title>", page, re.S | re.I)
+                _note(f"{base}/job-search/?keyword={quote(term)}", f"page loaded ({len(page):,} chars, title "
+                      f"{_text_of(t.group(1))[:80]!r}) but had no job listings" if t else f"page loaded ({len(page):,} chars) but had no job listings")
             new = 0
             for b in blocks:
                 m = re.search(r'href="(/jobdetail/\?jobId=\d+)"', b)

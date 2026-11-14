@@ -164,7 +164,25 @@ def title_worth_opening(title):
     return classify({"title": title, "location": "United States", "description": ""}, True) is not None
 
 
+FETCH_PROBLEMS = {}     # firm -> why its feed gave nothing this run (written to data/fetch_problems.json)
+
+
 def discover(name, cached, custom=None):
+    """discover_once(), noting why a firm came back with nothing (ats.why() is per thread)."""
+    ats.why()
+    try:
+        hit = discover_once(name, cached, custom)
+    except Exception as e:                                          # one broken reader must not stop the build
+        hit = None
+        ats._note(name, f"reader crashed: {type(e).__name__}: {e}")
+    c = (cached or {}).get(name)
+    known = bool((custom or {}).get(name)) or bool(c and (c["platform"] in ats.FETCHERS))   # a feed we expect to read
+    if known and (hit is None or not hit[2]):
+        FETCH_PROBLEMS[name] = ats.why() or ("feed answered but listed no jobs" if hit else "feed gave nothing (no error noted)")
+    return hit
+
+
+def discover_once(name, cached, custom=None):
     """-> (platform, slug, jobs) or None. Uses the cached board when we have one."""
     cfg = (custom or {}).get(name)
     if cfg:
@@ -300,6 +318,8 @@ def main():
             found = list(ex.map(lambda t: discover(t[0], cached, custom), targets))
         raw_cache.write_text(json.dumps({n: list(h) if h else None for (n, _), h in zip(targets, found)},
                                         ensure_ascii=False), encoding="utf-8")
+        (DATA / "fetch_problems.json").write_text(json.dumps(dict(sorted(FETCH_PROBLEMS.items())), indent=1), encoding="utf-8")
+        print(f"{len(FETCH_PROBLEMS)} firms gave no jobs this run (data/fetch_problems.json)")
 
     # Standing roles typed in by hand for firms whose careers pages cannot be read automatically (data/standing_roles.json).
     standing = {}
