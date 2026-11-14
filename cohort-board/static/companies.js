@@ -429,10 +429,6 @@
     } };
   }
 
-  var logout = document.querySelector(".cb-logout");
-  if (logout) logout.addEventListener("click", function () {
-    fetch("/logout", { method: "POST" }).then(function () { location.href = "/login"; });
-  });
 
   var detailParams = new URLSearchParams(location.search);
   if (detailParams.get("id") || detailParams.get("company")) { showDetail(detailParams); return; }

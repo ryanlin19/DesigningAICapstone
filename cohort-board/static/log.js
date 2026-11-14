@@ -66,7 +66,5 @@
       })) : el("p", { class: "muted", text: "Nothing logged yet." })]));
   }
   function load() { fetch("/api/log").then(function (r) { return r.json(); }).then(render); }
-  var logout = document.querySelector(".cb-logout");
-  if (logout) logout.addEventListener("click", function () { fetch("/logout", { method: "POST" }).then(function () { location.href = "/login"; }); });
   load();
 })();

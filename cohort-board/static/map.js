@@ -353,9 +353,6 @@
   Array.prototype.forEach.call(document.querySelectorAll("#modeSeg button"), function (b) {
     b.addEventListener("click", function () { mode = b.getAttribute("data-mode"); press("#modeSeg", "data-mode", mode); loadMode(); });
   });
-  document.querySelector(".cb-logout").addEventListener("click", function () {
-    fetch("/logout", { method: "POST" }).then(function () { location.href = "/login"; });
-  });
   var resizeTimer = null;
   window.addEventListener("resize", function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(draw, 150); });
 

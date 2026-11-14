@@ -6,7 +6,7 @@ The job board with a cohort-connections layer. It runs on this computer only and
 python cohort-board/serve.py      # then open http://127.0.0.1:8765
 ```
 
-- **Password:** `cohort-board/.password` (not in git) or the `COHORT_PASSWORD` environment variable.
+- **No password:** anyone with the address can open the board. Each browser gets a session cookie on its first visit that remembers which classmate it is.
 - **Page:** Ryan's private build in `site/`, with hooks added as it is served. `site/` itself is never edited,
   so a rebuild of the board shows up on refresh. If his page changes shape, the server stops with a message
   naming the hook to update (`PATCHES` in `serve.py`).

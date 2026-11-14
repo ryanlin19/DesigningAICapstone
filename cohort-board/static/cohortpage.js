@@ -106,8 +106,6 @@
     page.appendChild(overlapCard(d));
   }
 
-  var logout = document.querySelector(".cb-logout");
-  if (logout) logout.addEventListener("click", function () { fetch("/logout", { method: "POST" }).then(function () { location.href = "/login"; }); });
 
   fetch("/api/cohort").then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
     .then(render)

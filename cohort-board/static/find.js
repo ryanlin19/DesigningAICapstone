@@ -283,9 +283,6 @@
     $("more").textContent = "Show more (" + fmtN(total - shown.length) + " left)";
   }
   $("more").addEventListener("click", function () { refresh(true); });
-  document.querySelector(".cb-logout").addEventListener("click", function () {
-    fetch("/logout", { method: "POST" }).then(function () { location.href = "/login"; });
-  });
 
   // ---------- posting timeline: postings per day for the jobs in view; drag or click to pick a period ----------
   var DAY = 864e5, WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];

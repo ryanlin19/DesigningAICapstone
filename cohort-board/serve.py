@@ -1,4 +1,4 @@
-"""Private, password-protected copy of the job board with cohort connections.
+"""Copy of the job board with cohort connections. Open to anyone who has the address: there is no sign-in.
 
 Runs on this computer (127.0.0.1), or hosted on Cloudflare through deploy/ (launch.py, deploy/ship.sh).
 
@@ -11,7 +11,7 @@ Where the cohort data lives: the cloud database (Cloudflare D1) behind the cohor
 address and token in cohort-board/.api. Every read and write goes through store.py; uploads ingest into a temporary
 file and send the result there. Without .api the board uses a local test database (store.LocalStore).
 
-Password: the COHORT_PASSWORD environment variable, else cohort-board/.password.
+No password: each browser gets its own session cookie on its first visit, which remembers which classmate it is.
 """
 import hashlib
 import hmac
@@ -60,21 +60,12 @@ import tasks  # noqa: E402
 from store import RemoteStore, StoreError, make_store  # noqa: E402
 
 
-def load_password():
-    pw = os.environ.get("COHORT_PASSWORD")
-    if not pw and (HERE / ".password").exists():
-        pw = (HERE / ".password").read_text(encoding="utf-8").strip()
-    if not pw:
-        sys.exit("Set a password: put it in cohort-board/.password or the COHORT_PASSWORD variable.")
-    return pw
-
-
-PASSWORD = load_password()
 LOCK = threading.Lock()
 
-# Logins survive restarts: sessions are kept in data/sessions.json as hashes of the cookie value.
+# Sessions survive restarts: kept in data/sessions.json as hashes of the cookie value. A session is only written
+# once the browser picks which classmate it is, so visits that never do (crawlers, one-off looks) leave no record.
 SESSIONS_FILE = DATA / "sessions.json"
-SESSION_DAYS = 30
+SESSION_DAYS = 365
 
 
 def _hash(token):
@@ -113,14 +104,6 @@ def _save_sessions():
 
 SESSIONS = _load_sessions()
 _current = threading.local()                             # the session of the request being handled
-
-
-def new_session():
-    token = secrets.token_urlsafe(32)
-    with LOCK:
-        SESSIONS[_hash(token)] = {"exp": time.time() + SESSION_DAYS * 86400}
-        _save_sessions()
-    return token
 
 
 def session_ok(token):
@@ -1149,10 +1132,13 @@ def settings():
 
 def save_settings(s):
     key = getattr(_current, "key", None)
+    if not key:
+        return
     with LOCK:
-        if key in SESSIONS:
-            SESSIONS[key]["me"] = s.get("me")
-            _save_sessions()
+        rec = SESSIONS.setdefault(key, {})
+        rec["me"] = s.get("me")
+        rec["exp"] = time.time() + SESSION_DAYS * 86400
+        _save_sessions()
 
 
 def people_summary(snap, me=None):
@@ -1191,22 +1177,6 @@ def clean(v, limit):
 
 
 # ---------- HTTP ----------
-
-LOGIN_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1"><title>Cohort Job Board</title>
-<style>
-:root{--bg:#f6f8fa;--card:#fff;--text:#1f2933;--muted:#66727f;--border:rgba(31,41,51,.14);--brand:#0a66c2;--bad:#b42318}
-body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--text);
- font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:16px;box-sizing:border-box}
-form{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:340px}
-h1{font-size:20px;margin:0 0 4px}p{margin:0 0 16px;color:var(--muted);font-size:13.5px}
-input{width:100%;box-sizing:border-box;font:inherit;padding:9px 11px;border:1px solid var(--border);border-radius:8px;margin-bottom:12px}
-button{width:100%;font:inherit;font-weight:600;padding:9px;border:0;border-radius:8px;background:var(--brand);color:#fff;cursor:pointer}
-.err{color:var(--bad);margin:0 0 12px}
-</style></head><body><form method="post" action="/login">
-<h1>Cohort Job Board</h1><p>Private to the cohort. Sign in with the cohort password.</p>
-%ERR%<input type="password" name="password" placeholder="Password" autofocus aria-label="Password" required>
-<button type="submit">Open</button></form></body></html>"""
 
 STATIC_FILES = {
     "/cohort-tools.js": (STATIC / "cohort-tools.js", "application/javascript"),
@@ -1295,6 +1265,11 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Referrer-Policy", "no-referrer")
         for k, v in (headers or {}).items():
             self.send_header(k, v)
+        new = getattr(self, "_new_cookie", None)        # first visit from this browser: hand it its session cookie
+        if new:
+            self._new_cookie = None
+            self.send_header("Set-Cookie", f"cb_session={new}; HttpOnly; SameSite=Lax; Path=/; "
+                             f"{'Secure; ' if HOSTED else ''}Max-Age={SESSION_DAYS * 86400}")
         self.end_headers()
         self.wfile.write(body)
 
@@ -1303,7 +1278,14 @@ class Handler(BaseHTTPRequestHandler):
         return c["cb_session"].value if "cb_session" in c else None
 
     def authed(self):
-        return session_ok(self.token())
+        """No sign-in: everyone is let in. The cookie only says which browser this is, so each person's
+        "which classmate am I" choice stays theirs. A browser without one is given one."""
+        token = self.token()
+        if not token:
+            token = self._new_cookie = secrets.token_urlsafe(32)
+        if not session_ok(token):
+            _current.key = _hash(token)
+        return True
 
     def same_origin(self):
         """Writes must come from this board's own pages: the local addresses, or the hosted site's own address."""
@@ -1318,8 +1300,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = self.path.split("?")[0]
-        if path == "/login":
-            return self.send(200, LOGIN_PAGE.replace("%ERR%", ""), "text/html; charset=utf-8")
+        if path == "/login":                                    # old bookmarks: there is no sign-in any more
+            return self.send(303, headers={"Location": "/"})
         if path == "/favicon.ico":
             return self.send(204)
         if not self.authed():
@@ -1438,15 +1420,10 @@ class Handler(BaseHTTPRequestHandler):
         path = self.path.split("?")[0]
         if path.startswith("/__task/"):
             return self.task(path)
+        if path in ("/__op/refresh", "/__op/status", "/__op/busy"):   # operator, from the internet (the Worker only
+            return self.task("/__task/" + path[len("/__op/"):])     # blocks /__task/); same state-token check
         if path == "/login":
-            pw = parse_qs(self.body().decode("utf-8", "replace")).get("password", [""])[0]
-            if hmac.compare_digest(pw.encode(), PASSWORD.encode()):
-                return self.send(303, headers={"Location": "/", "Set-Cookie":
-                                 f"cb_session={new_session()}; HttpOnly; SameSite=Strict; Path=/; {'Secure; ' if HOSTED else ''}"
-                                 f"Max-Age={SESSION_DAYS * 86400}"})
-            time.sleep(1)
-            page = LOGIN_PAGE.replace("%ERR%", '<p class="err">Wrong password.</p>')
-            return self.send(401, page, "text/html; charset=utf-8")
+            return self.send(303, headers={"Location": "/"})
         if not (self.authed() and self.same_origin()):
             return self.send(403, "Forbidden")
         if path == "/logout":
